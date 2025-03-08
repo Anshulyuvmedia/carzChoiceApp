@@ -4,18 +4,20 @@
     "slug": "carzChoiceApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/logo-light.jpg",
+    "scheme": "carzChoiceApp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anshulyuvmedia.carzChoiceApp"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo-light.jpg",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anshulyuvmedia.carzChoiceApp"
     },
     "web": {
       "bundler": "metro",
@@ -36,6 +38,17 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "f1f7ea03-c4c5-43c2-929a-dac5cb2c84da"
+      },
+      "ANDROID_CLIENT_ID": "722158200156-n7gte2ko0l7avcis3lq43rbuo9ljdt7n.apps.googleusercontent.com",
+      "WEB_CLIENT_ID": "722158200156-u555v22qhd1j0euc44uffpv1isu3iqpm.apps.googleusercontent.com",
+      "IOS_CLIENT_ID": "722158200156-95qqsv8tcm227b5lan64r2c907to89a2.apps.googleusercontent.com"
     }
   }
 }
