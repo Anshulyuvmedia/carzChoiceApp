@@ -7,7 +7,7 @@ import Constants from "expo-constants";
 
 WebBrowser.maybeCompleteAuthSession();
 
-export default function Index() {
+export default function GoogleAuth() {
   const [userInfo, setUserInfo] = useState(null);
   const ANDROID_CLIENT_ID = Constants.expoConfig.extra.ANDROID_CLIENT_ID;
   const WEB_CLIENT_ID = Constants.expoConfig.extra.WEB_CLIENT_ID;
