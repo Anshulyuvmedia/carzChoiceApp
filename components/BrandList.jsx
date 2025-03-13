@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
@@ -13,34 +13,25 @@ const BrandList = () => {
 
     const handleCategoryPress = (category) => {
         const isRemovingFilter = selectedCategory === category;
-
-        // Prepare new query parameters
         const updatedParams = { ...params };
 
         if (isRemovingFilter) {
-            delete updatedParams.propertyType; // Remove filter if category is already selected
+            delete updatedParams.propertyType;
             setSelectedCategory('All');
         } else {
             updatedParams.propertyType = category;
             setSelectedCategory(category);
         }
 
-        // Navigate with updated query parameters
-        router.push({
-            pathname: "/properties/explore",
-            params: updatedParams,
-        });
+        router.push({ pathname: "/properties/explore", params: updatedParams });
     };
 
     const fetchBrandList = async () => {
         setLoading(true);
         try {
             const response = await axios.get("https://carzchoice.com/api/brandlist");
-            // console.log("brandData", response.data.data);
-
-            if (response.data && response.data) {
+            if (response.data && response.data.data) {
                 setBrandData(response.data.data);
-                // console.log("brandData:", brandData);
             } else {
                 console.error("Unexpected API response format:", response.data);
             }
@@ -56,32 +47,38 @@ const BrandList = () => {
     }, []);
 
     return (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 mb-2 pb-3">
+        <View className="flex flex-row flex-wrap mt-10 mb-2 pb-3 align-middle justify-center">
+            {brandData.slice(0, 11).map((item) => (
+                <TouchableOpacity
+                    key={item.id.toString()}
+                    onPress={() => handleCategoryPress(item.label)}
+                    className={`flex flex-col items-center mr-2 mb-2 w-24 rounded-xl  ${selectedCategory === item.label ? 'bg-primary-300' : 'border border-primary-200'}`}
+                >
+                    {item.iconimage ? (
+                        <Image
+                            style={styles.brandImg}
+                            source={{ uri: `https://carzchoice.com/assets/backend-assets/images/${item.iconimage}` }}
+                            onError={(e) => console.error(`Error loading image for ${item.label}:`, e.nativeEvent.error)}
+                        />
+                    ) : (
+                        <Text>No Image</Text>
+                    )}
 
-            {brandData.map((item) => (
-                    <TouchableOpacity
-                        key={item.id.toString()}
-                        onPress={() => handleCategoryPress(item.label)}
-                        className={`flex flex-col items-center mr-2 px-2 rounded-lg  ${selectedCategory === item.label ? 'bg-primary-300' : ' border border-primary-200'
-                            }`}
-                    >
-                        {item.iconimage ? (
-                            <Image
-                                style={styles.brandImg}
-                                source={{ uri: `https://carzchoice.com/assets/backend-assets/images/${item.iconimage}` }}
-                                onError={(e) => console.error(`Error loading image for ${item.label}:`, e.nativeEvent.error)}
-                            />
-                        ) : (
-                            <Text>No Image</Text> // Fallback text if image is missing
-                        )}
-
-                        <Text className={`text-sm ${selectedCategory === item.label ? 'text-white font-rubik-bold mt-0.5' : 'text-black-300 font-rubik'}`}>
-                            {item.label}
-                        </Text>
-                    </TouchableOpacity>
+                    <Text className={`text-sm font-rubik-bold ${selectedCategory === item.label ? 'text-white  mt-0.5' : 'text-black-300 font-rubik'}`}>
+                        {item.label}
+                    </Text>
+                </TouchableOpacity>
             ))}
 
-        </ScrollView>
+            {brandData.length > 12 && (
+                <TouchableOpacity
+                    onPress={() => router.push("../dashboard/AllBrands")}
+                    className="flex flex-col justify-center items-center mr-2 mb-2 w-24 rounded-xl bg-gray-200 border border-primary-200"
+                >
+                    <Text className="text-sm text-black font-rubik-bold">View More</Text>
+                </TouchableOpacity>
+            )}
+        </View>
     );
 };
 
@@ -89,8 +86,8 @@ export default BrandList;
 
 const styles = StyleSheet.create({
     brandImg: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         resizeMode: "contain",
     },
 });

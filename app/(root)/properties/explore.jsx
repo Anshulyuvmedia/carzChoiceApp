@@ -21,43 +21,70 @@ const Explore = () => {
     setListingData([]);
 
     console.log("params:", params);
+
     try {
-      // Construct query parameters dynamically
-      const queryParams = new URLSearchParams();
-      // Only append propertyType if it's NOT "All"
-      if (params.propertyType && params.propertyType !== "All") {
-        queryParams.append("filtercategory", params.propertyType);
-      }
-      if (params.city) queryParams.append("filtercity", params.city);
-      if (params.minPrice) queryParams.append("filterminprice", params.minPrice);
-      if (params.maxPrice) queryParams.append("filtermaxprice", params.maxPrice);
-      if (params.sqftfrom) queryParams.append("sqftfrom", params.sqftfrom);
-      if (params.sqftto) queryParams.append("sqftto", params.sqftto);
+      let apiUrl;
+      let requestBody;
 
-      const apiUrl = `https://investorlands.com/api/filterlistings?${queryParams.toString()}`;
+      if (params.propertyType) {
+        // Fetch filtered listings when propertyType is present
+        apiUrl = `https://carzchoice.com/api/filterByAttribute`;
+        requestBody = { attribute: params.propertyType };
+      } 
 
-      console.log("Sending API request to:", apiUrl);
-
-      const response = await axios({
-        method: "post",
-        url: apiUrl,
+      const response = await axios.post(apiUrl, requestBody, {
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      if (response.data && Array.isArray(response.data.data)) {
-        setListingData(response.data.data);
-        // console.log("listingData", response.data.data);
+      if (response.data && response.data.variants) {
+        const formattedData = Object.values(response.data.variants).map((item) => ({
+          ...item,
+          mileage: safeParseJSON(item.mileage),
+          fueltype: safeParseJSON(item.fueltype),
+          transmission: safeParseJSON(item.transmission),
+        }));
+
+        setListingData(formattedData);
+        console.log("item:", formattedData);
+
       } else {
         console.error("Unexpected API response format:", response.data);
         setListingData([]);
       }
     } catch (error) {
-      console.error("Error fetching filtered listings:", error.response?.data || error.message);
-      setListingData([]);
+      console.error("Error fetching listings:", error.response?.data || error.message);
+
+
     } finally {
       setLoading(false);
     }
   };
 
+
+
+
+
+  // Function to safely parse JSON strings
+  const safeParseJSON = (value) => {
+    if (!value || typeof value !== "string") return value; // Return as-is if empty or not a string
+
+    try {
+      const trimmedValue = value.trim(); // Remove unwanted spaces
+
+      // If it's a valid JSON string, parse it
+      if ((trimmedValue.startsWith("{") && trimmedValue.endsWith("}")) ||
+        (trimmedValue.startsWith("[") && trimmedValue.endsWith("]"))) {
+        return JSON.parse(trimmedValue);
+      }
+
+      return value; // If not JSON, return as is
+    } catch (error) {
+      console.warn("JSON Parsing Failed for value:", value, "Error:", error.message);
+      return value; // Return original value if parsing fails
+    }
+  };
 
 
 
@@ -84,7 +111,7 @@ const Explore = () => {
                 <Image source={icons.backArrow} className='size-5' />
               </TouchableOpacity>
               <Text className='text-base mr-2 text-center font-rubik-medium text-black-300'>
-                Search for Your Ideal Home
+                Search for Your Dream Car
               </Text>
               <TouchableOpacity onPress={() => router.push('/notifications')}>
                 <Image source={icons.bell} className='size-6' />

@@ -13,6 +13,8 @@ import axios from 'axios';
 // import { useNavigation } from "expo-router"; 
 import { useNavigation } from "@react-navigation/native";
 import BrandList from '../../../components/BrandList';
+import { Colors } from '@/constants/Colors'
+import Banner from '../../../components/Banner';
 
 const Index = () => {
     const handleCardPress = (id) => router.push(`/properties/${id}`);
@@ -80,9 +82,9 @@ const Index = () => {
     const fetchListingData = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`https://investorlands.com/api/property-listings`);
-            if (response.data.data) {
-                const apiData = response.data.data;
+            const response = await axios.get(`https://carzchoice.com/api/oldvehiclelist`);
+            if (response) {
+                const apiData = response;
                 setListingData(apiData);
                 // console.log('ApiData: ',apiData);
 
@@ -143,10 +145,10 @@ const Index = () => {
                             <TouchableOpacity onPress={() => router.push('/dashboard')} className='flex flex-row items-center ml-2 justify-center'>
                                 <Image source={typeof image === 'string' ? { uri: image } : images.avatar} className='size-12 rounded-full' />
                                 <View className='flex flex-col items-start ml-2 justify-center'>
-                                    <Text className='text-xs font-rubik text-black-100'>
+                                    <Text className='text-sm font-rubik text-black-100'>
                                         Welcome
                                     </Text>
-                                    <Text className='text-base font-rubik-medium text-black-300'>
+                                    <Text className='text-lg font-rubik-medium text-black-300'>
                                         {userData?.name?.split(' ')[0] || 'User'}
                                     </Text>
                                 </View>
@@ -160,10 +162,10 @@ const Index = () => {
                         <Search />
                         <View className='my-5'>
                             <View className='flex flex-row items-center justify-between'>
-                                <Text className='text-xl font-rubik-bold text-black-300'>Featured</Text>
-                                {/* <TouchableOpacity>
-                                    <Text className='text-base font-rubik-bold' style={{ color: Colors.brown }}>See All</Text>
-                                </TouchableOpacity> */}
+                                <Text className='text-xl font-rubik-bold text-black-300'>Special Offer</Text>
+                                <TouchableOpacity>
+                                    <Text className='text-base font-rubik-bold' style={{ color: Colors.dark }}>See All</Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
 
@@ -174,20 +176,21 @@ const Index = () => {
                             horizontal
                             bounces={false}
                             showsHorizontalScrollIndicator={false}
+                            pagingEnabled
                             contentContainerClassName='flex gap-5 px-5'
                         />
+                        <BrandList />
 
                         <View className='my-5'>
                             <View className='flex flex-row items-center justify-between'>
-                                <Text className='text-xl font-rubik-bold text-black-300'>Our Recommendation</Text>
-                                {/* <TouchableOpacity onPress={}>
-                                    <Text className='text-base font-rubik-bold text-primary-300' style={{ color: Colors.brown }}>See All</Text>
-                                </TouchableOpacity> */}
+                                <Text className='text-xl font-rubik-bold text-black-300'>Top Deals</Text>
+                                <TouchableOpacity>
+                                    <Text className='text-base font-rubik-bold text-primary-300' style={{ color: Colors.dark }}>See All</Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
 
                         <Filters />
-                        <BrandList />
                     </View>
                 }
             />

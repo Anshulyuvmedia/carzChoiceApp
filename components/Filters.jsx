@@ -18,8 +18,8 @@ const Filters = () => {
         const updatedParams = { ...params };
 
         if (isRemovingFilter) {
-            delete updatedParams.propertyType; // Remove filter if category is already selected
-            setSelectedCategory('All');
+            // delete updatedParams.propertyType; // Remove filter if category is already selected
+            setSelectedCategory(category);
         } else {
             updatedParams.propertyType = category;
             setSelectedCategory(category);
@@ -35,10 +35,10 @@ const Filters = () => {
     const fetchCategories = async () => {
         setLoading(true);
         try {
-            const response = await axios.get("https://investorlands.com/api/get-categories");
+            const response = await axios.get("https://carzchoice.com/api/brandlist");
 
-            if (response.data && response.data.categories) {
-                setCategoryData(response.data.categories);
+            if (response.data && response.data.data) {
+                setCategoryData(response.data.data);
             } else {
                 console.error("Unexpected API response format:", response.data);
             }
@@ -55,7 +55,7 @@ const Filters = () => {
 
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3 mb-2 pb-3">
-            <TouchableOpacity
+            {/* <TouchableOpacity
                 key="all"
                 onPress={() => handleCategoryPress('All')}
                 className={`flex flex-col items-start mr-4 px-4 py-2 rounded-full ${
@@ -65,7 +65,7 @@ const Filters = () => {
                 <Text className={`text-sm ${selectedCategory === 'All' ? 'text-white font-rubik-bold mt-0.5' : 'text-black-300 font-rubik'}`}>
                     All
                 </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             {categoryData.map((item) => (
                 <TouchableOpacity
