@@ -1,53 +1,31 @@
-import { FlatList, Image, ScrollView, Alert, Text, TouchableOpacity, View, Dimensions, Platform, ActivityIndicator, Share } from "react-native";
+
+import { StyleSheet, Image, ScrollView, Alert, Text, TouchableOpacity, View, Dimensions, Platform, ActivityIndicator, Share } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
-import { facilities, gallery } from "@/constants/data";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import Videobox from "../../../components/Videobox";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MapView, { Marker } from "react-native-maps";
 import 'react-native-get-random-values';
 import { useNavigation } from "@react-navigation/native";
-import MasterPlanList from "@/components/MasterPlanList";
-import PriceHistoryChart from "@/components/PriceHistoryChart";
 import MortgageCalculator from "@/components/MortgageCalculator";
 import * as Linking from 'expo-linking';
+import Carousel from "react-native-reanimated-carousel";
+import { AntDesign } from "@expo/vector-icons";
 
+const { width } = Dimensions.get("window");
 const CarDetails = () => {
     const CarId = useLocalSearchParams().id;
     const windowHeight = Dimensions.get("window").height;
     const [CarData, setCarData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [CarThumbnail, setCarThumbnail] = useState(images.avatar); // Default avatar
-    const [CarGallery, setCarGallery] = useState(); // Default avatar
-    const [videoUrls, setVideoUrls] = useState([]);
+    const [CarThumbnail, setCarThumbnail] = useState(images.avatar);
+    const [CarGallery, setCarGallery] = useState();
     const [loggedinUserId, setLoggedinUserId] = useState([]);
     const [amenities, setAmenities] = useState([]);
-    const [priceHistory, setPriceHistory] = useState([]);
-    const [masterPlanDocs, setMasterPlanDocs] = useState([]);
-    const [priceHistoryData, setPriceHistoryData] = useState([]);
-    const [isPdf, setIsPdf] = useState(false);
-    const Car = {
-        facilities: facilities,
-        gallery: gallery,
-    };
-    const [coordinates, setCoordinates] = useState({
-        latitude: "",
-        longitude: "",
-    });
-    const [region, setRegion] = useState({
-        latitude: 20.5937,
-        longitude: 78.9629,
-        latitudeDelta: 0.015,
-        longitudeDelta: 0.0121,
-    });
+    const carouselRef = useRef(null);
     const navigation = useNavigation();
 
-    const openPdf = (pdfUrl) => {
-        Linking.openURL(pdfUrl);
-    };
     const openWhatsApp = (phoneNumber) => {
         let url = "";
 
@@ -67,7 +45,6 @@ const CarDetails = () => {
             })
             .catch((err) => console.error("An error occurred", err));
     };
-
 
     const handleEnquiry = async () => {
         try {
@@ -182,40 +159,12 @@ const CarDetails = () => {
 
 
                 // ✅ Handle Gallery Images
-                let galleryImages = [];
+                let formattedImages = imagesArray.map(image =>
+                    `${imageBaseURL}${image.imageurl.replace(/\\/g, "/")}`
+                );
 
-                try {
-                    // Check if `apiData.images` is a valid JSON string
-                    let imagesArray = apiData.images ? JSON.parse(apiData.images) : [];
+                setCarGallery(formattedImages);
 
-                    // Convert into the required format
-                    galleryImages = Array.isArray(imagesArray) ? imagesArray.map(image => ({
-                        id: Math.random().toString(36).substring(2, 11), // Unique ID
-                        image: image.imageurl.startsWith("http")
-                            ? image.imageurl
-                            : `${imageBaseURL}${image.imageurl.replace(/\\/g, "/")}`
-                    })) : [];
-
-                } catch (error) {
-                    console.error("Error parsing images JSON:", error);
-                }
-
-                // ✅ Set the gallery images
-                setCarGallery(galleryImages);
-
-
-                // ✅ Handle Videos
-                let parsedVideos = [];
-                try {
-                    parsedVideos = apiData.videos
-                        ? (typeof apiData.videos === 'string' ? JSON.parse(apiData.videos) : [])
-                        : [];
-                } catch (error) {
-                    console.error("Error parsing videos:", error);
-                }
-                setVideoUrls(parsedVideos.map(video =>
-                    video.startsWith('http') ? video : `https://carzchoice.com/${video}`
-                ));
 
                 // ✅ Handle Amenities
                 let parsedAmenities = [];
@@ -228,73 +177,7 @@ const CarDetails = () => {
                 }
                 setAmenities(parsedAmenities);
 
-                // ✅ Handle Price History
-                let priceHistory = [];
-                try {
-                    priceHistory = apiData.pricehistory
-                        ? JSON.parse(apiData.pricehistory)
-                        : [];
-                } catch (error) {
-                    console.error("Error parsing price history:", error);
-                }
-                setPriceHistory(priceHistory);
 
-                if (apiData.maplocations) {
-                    try {
-                        const locationData = JSON.parse(apiData.maplocations);
-                        const latitude = parseFloat(locationData.Latitude);
-                        const longitude = parseFloat(locationData.Longitude);
-
-                        if (latitude && longitude) {
-                            // Update state
-                            setCoordinates({ latitude, longitude });
-                            setRegion({
-                                latitude,
-                                longitude,
-                                latitudeDelta: 0.015,
-                                longitudeDelta: 0.0121,
-                            });
-                            // console.log("location:",region);
-                        }
-                    } catch (error) {
-                        console.error("Error parsing map locations:", error);
-                    }
-                }
-
-                if (apiData.masterplandoc) {
-                    const fileUrl = `https://carzchoice.com/assets/images/Listings/${apiData.masterplandoc}`;
-
-                    // console.log("fileUrl",fileUrl);
-                    // Check if the file is a PDF or an image
-                    if (fileUrl.toLowerCase().endsWith(".pdf")) {
-                        setIsPdf(true);
-                    } else {
-                        setIsPdf(false);
-                    }
-                    setMasterPlanDocs(fileUrl);
-                    // console.log("masterplan:", masterPlanDocs);
-                }
-
-                if (apiData.pricehistory) {
-                    let priceHistory = apiData.pricehistory;
-
-                    // Ensure priceHistory is an array
-                    if (typeof priceHistory === "string") {
-                        try {
-                            priceHistory = JSON.parse(priceHistory);
-                        } catch (error) {
-                            console.error("Error parsing price history:", error);
-                            priceHistory = []; // Fallback to empty array
-                        }
-                    }
-
-                    if (Array.isArray(priceHistory)) {
-                        setPriceHistoryData(priceHistory);
-                    } else {
-                        console.error("Invalid price history data format");
-                        setPriceHistoryData([]);
-                    }
-                }
             } else {
                 console.error('Unexpected API response format:', response.data);
             }
@@ -310,6 +193,11 @@ const CarDetails = () => {
         fetchCarData();
     }, [CarId])
 
+    const renderItem = ({ item }) => (
+        <View style={styles.slide}>
+            <Image source={{ uri: item }} style={styles.image} />
+        </View>
+    );
 
     if (loading) {
         return (
@@ -332,15 +220,49 @@ const CarDetails = () => {
                 contentContainerClassName="pb-32 bg-white"
                 contentContainerStyle={{ paddingBottom: 32, backgroundColor: 'white' }}>
                 <View className="relative w-full" style={{ height: windowHeight / 4 }}>
-                    <Image
+                    {/* <Image
                         source={{ uri: CarThumbnail }}
                         className="size-full"
                         resizeMode="contain"
-                    />
-                    <Image
+                    /> */}
+                    {CarGallery.length > 0 ? (
+                        <>
+                            {/* Left Arrow */}
+                            <TouchableOpacity
+                                style={styles.arrowLeft}
+                                onPress={() => carouselRef.current?.prev()}
+                            >
+                                <AntDesign name="left" size={24} color="white" />
+                            </TouchableOpacity>
+
+                            {/* Carousel */}
+                            <Carousel
+                                ref={carouselRef}
+                                loop
+                                width={width}
+                                height={200}
+                                autoPlay={true}
+                                autoPlayInterval={7000}
+                                data={CarGallery}
+                                scrollAnimationDuration={3000}
+                                renderItem={renderItem}
+                            />
+
+                            {/* Right Arrow */}
+                            <TouchableOpacity
+                                style={styles.arrowRight}
+                                onPress={() => carouselRef.current?.next()}
+                            >
+                                <AntDesign name="right" size={24} color="white" />
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <Text>No Images Available</Text>
+                    )}
+                    {/* <Image
                         source={images.whiteGradient}
                         className="absolute top-0 w-full z-40"
-                    />
+                    /> */}
 
                     <View
                         className="z-50 absolute inset-x-7"
@@ -381,7 +303,7 @@ const CarDetails = () => {
                     </View>
                 </View>
 
-                <View className='px-5 mt-7 flex gap-2'>
+                <View className='px-5 mt-2 flex gap-2'>
                     <Text className='text-xl font-rubik-bold'>{CarData.manufactureyear} {CarData.brandname} {CarData.carname} {CarData.modalname}</Text>
 
                     <View className='flex flex-row items-center gap-3'>
@@ -421,30 +343,6 @@ const CarDetails = () => {
                             {CarData.kilometersdriven} kms
                         </Text>
                     </View>
-
-                    {/* CarGallery */}
-                    {CarGallery && CarGallery.length > 0 ? (
-                        <View className="mt-7">
-                            <Text className="text-black-300 text-xl font-rubik-bold">
-                                Gallery
-                            </Text>
-                            <FlatList
-                                data={CarGallery} // Use the correct state
-                                keyExtractor={(item) => item.id.toString()}
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                renderItem={({ item }) => (
-                                    <Image
-                                        source={{ uri: item.image }}
-                                        className="size-40 rounded-xl"
-                                    />
-                                )}
-                                contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
-                            />
-                        </View>
-                    ) : (
-                        <></>
-                    )}
 
                     <View className="w-full border-t border-primary-200 pt-7 mt-5">
                         <Text className="text-black-300 text-xl font-rubik-bold">
@@ -686,7 +584,7 @@ const CarDetails = () => {
                             </Text>
                         </View>
                     </View>
-                    
+
                     <View className="mt-4">
                         <View className="">
                             <MortgageCalculator />
@@ -724,4 +622,26 @@ const CarDetails = () => {
 
 export default CarDetails
 
-// const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    slide: {
+        borderRadius: 10,
+        overflow: "hidden",
+    },
+    image: {
+        width: width,
+        height: 200,
+        borderRadius: 10,
+    },
+    arrowLeft: {
+        position: "absolute",
+        left: 10,
+        top: "40%",
+        zIndex: 1,
+    },
+    arrowRight: {
+        position: "absolute",
+        right: 10,
+        top: "40%",
+        zIndex: 1,
+    },
+});
