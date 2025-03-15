@@ -35,8 +35,32 @@ import addproperty from "@/assets/icons/addproperty.png";
 import videofile from "@/assets/icons/facebook.png";
 import addicon from "@/assets/icons/plus.png";
 import checkmark from "@/assets/icons/check-mark.png";
+import engineDisplacement from "@/assets/icons/cardetails/engineDisplacement.png";
+import fuel from "@/assets/icons/cardetails/fuel.png";
+import insuranceValidity from "@/assets/icons/cardetails/insuranceValidity.png";
+import kmsDriven from "@/assets/icons/cardetails/kmsDriven.png";
+import ownership from "@/assets/icons/cardetails/ownership.png";
+import registrationYear from "@/assets/icons/cardetails/registrationYear.png";
+import rto from "@/assets/icons/cardetails/rto.png";
+import seats from "@/assets/icons/cardetails/seats.png";
+import transmission from "@/assets/icons/cardetails/transmission.png";
+import yearManufacture from "@/assets/icons/cardetails/yearManufacture.png";
+import lastUpdated from "@/assets/icons/cardetails/lastUpdated.png";
+import color from "@/assets/icons/cardetails/color.png";
 
 export default {
+  engineDisplacement,
+  fuel,
+  lastUpdated,
+  color,
+  insuranceValidity,
+  registrationYear,
+  rto,
+  seats,
+  transmission,
+  yearManufacture,
+  ownership,
+  kmsDriven,
   google,
   home,
   checkmark,

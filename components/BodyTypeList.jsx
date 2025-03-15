@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
 
-const BrandList = () => {
+const BodyTypeList = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
 
@@ -16,7 +16,8 @@ const BrandList = () => {
         const updatedParams = { ...params };
 
         if (isRemovingFilter) {
-            setSelectedCategory(category);
+            delete updatedParams.propertyType;
+            setSelectedCategory('All');
         } else {
             updatedParams.propertyType = category;
             setSelectedCategory(category);
@@ -81,7 +82,7 @@ const BrandList = () => {
     );
 };
 
-export default BrandList;
+export default BodyTypeList;
 
 const styles = StyleSheet.create({
     brandImg: {

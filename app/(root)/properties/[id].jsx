@@ -15,13 +15,13 @@ import PriceHistoryChart from "@/components/PriceHistoryChart";
 import MortgageCalculator from "@/components/MortgageCalculator";
 import * as Linking from 'expo-linking';
 
-const PropertyDetails = () => {
-    const propertyId = useLocalSearchParams().id;
+const CarDetails = () => {
+    const CarId = useLocalSearchParams().id;
     const windowHeight = Dimensions.get("window").height;
-    const [propertyData, setPropertyData] = useState(null);
+    const [CarData, setCarData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [propertyThumbnail, setPropertyThumbnail] = useState(images.avatar); // Default avatar
-    const [propertyGallery, setPropertyGallery] = useState(); // Default avatar
+    const [CarThumbnail, setCarThumbnail] = useState(images.avatar); // Default avatar
+    const [CarGallery, setCarGallery] = useState(); // Default avatar
     const [videoUrls, setVideoUrls] = useState([]);
     const [loggedinUserId, setLoggedinUserId] = useState([]);
     const [amenities, setAmenities] = useState([]);
@@ -29,7 +29,7 @@ const PropertyDetails = () => {
     const [masterPlanDocs, setMasterPlanDocs] = useState([]);
     const [priceHistoryData, setPriceHistoryData] = useState([]);
     const [isPdf, setIsPdf] = useState(false);
-    const property = {
+    const Car = {
         facilities: facilities,
         gallery: gallery,
     };
@@ -84,14 +84,14 @@ const PropertyDetails = () => {
                 customername: parsedUserData.name,
                 phone: parsedUserData.mobile,
                 email: parsedUserData.email,
-                city: propertyData.city || '',
-                propertytype: propertyData.category || '',
-                propertyid: propertyId,
+                city: CarData.city || '',
+                Cartype: CarData.category || '',
+                Carid: CarId,
                 userid: parsedUserData.id,
-                state: propertyData.city || '',
+                state: CarData.city || '',
             };
             // Send enquiry request
-            const response = await axios.post("https://investorlands.com/api/sendenquiry", enquiryData);
+            const response = await axios.post("https://carzchoice.com/api/sendenquiry", enquiryData);
 
             if (response.status === 200 && !response.data.error) {
                 alert("Enquiry submitted successfully!");
@@ -106,62 +106,103 @@ const PropertyDetails = () => {
         }
     };
 
-    const shareProperty = async () => {
+    const shareCar = async () => {
         try {
-            const propertyUrl = `https://investorlands.com/property-details/${propertyId}`;
+            const CarUrl = `https://carzchoice.com/api/oldcarlistingdetails/${CarId}`;
 
-            const message = `View my property: ${propertyUrl}`;
+            const message = `View my Car: ${CarUrl}`;
 
             const result = await Share.share({
                 message: message,
-                url: propertyUrl,
-                title: "Check out this property!",
+                url: CarUrl,
+                title: "Check out this Car!",
             });
 
             if (result.action === Share.sharedAction) {
-                console.log("Property shared successfully!");
+                console.log("Car shared successfully!");
             } else if (result.action === Share.dismissedAction) {
                 console.log("Share dismissed.");
             }
         } catch (error) {
-            console.error("Error sharing property:", error);
+            console.error("Error sharing Car:", error);
         }
     };
 
-    const fetchPropertyData = async () => {
+    const fetchCarData = async () => {
         try {
             const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
             setLoggedinUserId(parsedUserData?.id || "");
 
-            // Fetch property data from API
-            const response = await axios.get(`https://investorlands.com/api/property-details/${propertyId}`);
+            // Fetch Car data from API
+            const response = await axios.get(`https://carzchoice.com/api/oldcarlistingdetails/${CarId}`);
+            // console.log("API Full Response:", JSON.stringify(response.data, null, 2));
 
-            if (response.data) {
-                const apiData = response.data.details;
-                setPropertyData(apiData);
+            if (response.data && response.data.data && response.data.data.cardetails) {
+                let apiData = response.data.data.cardetails;
 
-                // ✅ Handle Thumbnail
-                setPropertyThumbnail(
-                    apiData.thumbnail
-                        ? (apiData.thumbnail.startsWith('http')
-                            ? apiData.thumbnail
-                            : `https://investorlands.com/assets/images/Listings/${apiData.thumbnail}`)
-                        : images.newYork
-                );
+                // ✅ Parse JSON fields
+                if (apiData.specifications && apiData.specifications.length > 0) {
+                    apiData.specifications = JSON.parse(apiData.specifications[0].specifications);
+                }
+
+                if (apiData.features && apiData.features.length > 0) {
+                    apiData.features = JSON.parse(apiData.features[0].features);
+                }
+                // ✅ Set state with parsed data
+                setCarData(apiData);
+
+                // console.log("Processed Car Details:", apiData);
+
+                // ✅ Handle Images Array (Extract Thumbnail)
+                let imageBaseURL = "https://carzchoice.com/";
+                let fallbackImage = "https://carzchoice.com/assets/backend-assets/images/1721106135_9.png"; // Use an actual fallback URL
+                // Check if `apiData.images` is a valid JSON string and parse it
+                let imagesArray = [];
+                if (typeof apiData.images === "string") {
+                    try {
+                        imagesArray = JSON.parse(apiData.images);
+                    } catch (error) {
+                        console.error("Error parsing images JSON:", error);
+                    }
+                }
+
+                // Extract the first image
+                let thumbnail = fallbackImage; // Default image
+
+                if (Array.isArray(imagesArray) && imagesArray.length > 0) {
+                    let firstImage = imagesArray[0].imageurl;
+
+                    if (typeof firstImage === "string" && firstImage.trim() !== "") {
+                        thumbnail = firstImage.startsWith("http") ? firstImage : `${imageBaseURL}${firstImage}`;
+                    }
+                }
+                // ✅ Ensure it's a valid string before setting it
+                setCarThumbnail(thumbnail);
+
+
 
                 // ✅ Handle Gallery Images
                 let galleryImages = [];
+
                 try {
-                    galleryImages = apiData.gallery ? JSON.parse(apiData.gallery).map(image => ({
+                    // Check if `apiData.images` is a valid JSON string
+                    let imagesArray = apiData.images ? JSON.parse(apiData.images) : [];
+
+                    // Convert into the required format
+                    galleryImages = Array.isArray(imagesArray) ? imagesArray.map(image => ({
                         id: Math.random().toString(36).substring(2, 11), // Unique ID
-                        image: image.startsWith('http')
-                            ? image
-                            : `https://investorlands.com/${image.replace(/\\/g, '/')}`
+                        image: image.imageurl.startsWith("http")
+                            ? image.imageurl
+                            : `${imageBaseURL}${image.imageurl.replace(/\\/g, "/")}`
                     })) : [];
+
                 } catch (error) {
-                    console.error("Error parsing gallery images:", error);
+                    console.error("Error parsing images JSON:", error);
                 }
-                setPropertyGallery(galleryImages);
+
+                // ✅ Set the gallery images
+                setCarGallery(galleryImages);
+
 
                 // ✅ Handle Videos
                 let parsedVideos = [];
@@ -173,7 +214,7 @@ const PropertyDetails = () => {
                     console.error("Error parsing videos:", error);
                 }
                 setVideoUrls(parsedVideos.map(video =>
-                    video.startsWith('http') ? video : `https://investorlands.com/${video}`
+                    video.startsWith('http') ? video : `https://carzchoice.com/${video}`
                 ));
 
                 // ✅ Handle Amenities
@@ -221,7 +262,7 @@ const PropertyDetails = () => {
                 }
 
                 if (apiData.masterplandoc) {
-                    const fileUrl = `https://investorlands.com/assets/images/Listings/${apiData.masterplandoc}`;
+                    const fileUrl = `https://carzchoice.com/assets/images/Listings/${apiData.masterplandoc}`;
 
                     // console.log("fileUrl",fileUrl);
                     // Check if the file is a PDF or an image
@@ -258,7 +299,7 @@ const PropertyDetails = () => {
                 console.error('Unexpected API response format:', response.data);
             }
         } catch (error) {
-            console.error('Error fetching property data:', error);
+            console.error('Error fetching Car data:', error);
         } finally {
             setLoading(false);
         }
@@ -266,8 +307,8 @@ const PropertyDetails = () => {
 
 
     useEffect(() => {
-        fetchPropertyData();
-    }, [propertyId])
+        fetchCarData();
+    }, [CarId])
 
 
     if (loading) {
@@ -276,7 +317,7 @@ const PropertyDetails = () => {
         );
     }
 
-    if (!propertyData) {
+    if (!CarData) {
         return (
             <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
         );
@@ -290,11 +331,11 @@ const PropertyDetails = () => {
                 showsVerticalScrollIndicator={false}
                 contentContainerClassName="pb-32 bg-white"
                 contentContainerStyle={{ paddingBottom: 32, backgroundColor: 'white' }}>
-                <View className="relative w-full" style={{ height: windowHeight / 2 }}>
+                <View className="relative w-full" style={{ height: windowHeight / 4 }}>
                     <Image
-                        source={{ uri: propertyThumbnail }}
+                        source={{ uri: CarThumbnail }}
                         className="size-full"
-                        resizeMode="cover"
+                        resizeMode="contain"
                     />
                     <Image
                         source={images.whiteGradient}
@@ -319,8 +360,8 @@ const PropertyDetails = () => {
                             </TouchableOpacity>
 
                             <View className="flex flex-row items-center gap-3">
-                                {propertyData.roleid == loggedinUserId &&
-                                    <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik ring-1 ring-inset ${propertyData.status === 'published' ? ' bg-green-50  text-green-700  ring-green-600/20 ' : 'bg-red-50  text-red-700 ring-red-600/20'}`}>{propertyData.status}</Text>
+                                {CarData.roleid == loggedinUserId &&
+                                    <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik ring-1 ring-inset ${CarData.status === 'published' ? ' bg-green-50  text-green-700  ring-green-600/20 ' : 'bg-red-50  text-red-700 ring-red-600/20'}`}>{CarData.status}</Text>
                                 }
                                 {/* <Image
                                     source={icons.heart}
@@ -328,7 +369,7 @@ const PropertyDetails = () => {
                                     tintColor={"#191D31"}
                                 /> */}
                                 <TouchableOpacity
-                                    onPress={shareProperty}
+                                    onPress={shareCar}
                                     className="flex flex-row bg-primary-200 rounded-full size-11 items-center justify-center"
                                 >
                                     <Image source={icons.send} className="size-7" />
@@ -341,21 +382,21 @@ const PropertyDetails = () => {
                 </View>
 
                 <View className='px-5 mt-7 flex gap-2'>
-                    <Text className='text-2xl font-rubik-extrabold'>{propertyData.property_name}</Text>
+                    <Text className='text-xl font-rubik-bold'>{CarData.manufactureyear} {CarData.brandname} {CarData.carname} {CarData.modalname}</Text>
 
                     <View className='flex flex-row items-center gap-3'>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
-                            <Text className='text-xs font-rubik-bold'> Category:</Text>
-                            <Text className='text-xs font-rubik-bold text-primary-300'> {propertyData.category}</Text>
+                            <Text className='text-xs font-rubik-bold'> State: </Text>
+                            <Text className='text-xs font-rubik-bold text-primary-300'> {CarData.state}</Text>
                         </View>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
-                            <Text className='text-xs font-rubik-bold'> City:</Text>
-                            <Text className='text-xs font-rubik-bold text-primary-300'> {propertyData.city}</Text>
+                            <Text className='text-xs font-rubik-bold'> City: </Text>
+                            <Text className='text-xs font-rubik-bold text-primary-300 capitalize'> {CarData.district}</Text>
                         </View>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
-                            <Image source={icons.area} className='size-4' />
+                            <Text className='text-xs font-rubik-bold'> Color: </Text>
                             <Text className='text-black-300 text-sm font-rubik-medium ml-2'>
-                                {propertyData.squarefoot} sqft
+                                {CarData.color}
                             </Text>
                         </View>
                     </View>
@@ -364,22 +405,46 @@ const PropertyDetails = () => {
                         <View className='flex flex-row  items-center justify-center bg-primary-100 rounded-full size-10'>
                             <Image source={icons.bed} className='size-4' />
                         </View>
-                        <Text className='text-black-300 text-sm font-rubik-medium ml-2'>
-                            {propertyData.bedroom} Bedroom
+                        <Text className={`text-black-300 text-sm font-rubik-medium ml-2 ${CarData.fueltype === 'CNG' ? 'uppercase' : 'capitalize'}`}>
+                            {CarData.fueltype}
                         </Text>
                         <View className='flex  flex-row items-center justify-center bg-primary-100 rounded-full size-10 ml-7'>
                             <Image source={icons.bed} className='size-4' />
                         </View>
-                        <Text className='text-black-300 text-sm font-rubik-medium ml-2'>
-                            {propertyData.floor} Floors
+                        <Text className='text-black-300 text-sm font-rubik-medium ml-2 capitalize'>
+                            {JSON.parse(CarData.transmissiontype)}
                         </Text>
                         <View className='flex  flex-row items-center justify-center bg-primary-100 rounded-full size-10 ml-7'>
                             <Image source={icons.bath} className='size-4' />
                         </View>
                         <Text className='text-black-300 text-sm font-rubik-medium ml-2'>
-                            {propertyData.bathroom} Bathroom
+                            {CarData.kilometersdriven} kms
                         </Text>
                     </View>
+
+                    {/* CarGallery */}
+                    {CarGallery && CarGallery.length > 0 ? (
+                        <View className="mt-7">
+                            <Text className="text-black-300 text-xl font-rubik-bold">
+                                Gallery
+                            </Text>
+                            <FlatList
+                                data={CarGallery} // Use the correct state
+                                keyExtractor={(item) => item.id.toString()}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                renderItem={({ item }) => (
+                                    <Image
+                                        source={{ uri: item.image }}
+                                        className="size-40 rounded-xl"
+                                    />
+                                )}
+                                contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
+                            />
+                        </View>
+                    ) : (
+                        <></>
+                    )}
 
                     <View className="w-full border-t border-primary-200 pt-7 mt-5">
                         <Text className="text-black-300 text-xl font-rubik-bold">
@@ -396,7 +461,7 @@ const PropertyDetails = () => {
 
                             <View className="flex flex-col items-start justify-center ml-3">
                                 <Text className="text-lg text-black-300 text-start font-rubik-bold">
-                                    Investor Land's Consultant
+                                    Carz Choice's Consultant
                                 </Text>
                                 <Text className="text-sm text-black-200 text-start font-rubik-medium">
                                     You are one call away.
@@ -415,22 +480,176 @@ const PropertyDetails = () => {
                     </View>
 
                     <View className='mt-7'>
-                        <Text className='text-black-300 text-xl font-rubik-bold'>Overview</Text>
-                        <Text className='text-black-200 text-base font-rubik mt-2'>
-                            {propertyData.discription}
-                        </Text>
-                        {propertyData.nearbylocation && (
+                        <Text className='text-black-300 text-xl font-rubik-bold'>Car Overview</Text>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.registrationYear} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Registration Year:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.registrationyear || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.insuranceValidity} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Insurance:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.insurance || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.fuel} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Fuel Type:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.fueltype || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.seats} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Seats:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.seats || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.kmsDriven} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Kms Driven:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.kilometersdriven || '-'} Kms
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.rto} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium uppercase">
+                                    RTO:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.district || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.ownership} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Ownership:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.ownernumbers || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.engineDisplacement} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Engine Displacement:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.engine || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.transmission} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Transmission:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {JSON.parse(CarData.transmissiontype)}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.yearManufacture} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Year of Manufacture:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.manufactureyear || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.color} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Color:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className=" text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.color || '-'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View className="flex flex-row justify-between  my-2">
+                            <View className="flex flex-row items-center justify-start gap-2">
+                                <Image source={icons.lastUpdated} className="w-5 h-5" />
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    Last Updated:
+                                </Text>
+                            </View>
+                            <View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
+                                    {CarData.lastupdated || '-'}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {CarData.nearbylocation && (
                             <>
                                 <Text className='text-black-300 text-base font-rubik-medium mt-3'>Near by Locations:</Text>
                                 <Text className='text-black-200 text-base font-rubik mt-2'>
-                                    {propertyData.nearbylocation}
+                                    {CarData.nearbylocation}
                                 </Text>
                             </>
                         )}
 
-                        {propertyData.approxrentalincome && (
+                        {CarData.approxrentalincome && (
                             <Text className='text-black-300 text-center font-rubik-medium mt-2 bg-blue-100 flex-grow p-2 rounded-full'>
-                                Approx Rental Income: ₹{propertyData.approxrentalincome}
+                                Approx Rental Income: ₹{CarData.approxrentalincome}
                             </Text>
                         )}
                     </View>
@@ -454,44 +673,6 @@ const PropertyDetails = () => {
                         </View>
                     )}
 
-                    {/* propertyGallery */}
-                    {propertyGallery && propertyGallery.length > 0 ? (
-                        <View className="mt-7">
-                            <Text className="text-black-300 text-xl font-rubik-bold">
-                                Gallery
-                            </Text>
-                            <FlatList
-                                data={propertyGallery} // Use the correct state
-                                keyExtractor={(item) => item.id.toString()}
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                renderItem={({ item }) => (
-                                    <Image
-                                        source={{ uri: item.image }}
-                                        className="size-40 rounded-xl"
-                                    />
-                                )}
-                                contentContainerStyle={{ gap: 16, paddingVertical: 10 }}
-                            />
-                        </View>
-                    ) : (
-                        <></>
-                    )}
-
-                    {videoUrls.length > 0 ? (
-                        <View className=" mt-4">
-                            <Text className="text-black-300 text-xl font-rubik-bold">Property Videos</Text>
-                            <FlatList
-                                data={videoUrls}
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                keyExtractor={(_, index) => `video-${index}`}
-                                renderItem={({ item }) => <Videobox url={item} />}
-                            />
-                        </View>
-                    ) : (
-                        <></>
-                    )}
 
                     {/* location */}
                     <View className="mt-7">
@@ -499,52 +680,13 @@ const PropertyDetails = () => {
                             Location
                         </Text>
                         <View className="flex flex-row items-center justify-start my-4 gap-2">
-                            <Image source={icons.location} className="w-7 h-7" />
-                            <Text className="text-black-200 text-sm font-rubik-medium">
-                                {propertyData.address}
+                            <Image source={icons.location} className="w-5 h-5" />
+                            <Text className="text-black-200 text-sm font-rubik-medium capitalize">
+                                {CarData.district}, {CarData.state}
                             </Text>
                         </View>
-
-                        <View>
-                            <MapView
-                                style={{ height: 150, borderRadius: 10 }}
-                                region={region}
-                                initialRegion={region}
-                            >
-                                {region && <Marker coordinate={{ latitude: parseFloat(coordinates.latitude), longitude: parseFloat(coordinates.longitude) }} />}
-                            </MapView>
-
-                            {/* 🔹 Show the Address Below the Map */}
-                            <TouchableOpacity
-                                onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${coordinates.latitude},${coordinates.longitude}`)}
-                            >
-                                <Text className='text-black-300 text-center font-rubik-medium mt-2 bg-blue-100 flex-grow p-2 rounded-full'>
-                                    View Location
-                                </Text>
-                            </TouchableOpacity>
-
-
-
-                        </View>
-
                     </View>
-                    {Array.isArray(masterPlanDocs) && masterPlanDocs.length > 0 && (
-                        <View className="mt-4">
-                            <Text className="text-black-300 text-xl font-rubik-bold">
-                                Property Master Plan
-                            </Text>
-                            <View>
-                                <MasterPlanList masterPlanDocs={masterPlanDocs} />
-                            </View>
-                        </View>
-                    )}
-                    {priceHistoryData && (
-                        <View className="mt-4">
-                            <View className="">
-                                <PriceHistoryChart priceHistoryData={priceHistoryData} />
-                            </View>
-                        </View>
-                    )}
+                    
                     <View className="mt-4">
                         <View className="">
                             <MortgageCalculator />
@@ -557,7 +699,7 @@ const PropertyDetails = () => {
             {/* bottom book now button */}
             <View className="absolute bg-white bottom-0 w-full rounded-t-2xl border-t border-r border-l border-primary-200 p-7">
                 <View className="flex flex-row items-center justify-between gap-10">
-                    {/* <View className="flex flex-col items-start">
+                    <View className="flex flex-col items-start">
                         <Text className="text-black-200 text-xs font-rubik-medium">
                             Price
                         </Text>
@@ -565,9 +707,9 @@ const PropertyDetails = () => {
                             numberOfLines={1}
                             className="text-primary-300 text-start text-2xl font-rubik-bold"
                         >
-                            ₹{propertyData.price}
+                            ₹{CarData.price}
                         </Text>
-                    </View> */}
+                    </View>
 
                     <TouchableOpacity onPress={() => handleEnquiry()} className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
                         <Text className="text-white text-lg text-center font-rubik-bold">
@@ -580,6 +722,6 @@ const PropertyDetails = () => {
     )
 }
 
-export default PropertyDetails
+export default CarDetails
 
 // const styles = StyleSheet.create({})

@@ -14,7 +14,8 @@ import axios from 'axios';
 import { useNavigation } from "@react-navigation/native";
 import BrandList from '../../../components/BrandList';
 import { Colors } from '@/constants/Colors'
-import Banner from '../../../components/Banner';
+import BodyTypeList from '../../../components/BodyTypeList';
+import LocationList from '../../../components/LocationList';
 
 const Index = () => {
     const handleCardPress = (id) => router.push(`/properties/${id}`);
@@ -107,7 +108,7 @@ const Index = () => {
     //         }
     //     })();
     // }, []);
-    
+
     // Define the getLocation function
     // const getLocation = async () => {
     //     try {
@@ -137,7 +138,7 @@ const Index = () => {
                 keyExtractor={(item) => item.id.toString()}
                 numColumns={2}
                 contentContainerClassName="pb-32"
-                columnWrapperClassName='flex gap-5 px-5'
+                columnWrapperClassName='flex gap-2 px-3'
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={
                     <View className='px-5'>
@@ -177,23 +178,23 @@ const Index = () => {
                             bounces={false}
                             showsHorizontalScrollIndicator={false}
                             pagingEnabled
-                            contentContainerClassName='flex gap-5 px-5'
+                            contentContainerClassName='flex gap-2'
                         />
                         <BrandList />
 
-                        <View className='my-5'>
+                        <View className='mt-5'>
                             <View className='flex flex-row items-center justify-between'>
-                                <Text className='text-xl font-rubik-bold text-black-300'>Top Deals</Text>
-                                <TouchableOpacity>
-                                    <Text className='text-base font-rubik-bold text-primary-300' style={{ color: Colors.dark }}>See All</Text>
-                                </TouchableOpacity>
+                                <Text className='text-xl font-rubik-bold text-black-300'>Used Car By Cities</Text>
                             </View>
                         </View>
+                        <LocationList />
 
-                        <Filters />
+
                     </View>
                 }
             />
+
+
         </SafeAreaView>
     );
 };
