@@ -1,5 +1,5 @@
 
-import { StyleSheet, Image, ScrollView, Alert, Text, TouchableOpacity, View, Dimensions, Platform, ActivityIndicator, Share } from "react-native";
+import { StyleSheet, Image, FlatList, ScrollView, Alert, Text, TouchableOpacity, View, Dimensions, Platform, ActivityIndicator, Share } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
@@ -12,6 +12,8 @@ import MortgageCalculator from "@/components/MortgageCalculator";
 import * as Linking from 'expo-linking';
 import Carousel from "react-native-reanimated-carousel";
 import { AntDesign } from "@expo/vector-icons";
+import FeaturesAccordion from "../../../components/FeaturesAccordion";
+import SpecsAccordion from "../../../components/SpecsAccordion";
 
 const { width } = Dimensions.get("window");
 const CarDetails = () => {
@@ -22,9 +24,10 @@ const CarDetails = () => {
     const [CarThumbnail, setCarThumbnail] = useState(images.avatar);
     const [CarGallery, setCarGallery] = useState();
     const [loggedinUserId, setLoggedinUserId] = useState([]);
-    const [amenities, setAmenities] = useState([]);
     const carouselRef = useRef(null);
     const navigation = useNavigation();
+    const [specifications, setSpecifications] = useState([]);
+    const [features, setFeatures] = useState([]);
 
     const openWhatsApp = (phoneNumber) => {
         let url = "";
@@ -94,7 +97,6 @@ const CarDetails = () => {
                 url: CarUrl,
                 title: "Check out this Car!",
             });
-
             if (result.action === Share.sharedAction) {
                 console.log("Car shared successfully!");
             } else if (result.action === Share.dismissedAction) {
@@ -105,6 +107,7 @@ const CarDetails = () => {
         }
     };
 
+
     const fetchCarData = async () => {
         try {
             const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
@@ -112,23 +115,91 @@ const CarDetails = () => {
 
             // Fetch Car data from API
             const response = await axios.get(`https://carzchoice.com/api/oldcarlistingdetails/${CarId}`);
-            // console.log("API Full Response:", JSON.stringify(response.data, null, 2));
+            // console.log("API Full Response:", response.data);
 
             if (response.data && response.data.data && response.data.data.cardetails) {
                 let apiData = response.data.data.cardetails;
 
-                // ✅ Parse JSON fields
-                if (apiData.specifications && apiData.specifications.length > 0) {
-                    apiData.specifications = JSON.parse(apiData.specifications[0].specifications);
+                let parsedSpecifications = [];
+
+                try {
+                    const carDetails = apiData;
+                    
+                    // console.log("Raw Specifications Data:", carDetails?.specifications); // Debugging
+                
+                    if (carDetails?.specifications && Array.isArray(carDetails.specifications)) {
+                        let parsedSpecData = [];
+                
+                        // Try parsing the first element if it's a JSON string
+                        try {
+                            parsedSpecData = JSON.parse(carDetails.specifications[0]);
+                        } catch (error) {
+                            console.error("❌ Error parsing specifications JSON:", error);
+                        }
+                
+                        // Ensure it's an array before mapping
+                        if (Array.isArray(parsedSpecData)) {
+                            parsedSpecifications = parsedSpecData.map((spec) => ({
+                                name: spec.type || "Unknown",
+                                details: [
+                                    {
+                                        label: spec.label || "N/A",
+                                        value: spec.value || "N/A"
+                                    }
+                                ]
+                            }));
+                        } else {
+                            console.warn("⚠️ Parsed specifications is not an array:", parsedSpecData);
+                        }
+                    } else {
+                        console.warn("⚠️ Specifications field is missing or empty:", carDetails?.specifications);
+                    }
+                } catch (error) {
+                    console.error("❌ Error processing specifications:", error);
+                    parsedSpecifications = [];
                 }
 
-                if (apiData.features && apiData.features.length > 0) {
-                    apiData.features = JSON.parse(apiData.features[0].features);
+                try {
+                    let rawFeatures = apiData.features;
+                    // console.log("✅ rawFeatures:", JSON.stringify(rawFeatures, null, 2));
+
+                    // 🔎 Check if rawFeatures is an array and contains a stringified JSON
+                    if (Array.isArray(rawFeatures) && rawFeatures.length > 0 && typeof rawFeatures[0] === "string") {
+                        try {
+                            // 🛠️ Parse the first element (which is a stringified JSON)
+                            rawFeatures = JSON.parse(rawFeatures[0]);
+                            // console.log("✅ Parsed Features:", JSON.stringify(rawFeatures, null, 2));
+                        } catch (parseError) {
+                            console.error("❌ Error parsing nested features JSON string:", parseError);
+                            rawFeatures = [];
+                        }
+                    }
+
+                    // 🔎 Ensure it's an array before mapping
+                    let parsedFeatures = [];
+                    if (Array.isArray(rawFeatures) && rawFeatures.length > 0) {
+                        parsedFeatures = rawFeatures.map((feature) => ({
+                            name: feature?.type || "Unknown",
+                            details: Array.isArray(feature?.label) ? feature.label : []
+                        }));
+                    } else {
+                        console.warn("⚠️ No valid features array found");
+                    }
+
+                    // ✅ Debug the final output
+                    // console.log("✅ Final Features Debug:", parsedFeatures);
+
+                    // 🔄 Set state with the correct data
+                    setFeatures(parsedFeatures);
+                } catch (error) {
+                    console.error("❌ Error parsing features:", error);
+                    setFeatures([]);
                 }
+
+
                 // ✅ Set state with parsed data
                 setCarData(apiData);
-
-                // console.log("Processed Car Details:", apiData);
+                setSpecifications(parsedSpecifications);
 
                 // ✅ Handle Images Array (Extract Thumbnail)
                 let imageBaseURL = "https://carzchoice.com/";
@@ -166,18 +237,6 @@ const CarDetails = () => {
                 setCarGallery(formattedImages);
 
 
-                // ✅ Handle Amenities
-                let parsedAmenities = [];
-                try {
-                    parsedAmenities = apiData.amenties
-                        ? JSON.parse(apiData.amenties)
-                        : [];
-                } catch (error) {
-                    console.error("Error parsing amenities:", error);
-                }
-                setAmenities(parsedAmenities);
-
-
             } else {
                 console.error('Unexpected API response format:', response.data);
             }
@@ -193,7 +252,7 @@ const CarDetails = () => {
         fetchCarData();
     }, [CarId])
 
-    const renderItem = ({ item }) => (
+    const renderCarouselItem = ({ item }) => (
         <View style={styles.slide}>
             <Image source={{ uri: item }} style={styles.image} />
         </View>
@@ -211,101 +270,85 @@ const CarDetails = () => {
         );
     }
 
+    const carDetails = [
+        { key: 'Registration Year', icon: icons.registrationYear, value: CarData.registrationyear || '-' },
+        { key: 'Insurance', icon: icons.insuranceValidity, value: CarData.insurance || '-' },
+        { key: 'Fuel Type', icon: icons.fuel, value: CarData.fueltype || '-' },
+        { key: 'Seats', icon: icons.seats, value: CarData.seats || '-' },
+        { key: 'Kms Driven', icon: icons.kmsDriven, value: `${CarData.kilometersdriven || '-'} Kms` },
+        { key: 'RTO', icon: icons.rto, value: CarData.district || '-' },
+        { key: 'Ownership', icon: icons.ownership, value: CarData.ownernumbers || '-' },
+        { key: 'Engine Displacement', icon: icons.engineDisplacement, value: CarData.engine || '-' },
+        { key: 'Transmission', icon: icons.transmission, value: JSON.parse(CarData.transmissiontype) },
+        { key: 'Year of Manufacture', icon: icons.yearManufacture, value: CarData.manufactureyear || '-' },
+        { key: 'Color', icon: icons.color, value: CarData.color || '-' },
+        { key: 'Last Updated', icon: icons.lastUpdated, value: CarData.lastupdated || '-' },
+    ];
 
+    const renderHeader = () => (
+        <View className="relative w-full" style={{ height: windowHeight / 4 }}>
+            <View
+                className="z-50 absolute inset-x-7"
+                style={{ top: Platform.OS === "ios" ? 70 : 20, }}
+            >
+                <View className="flex flex-row items-center w-full justify-between">
+                    <TouchableOpacity onPress={() => router.back()}
+                        className="flex flex-row bg-white rounded-full size-11 items-center justify-center"
+                    >
+                        <Image source={icons.backArrow} className="size-5" />
+                    </TouchableOpacity>
+                    <View className="flex flex-row items-center gap-3">
+                        {CarData.roleid == loggedinUserId &&
+                            <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik ring-1 ring-inset ${CarData.status === 'published' ? ' bg-green-50  text-green-700  ring-green-600/20 ' : 'bg-red-50  text-red-700 ring-red-600/20'}`}>{CarData.status}</Text>
+                        }
+                        {/* <Image source={icons.heart} className="size-7" tintColor={"#191D31"}/> */}
+                        <TouchableOpacity onPress={shareCar}
+                            className="flex flex-row bg-white rounded-full size-11 items-center justify-center"
+                        >
+                            <Image source={icons.send} className="size-7" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+            {CarGallery.length > 0 ? (
+                <>
+                    <TouchableOpacity style={styles.arrowLeft} onPress={() => carouselRef.current?.prev()}>
+                        <AntDesign name="left" size={24} color="white" />
+                    </TouchableOpacity>
+
+                    <Carousel
+                        ref={carouselRef}
+                        loop
+                        width={width}
+                        height={200}
+                        autoPlay={true}
+                        autoPlayInterval={7000}
+                        data={CarGallery}
+                        scrollAnimationDuration={3000}
+                        renderItem={renderCarouselItem}
+                    />
+
+                    <TouchableOpacity style={styles.arrowRight} onPress={() => carouselRef.current?.next()}>
+                        <AntDesign name="right" size={24} color="white" />
+                    </TouchableOpacity>
+                </>
+            ) : (
+                <Text>No Images Available</Text>
+            )}
+        </View>
+    );
+
+    const renderItem = ({ item }) => (
+        <View className='px-5 mt-2 flex gap-2'>
+            {item}
+        </View>
+    );
 
     return (
         <View className="pb-24">
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerClassName="pb-32 bg-white"
-                contentContainerStyle={{ paddingBottom: 32, backgroundColor: 'white' }}>
-                <View className="relative w-full" style={{ height: windowHeight / 4 }}>
-                    {/* <Image
-                        source={{ uri: CarThumbnail }}
-                        className="size-full"
-                        resizeMode="contain"
-                    /> */}
-                    {CarGallery.length > 0 ? (
-                        <>
-                            {/* Left Arrow */}
-                            <TouchableOpacity
-                                style={styles.arrowLeft}
-                                onPress={() => carouselRef.current?.prev()}
-                            >
-                                <AntDesign name="left" size={24} color="white" />
-                            </TouchableOpacity>
-
-                            {/* Carousel */}
-                            <Carousel
-                                ref={carouselRef}
-                                loop
-                                width={width}
-                                height={200}
-                                autoPlay={true}
-                                autoPlayInterval={7000}
-                                data={CarGallery}
-                                scrollAnimationDuration={3000}
-                                renderItem={renderItem}
-                            />
-
-                            {/* Right Arrow */}
-                            <TouchableOpacity
-                                style={styles.arrowRight}
-                                onPress={() => carouselRef.current?.next()}
-                            >
-                                <AntDesign name="right" size={24} color="white" />
-                            </TouchableOpacity>
-                        </>
-                    ) : (
-                        <Text>No Images Available</Text>
-                    )}
-                    {/* <Image
-                        source={images.whiteGradient}
-                        className="absolute top-0 w-full z-40"
-                    /> */}
-
-                    <View
-                        className="z-50 absolute inset-x-7"
-                        style={{
-                            top: Platform.OS === "ios" ? 70 : 20,
-                        }}
-                    >
-                        <View className="flex flex-row items-center w-full justify-between">
-                            <TouchableOpacity
-                                onPress={() => router.back()}
-                                className="flex flex-row bg-primary-200 rounded-full size-11 items-center justify-center"
-                            >
-                                <Image
-                                    source={icons.backArrow}
-                                    className="size-5"
-                                />
-                            </TouchableOpacity>
-
-                            <View className="flex flex-row items-center gap-3">
-                                {CarData.roleid == loggedinUserId &&
-                                    <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik ring-1 ring-inset ${CarData.status === 'published' ? ' bg-green-50  text-green-700  ring-green-600/20 ' : 'bg-red-50  text-red-700 ring-red-600/20'}`}>{CarData.status}</Text>
-                                }
-                                {/* <Image
-                                    source={icons.heart}
-                                    className="size-7"
-                                    tintColor={"#191D31"}
-                                /> */}
-                                <TouchableOpacity
-                                    onPress={shareCar}
-                                    className="flex flex-row bg-primary-200 rounded-full size-11 items-center justify-center"
-                                >
-                                    <Image source={icons.send} className="size-7" />
-                                </TouchableOpacity>
-
-
-                            </View>
-                        </View>
-                    </View>
-                </View>
-
-                <View className='px-5 mt-2 flex gap-2'>
-                    <Text className='text-xl font-rubik-bold'>{CarData.manufactureyear} {CarData.brandname} {CarData.carname} {CarData.modalname}</Text>
-
+            <FlatList
+                data={[
+                    <Text className='text-xl font-rubik-bold'>{CarData.manufactureyear} {CarData.brandname} {CarData.carname} {CarData.modalname}</Text>,
                     <View className='flex flex-row items-center gap-3'>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
                             <Text className='text-xs font-rubik-bold'> State: </Text>
@@ -317,13 +360,11 @@ const CarDetails = () => {
                         </View>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
                             <Text className='text-xs font-rubik-bold'> Color: </Text>
-                            <Text className='text-black-300 text-sm font-rubik-medium ml-2'>
-                                {CarData.color}
-                            </Text>
+                            <Text className='text-black-300 text-sm font-rubik-medium ml-2'>{CarData.color}</Text>
                         </View>
-                    </View>
+                    </View>,
 
-                    <View className='flex flex-row items-center flew-wrap'>
+                    <View className='flex flex-row items-center flew-wrap mb-5'>
                         <View className='flex flex-row  items-center justify-center bg-primary-100 rounded-full size-10'>
                             <Image source={icons.bed} className='size-4' />
                         </View>
@@ -342,277 +383,50 @@ const CarDetails = () => {
                         <Text className='text-black-300 text-sm font-rubik-medium ml-2'>
                             {CarData.kilometersdriven} kms
                         </Text>
-                    </View>
+                    </View>,
 
-                    <View className="w-full border-t border-primary-200 pt-7 mt-5">
-                        <Text className="text-black-300 text-xl font-rubik-bold">
-                            Contact Us
-                        </Text>
-                    </View>
-
-                    <View className="flex flex-row items-center justify-between mt-4">
-                        <View className="flex flex-row items-center">
-                            <Image
-                                source={images.appfavicon}
-                                className="size-14 rounded-full"
-                            />
-
-                            <View className="flex flex-col items-start justify-center ml-3">
-                                <Text className="text-lg text-black-300 text-start font-rubik-bold">
-                                    Carz Choice's Consultant
-                                </Text>
-                                <Text className="text-sm text-black-200 text-start font-rubik-medium">
-                                    You are one call away.
-                                </Text>
+                    <Text className='text-xl font-rubik-bold'>Car Overview</Text>,
+                    <FlatList
+                        data={carDetails}
+                        keyExtractor={(item) => item.key}
+                        className="bg-white drop-shadow-sm px-5 py-3 rounded-lg mb-5"
+                        renderItem={({ item }) => (
+                            <View className="flex flex-row justify-between my-2">
+                                <View className="flex flex-row items-center justify-start gap-2">
+                                    <Image source={item.icon} className="w-5 h-5" />
+                                    <Text className="text-black text-base font-rubik-medium capitalize">{item.key}:</Text>
+                                </View>
+                                <Text className="text-black-200 text-base font-rubik-medium capitalize">{item.value}</Text>
                             </View>
-                        </View>
-
-                        <View className="flex flex-row items-center gap-3">
-                            <TouchableOpacity onPress={() => openWhatsApp("919876543210")}>
-                                <Image source={icons.chat} className="size-7" />
-                            </TouchableOpacity>
-                            <TouchableOpacity>
-                                <Image source={icons.phone} className="size-7" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    <View className='mt-7'>
-                        <Text className='text-black-300 text-xl font-rubik-bold'>Car Overview</Text>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.registrationYear} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Registration Year:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.registrationyear || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.insuranceValidity} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Insurance:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.insurance || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.fuel} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Fuel Type:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.fueltype || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.seats} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Seats:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.seats || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.kmsDriven} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Kms Driven:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.kilometersdriven || '-'} Kms
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.rto} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium uppercase">
-                                    RTO:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.district || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.ownership} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Ownership:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.ownernumbers || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.engineDisplacement} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Engine Displacement:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.engine || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.transmission} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Transmission:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {JSON.parse(CarData.transmissiontype)}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.yearManufacture} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Year of Manufacture:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.manufactureyear || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.color} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Color:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className=" text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.color || '-'}
-                                </Text>
-                            </View>
-                        </View>
-                        <View className="flex flex-row justify-between  my-2">
-                            <View className="flex flex-row items-center justify-start gap-2">
-                                <Image source={icons.lastUpdated} className="w-5 h-5" />
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    Last Updated:
-                                </Text>
-                            </View>
-                            <View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">
-                                    {CarData.lastupdated || '-'}
-                                </Text>
-                            </View>
-                        </View>
-
-                        {CarData.nearbylocation && (
-                            <>
-                                <Text className='text-black-300 text-base font-rubik-medium mt-3'>Near by Locations:</Text>
-                                <Text className='text-black-200 text-base font-rubik mt-2'>
-                                    {CarData.nearbylocation}
-                                </Text>
-                            </>
                         )}
+                        scrollEnabled={false}
+                        nestedScrollEnabled={true}
+                    />,
 
-                        {CarData.approxrentalincome && (
-                            <Text className='text-black-300 text-center font-rubik-medium mt-2 bg-blue-100 flex-grow p-2 rounded-full'>
-                                Approx Rental Income: ₹{CarData.approxrentalincome}
-                            </Text>
-                        )}
-                    </View>
+                    <Text className='text-xl font-rubik-bold  mt-5'>Car Features</Text>,
+                    <FeaturesAccordion features={features} />,
 
-                    {/* facilities */}
-                    {amenities && Array.isArray(amenities) && amenities.length > 0 && (
-                        <View className='mt-7'>
-                            <Text className='text-black-300 text-xl font-rubik-bold'>Amenities</Text>
-                            <View className="flex flex-row flex-wrap items-start justify-start mt-2 gap-3">
-                                {amenities.map((item, index) => (
-                                    <View key={index} className="flex items-start">
-                                        <View className="px-3 py-2 bg-blue-100 rounded-full flex flex-row items-center justify-center">
-                                            <Image source={icons.checkmark} className="size-6 me-2" />
-                                            <Text className="text-black-300 text-sm text-center font-rubik-bold capitalize">
-                                                {item}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                ))}
-                            </View>
-                        </View>
-                    )}
+                    <Text className='text-xl font-rubik-bold mt-5'>Car specifications</Text>,
+                    <SpecsAccordion specifications={specifications} />,
 
+                    <MortgageCalculator />
+                ]}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderItem}
+                ListHeaderComponent={renderHeader}
+            />
 
-                    {/* location */}
-                    <View className="mt-7">
-                        <Text className="text-black-300 text-xl font-rubik-bold">
-                            Location
-                        </Text>
-                        <View className="flex flex-row items-center justify-start my-4 gap-2">
-                            <Image source={icons.location} className="w-5 h-5" />
-                            <Text className="text-black-200 text-sm font-rubik-medium capitalize">
-                                {CarData.district}, {CarData.state}
-                            </Text>
-                        </View>
-                    </View>
-
-                    <View className="mt-4">
-                        <View className="">
-                            <MortgageCalculator />
-                        </View>
-                    </View>
-                </View>
-            </ScrollView>
-
-
-            {/* bottom book now button */}
             <View className="absolute bg-white bottom-0 w-full rounded-t-2xl border-t border-r border-l border-primary-200 p-7">
                 <View className="flex flex-row items-center justify-between gap-10">
                     <View className="flex flex-col items-start">
-                        <Text className="text-black-200 text-xs font-rubik-medium">
-                            Price
-                        </Text>
-                        <Text
-                            numberOfLines={1}
-                            className="text-primary-300 text-start text-2xl font-rubik-bold"
-                        >
+                        <Text className="text-black-200 text-xs font-rubik-medium">Price</Text>
+                        <Text numberOfLines={1} className="text-primary-300 text-start text-2xl font-rubik-bold">
                             ₹{CarData.price}
                         </Text>
                     </View>
 
                     <TouchableOpacity onPress={() => handleEnquiry()} className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
-                        <Text className="text-white text-lg text-center font-rubik-bold">
-                            Book Now
-                        </Text>
+                        <Text className="text-white text-lg text-center font-rubik-bold">Book Now</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -644,4 +458,28 @@ const styles = StyleSheet.create({
         top: "40%",
         zIndex: 1,
     },
+    section: {
+        marginBottom: 20,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    listItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+    },
+    bullet: {
+        fontSize: 16,
+        marginRight: 8,
+    },
+    text: {
+        fontSize: 16,
+    },
+    overviewbox: {
+        backgroundColor: 'red',
+    },
+
 });

@@ -27,9 +27,9 @@ const MortgageCalculator = () => {
     const totalInterest = totalPayment - loanAmount;
 
     return (
-        <View className="border rounded-lg border-gray-300" style={{ padding: 20 }}>
+        <View className="border rounded-lg border-gray-100 bg-white drop-shadow-sm" style={{ padding: 20 }}>
             <Text style={{ fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20 }}>
-                🏡 Mortgage Calculator
+                🚗 EMI Calculator
             </Text>
 
             {/* Total Price */}
