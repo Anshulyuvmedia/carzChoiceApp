@@ -22,7 +22,7 @@ const BrandList = () => {
             setSelectedCategory(category);
         }
 
-        router.push({ pathname: "/properties/explore", params: updatedParams });
+        router.push({ pathname: "/vehicles/explore", params: updatedParams });
     };
 
     const fetchBrandList = async () => {

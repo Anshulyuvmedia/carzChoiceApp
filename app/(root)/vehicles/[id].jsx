@@ -14,6 +14,7 @@ import Carousel from "react-native-reanimated-carousel";
 import { AntDesign } from "@expo/vector-icons";
 import FeaturesAccordion from "../../../components/FeaturesAccordion";
 import SpecsAccordion from "../../../components/SpecsAccordion";
+import Toast, { BaseToast } from 'react-native-toast-message';
 
 const { width } = Dimensions.get("window");
 const CarDetails = () => {
@@ -28,7 +29,34 @@ const CarDetails = () => {
     const navigation = useNavigation();
     const [specifications, setSpecifications] = useState([]);
     const [features, setFeatures] = useState([]);
-
+    const toastConfig = {
+        success: (props) => (
+            <BaseToast
+                {...props}
+                style={{ borderLeftColor: "green" }}
+                text1Style={{
+                    fontSize: 16,
+                    fontWeight: "bold",
+                }}
+                text2Style={{
+                    fontSize: 14,
+                }}
+            />
+        ),
+        error: (props) => (
+            <BaseToast
+                {...props}
+                style={{ borderLeftColor: "red" }}
+                text1Style={{
+                    fontSize: 16,
+                    fontWeight: "bold",
+                }}
+                text2Style={{
+                    fontSize: 14,
+                }}
+            />
+        ),
+    };
     const openWhatsApp = (phoneNumber) => {
         let url = "";
 
@@ -52,43 +80,65 @@ const CarDetails = () => {
     const handleEnquiry = async () => {
         try {
             setLoading(true); // Show loading indicator
-            // Get user data from AsyncStorage
-            const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
-            const userId = parsedUserData?.id; // Extract user ID safely
-            // console.log("Stored userData:", parsedUserData);
-            if (!userId) {
-                console.error("User ID not found in stored userData.");
+            const storedData = await AsyncStorage.getItem('userData');
+            if (!storedData) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'User data not found.',
+                });
                 return;
             }
-            const enquiryData = {
-                customername: parsedUserData.name,
-                phone: parsedUserData.mobile,
-                email: parsedUserData.email,
-                city: CarData.city || '',
-                Cartype: CarData.category || '',
-                Carid: CarId,
-                userid: parsedUserData.id,
-                state: CarData.city || '',
-            };
-            // Send enquiry request
-            const response = await axios.post("https://carzchoice.com/api/sendenquiry", enquiryData);
 
-            if (response.status === 200 && !response.data.error) {
-                alert("Enquiry submitted successfully!");
+            const parsedUserData = JSON.parse(storedData);
+
+            const enquiryData = {
+                fullname: parsedUserData.fullname || "Unknown",
+                mobile: parsedUserData.contactno,
+                email: parsedUserData.email,
+                vehiclename: `${CarData.manufactureyear} ${CarData.brandname} ${CarData.carname} ${CarData.modalname}`,
+                city: parsedUserData.district,
+                statename: CarData.state,
+                remarks: `Interested in ${CarData.manufactureyear} ${CarData.brandname} ${CarData.carname} ${CarData.modalname}`,
+            };
+
+            // console.log("Sending Enquiry Data:", enquiryData);
+
+            const response = await axios.post("https://carzchoice.com/api/bookvehiclenow", enquiryData, {
+                headers: { "Content-Type": "application/json" }
+            });
+
+            // console.log("Full API Response:", response.data);
+
+            // Fix success check
+            if (response.data.success === true) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Enquiry submitted successfully!',
+                });
             } else {
-                alert("Failed to submit enquiry. Please try again.");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Submission Failed',
+                    text2: response.data.message || "Unknown error",
+                });
             }
         } catch (error) {
             console.error("Error submitting enquiry:", error);
-            alert("An error occurred. Please try again.");
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'An error occurred. Please try again.',
+            });
         } finally {
-            setLoading(false); // Hide loading indicator
+            setLoading(false);
         }
     };
 
     const shareCar = async () => {
         try {
-            const CarUrl = `https://carzchoice.com/api/oldcarlistingdetails/${CarId}`;
+            const CarUrl = `https://carzchoice.com/carlistingdetails/${CarId}`;
 
             const message = `View my Car: ${CarUrl}`;
 
@@ -110,9 +160,6 @@ const CarDetails = () => {
 
     const fetchCarData = async () => {
         try {
-            const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
-            setLoggedinUserId(parsedUserData?.id || "");
-
             // Fetch Car data from API
             const response = await axios.get(`https://carzchoice.com/api/oldcarlistingdetails/${CarId}`);
             // console.log("API Full Response:", response.data);
@@ -124,19 +171,19 @@ const CarDetails = () => {
 
                 try {
                     const carDetails = apiData;
-                    
+
                     // console.log("Raw Specifications Data:", carDetails?.specifications); // Debugging
-                
+
                     if (carDetails?.specifications && Array.isArray(carDetails.specifications)) {
                         let parsedSpecData = [];
-                
+
                         // Try parsing the first element if it's a JSON string
                         try {
                             parsedSpecData = JSON.parse(carDetails.specifications[0]);
                         } catch (error) {
                             console.error("❌ Error parsing specifications JSON:", error);
                         }
-                
+
                         // Ensure it's an array before mapping
                         if (Array.isArray(parsedSpecData)) {
                             parsedSpecifications = parsedSpecData.map((spec) => ({
@@ -348,6 +395,7 @@ const CarDetails = () => {
         <View className="pb-24">
             <FlatList
                 data={[
+                    <Toast config={toastConfig} position="top" />,
                     <Text className='text-xl font-rubik-bold'>{CarData.manufactureyear} {CarData.brandname} {CarData.carname} {CarData.modalname}</Text>,
                     <View className='flex flex-row items-center gap-3'>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
@@ -402,12 +450,15 @@ const CarDetails = () => {
                         scrollEnabled={false}
                         nestedScrollEnabled={true}
                     />,
+                    <View className="bg-white rounded-lg pb-5">
+                        <Text className='text-xl font-rubik-bold text-primary-300 m-5'>Car Features</Text>
+                        <FeaturesAccordion features={features} />
+                    </View>,
 
-                    <Text className='text-xl font-rubik-bold  mt-5'>Car Features</Text>,
-                    <FeaturesAccordion features={features} />,
-
-                    <Text className='text-xl font-rubik-bold mt-5'>Car specifications</Text>,
-                    <SpecsAccordion specifications={specifications} />,
+                    <View className="bg-white rounded-lg">
+                        <Text className='text-xl font-rubik-bold text-primary-300 m-5'>Car specifications</Text>
+                        <SpecsAccordion specifications={specifications} />
+                    </View>,
 
                     <MortgageCalculator />
                 ]}

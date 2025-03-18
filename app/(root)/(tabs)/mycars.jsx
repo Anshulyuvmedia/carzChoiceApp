@@ -7,11 +7,11 @@ import axios from 'axios';
 import images from '@/constants/images';
 import icons from '@/constants/icons';
 
-const Myproperties = () => {
+const MyCars = () => {
   const [userPropertyData, setUserPropertyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const handleCardPress = (id) => router.push(`/properties/${id}`);
+  const handleCardPress = (id) => router.push(`/vehicles/${id}`);
   const handleEditPress = (id) => router.push(`/dashboard/editproperties/${id}`);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const Myproperties = () => {
         <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
           <Image source={icons.backArrow} className="w-5 h-5" />
         </TouchableOpacity>
-        <Text className="text-lg mr-2 text-center font-rubik text-gray-700">My Investments</Text>
+        <Text className="text-lg mr-2 text-center font-rubik text-gray-700">My Cars</Text>
         <TouchableOpacity onPress={() => router.push('/notifications')}>
           <Image source={icons.bell} className='size-6' />
         </TouchableOpacity>
@@ -111,6 +111,6 @@ const Myproperties = () => {
   );
 };
 
-export default Myproperties;
+export default MyCars;
 
 const styles = StyleSheet.create({});

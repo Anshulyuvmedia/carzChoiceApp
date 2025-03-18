@@ -18,7 +18,7 @@ import BodyTypeList from '../../../components/BodyTypeList';
 import LocationList from '../../../components/LocationList';
 
 const Index = () => {
-    const handleCardPress = (id) => router.push(`/properties/${id}`);
+    const handleCardPress = (id) => router.push(`/vehicles/${id}`);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(false);
     const router = useRouter();

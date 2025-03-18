@@ -14,45 +14,47 @@ const Dashboard = () => {
   const router = useRouter();
   const [image, setImage] = useState(images.avatar);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true);
-      try {
-        const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
-        if (!parsedUserData || !parsedUserData.id) {
-          await AsyncStorage.removeItem('userData');
-          router.push('/signin');
-          return;
-        }
-        // Fetch user data from API
-        const response = await axios.get(`https://investorlands.com/api/userprofile?id=${parsedUserData.id}`);
-        // console.log('API Response:', response.data);
 
-        if (response.data && response.data.data) {
-          const apiData = response.data.data;
-          setUserData(apiData);
+  const fetchUserData = async () => {
+    setLoading(true);
+    try {
+      const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
+      if (!parsedUserData || !parsedUserData.id) {
+        await AsyncStorage.removeItem('userData');
+        router.push('/signin');
+        return;
+      }
+      // Fetch user data from API
+      const response = await axios.get(`https://investorlands.com/api/userprofile?id=${parsedUserData.id}`);
+      // console.log('API Response:', response.data);
 
-          // Set Profile Image, ensuring fallback to default avatar
-          if (apiData.profile_photo_path) {
-            setImage(
-              apiData.profile_photo_path.startsWith('http')
-                ? apiData.profile_photo_path
-                : `https://investorlands.com/assets/images/Users/${apiData.profile_photo_path}`
-            );
-          } else {
-            setImage(images.avatar);
-          }
+      if (response.data && response.data.data) {
+        const apiData = response.data.data;
+        setUserData(apiData);
+
+        // Set Profile Image, ensuring fallback to default avatar
+        if (apiData.profile_photo_path) {
+          setImage(
+            apiData.profile_photo_path.startsWith('http')
+              ? apiData.profile_photo_path
+              : `https://investorlands.com/assets/images/Users/${apiData.profile_photo_path}`
+          );
         } else {
-          console.error('Unexpected API response format:', response.data);
           setImage(images.avatar);
         }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+      } else {
+        console.error('Unexpected API response format:', response.data);
         setImage(images.avatar);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setImage(images.avatar);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
 
     fetchUserData();
   }, []);

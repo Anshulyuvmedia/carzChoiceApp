@@ -13,7 +13,7 @@ const Explore = () => {
   const [loading, setLoading] = useState(false);
   const params = useLocalSearchParams(); // Get URL parameters
 
-  const handleCardPress = (id) => router.push(`/properties/${id}`);
+  const handleCardPress = (id) => router.push(`/vehicles/${id}`);
 
   const fetchFilterData = async () => {
     setLoading(true);

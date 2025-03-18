@@ -17,7 +17,7 @@ import icons from '@/constants/icons';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from "expo-web-browser";
 import Constants from "expo-constants";
-import Toast from 'react-native-toast-message';
+import Toast, { BaseToast } from 'react-native-toast-message';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -26,7 +26,34 @@ const Signin = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
+  const toastConfig = {
+    success: (props) => (
+      <BaseToast
+        {...props}
+        style={{ borderLeftColor: "green" }}
+        text1Style={{
+          fontSize: 16,
+          fontWeight: "bold",
+        }}
+        text2Style={{
+          fontSize: 14,
+        }}
+      />
+    ),
+    error: (props) => (
+      <BaseToast
+        {...props}
+        style={{ borderLeftColor: "red" }}
+        text1Style={{
+          fontSize: 16,
+          fontWeight: "bold",
+        }}
+        text2Style={{
+          fontSize: 14,
+        }}
+      />
+    ),
+  };
   const ANDROID_CLIENT_ID = Constants.expoConfig.extra.ANDROID_CLIENT_ID;
   const WEB_CLIENT_ID = Constants.expoConfig.extra.WEB_CLIENT_ID;
   const IOS_CLIENT_ID = Constants.expoConfig.extra.IOS_CLIENT_ID;
@@ -44,7 +71,7 @@ const Signin = () => {
       Toast.show({ type: 'error', text1: 'Validation Error', text2: 'Please enter both email and password.' });
       return;
     }
-  
+
     setLoading(true);
     try {
       const response = await fetch('https://carzchoice.com/api/loginuser', {
@@ -52,22 +79,28 @@ const Signin = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-  
+
       const data = await response.json();
-      // console.log("API Response:", data); // Debugging
-  
+      console.log("API Response:", data); // Debugging
+
       if (response.ok && data.success) {
         if (!data.data) {
           Toast.show({ type: 'error', text1: 'Login Failed', text2: 'Invalid response from server' });
           return;
         }
-  
+
         // If a token is provided, store it
         if (data.token) {
           await AsyncStorage.setItem('userToken', data.token);
         }
-        await AsyncStorage.setItem('userData', JSON.stringify(data.data));
-  
+        if (data?.success && data?.data) {
+          await AsyncStorage.setItem('userData', JSON.stringify(data.data));
+          // console.log("User data stored successfully!", JSON.stringify(data.data));
+
+        } else {
+          console.error("Unexpected API response format:", data);
+        }
+
         Toast.show({ type: 'success', text1: 'Login Successful', text2: `Welcome ${data.data.fullname}` });
         router.push('/'); // Redirect to dashboard
       } else {
@@ -111,7 +144,7 @@ const Signin = () => {
           </Link>
         </View>
       </ScrollView>
-      <Toast />
+      <Toast config={toastConfig} position="bottom" />
     </SafeAreaView>
   );
 };

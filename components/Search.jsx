@@ -81,7 +81,7 @@ const Search = () => {
         );
 
         router.push({
-            pathname: "/properties/explore",
+            pathname: "/vehicles/explore",
             params: cleanFilters,
         });
 

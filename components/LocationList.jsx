@@ -24,7 +24,7 @@ const LocationList = () => {
     
         // 🔹 Delay navigation slightly to allow proper mounting
         setTimeout(() => {
-            router.push({ pathname: "/properties/explore", params: updatedParams });
+            router.push({ pathname: "/vehicles/explore", params: updatedParams });
         }, 200); 
     };
 

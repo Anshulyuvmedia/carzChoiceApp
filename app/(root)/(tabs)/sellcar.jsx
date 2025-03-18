@@ -15,7 +15,7 @@ import Constants from "expo-constants";
 import 'react-native-get-random-values';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const Addproperty = () => {
+const SellCar = () => {
 
     const GOOGLE_MAPS_API_KEY = Constants.expoConfig.extra.GOOGLE_MAPS_API_KEY;
     const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '', });
@@ -443,7 +443,7 @@ const Addproperty = () => {
                 masterplandocument: masterPlanDoc.map((doc, index) => `masterplan-${index}.${safeFileName(doc.uri, "pdf")}`),
             };
             formData.append("fileData", JSON.stringify(fileData));
-            console.log("Uploading FormData add property:", formData);
+            console.log("Uploading FormData add Vehicle:", formData);
 
             // Send API request
             const response = await axios.post("https://investorlands.com/api/insertlisting", formData, {
@@ -455,9 +455,9 @@ const Addproperty = () => {
 
             // console.log("API Response:", response.data);
             if (response.status === 200 && !response.data.error) {
-                Alert.alert("Success", "Property added successfully!", [{ text: "OK" }]);
+                Alert.alert("Success", "Vehicle added successfully!", [{ text: "OK" }]);
             } else {
-                Alert.alert("Error", response.data.message || "Failed to add property.");
+                Alert.alert("Error", response.data.message || "Failed to add Vehicle.");
             }
         } catch (error) {
             console.error("API Error:", error?.response?.data || error);
@@ -505,7 +505,7 @@ const Addproperty = () => {
                     <Image source={icons.backArrow} style={{ width: 20, height: 20 }} />
                 </TouchableOpacity>
                 <Text style={{ fontSize: 16, marginRight: 10, textAlign: 'center', fontFamily: 'Rubik-Medium', color: '#4A4A4A' }}>
-                    Add New Property
+                    Add New Vehicle
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/notifications')}>
                     <Image source={icons.bell} className='size-6' />
@@ -521,11 +521,11 @@ const Addproperty = () => {
                     >
                         <View style={styles.stepContent}>
 
-                            {/* enter property name */}
-                            <Text style={styles.label}>Property Name</Text>
+                            {/* enter Vehicle name */}
+                            <Text style={styles.label}>Vehicle Name</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Enter property name"
+                                placeholder="Enter Vehicle name"
                                 value={step1Data.property_name}
                                 onChangeText={text => setStep1Data({ ...step1Data, property_name: text })}
                             />
@@ -533,17 +533,17 @@ const Addproperty = () => {
 
 
                             {/* enter description */}
-                            <Text style={styles.label}>Property Description</Text>
+                            <Text style={styles.label}>Vehicle Description</Text>
                             <TextInput
                                 style={styles.textarea}
                                 value={step1Data.description}
                                 onChangeText={text => setStep1Data({ ...step1Data, description: text })} maxLength={120}
-                                placeholder="Enter property description"
+                                placeholder="Enter Vehicle description"
                                 multiline numberOfLines={5}
                             />
 
                             {/* enter thumbnail */}
-                            <Text style={styles.label}>Property Thumbnail</Text>
+                            <Text style={styles.label}>Vehicle Thumbnail</Text>
                             <View className="flex flex-row">
                                 <TouchableOpacity onPress={pickMainImage} style={styles.dropbox}>
                                     <Text style={{ textAlign: 'center' }}>Pick an image from gallery</Text>
@@ -600,7 +600,7 @@ const Addproperty = () => {
                             />
 
 
-                            <Text style={styles.label}>Current Property Price</Text>
+                            <Text style={styles.label}>Current Vehicle Price</Text>
                             <TextInput
                                 style={styles.input}
                                 keyboardType="numeric"
@@ -615,7 +615,7 @@ const Addproperty = () => {
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                 <View style={{ flex: 1, marginRight: 10 }}>
 
-                                    {/* enter property price */}
+                                    {/* enter Vehicle price */}
                                     <Text style={styles.label}>Historical Price</Text>
 
                                     {/* Enter Price */}
@@ -750,16 +750,16 @@ const Addproperty = () => {
                                     <TextInput style={styles.input} placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
                                 </View>
 
-                                {/* enter property city */}
+                                {/* enter Vehicle city */}
                                 <View style={{ flex: 1, marginLeft: 5 }}>
                                     <Text style={styles.label}>City</Text>
                                     <TextInput style={styles.input} placeholder="Enter City" value={step3Data.city} onChangeText={text => setStep3Data({ ...step3Data, city: text })} />
                                 </View>
                             </View>
 
-                            {/* enter property address */}
-                            <Text style={styles.label}>Property Address</Text>
-                            <TextInput style={styles.textarea} placeholder="Property Address" value={step3Data.officeaddress} onChangeText={text => setStep3Data({ ...step3Data, officeaddress: text })} multiline numberOfLines={5} maxLength={120} />
+                            {/* enter Vehicle address */}
+                            <Text style={styles.label}>Vehicle Address</Text>
+                            <TextInput style={styles.textarea} placeholder="Vehicle Address" value={step3Data.officeaddress} onChangeText={text => setStep3Data({ ...step3Data, officeaddress: text })} multiline numberOfLines={5} maxLength={120} />
 
                             <Text style={styles.label}>Search location on google</Text>
                             <GooglePlacesAutocomplete
@@ -810,7 +810,7 @@ const Addproperty = () => {
                         </View>
 
                         {/* upload gallery */}
-                        <Text style={styles.label}>Property Gallery</Text>
+                        <Text style={styles.label}>Vehicle Gallery</Text>
                         <View style={{ flexGrow: 1, minHeight: 1 }}>
                             <FlatList
                                 data={galleryImages}
@@ -874,7 +874,7 @@ const Addproperty = () => {
 
                         {/* upload doc */}
                         <View style={styles.stepContent}>
-                            <Text style={styles.label}>Upload Property Documents</Text>
+                            <Text style={styles.label}>Upload Vehicle Documents</Text>
                             <View style={{ flexGrow: 1, minHeight: 1 }}>
                                 <FlatList
                                     data={propertyDocuments}
@@ -901,7 +901,7 @@ const Addproperty = () => {
 
                         {/* upload marster plan */}
                         <View style={styles.stepContent}>
-                            <Text style={styles.label}>Upload Master Plan of Property</Text>
+                            <Text style={styles.label}>Upload Master Plan of Vehicle</Text>
                             <View style={{ flexGrow: 1, minHeight: 1 }}>
                                 <FlatList
                                     data={masterPlanDoc}
@@ -937,7 +937,7 @@ const Addproperty = () => {
     )
 }
 
-export default Addproperty
+export default SellCar
 
 const styles = StyleSheet.create({
     container: {
