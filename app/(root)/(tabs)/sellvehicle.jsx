@@ -15,7 +15,7 @@ import Constants from "expo-constants";
 import 'react-native-get-random-values';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const SellCar = () => {
+const SellVehicle = () => {
 
     const GOOGLE_MAPS_API_KEY = Constants.expoConfig.extra.GOOGLE_MAPS_API_KEY;
     const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '', });
@@ -937,7 +937,7 @@ const SellCar = () => {
     )
 }
 
-export default SellCar
+export default SellVehicle
 
 const styles = StyleSheet.create({
     container: {

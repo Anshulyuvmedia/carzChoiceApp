@@ -47,18 +47,18 @@ const TabsLayout = () => {
                 }}
             />
             <Tabs.Screen
-                name="mycars"
+                name="myvehicles"
                 options={{
-                    title: "My Cars",
+                    title: "My Vehicles",
                     headerShown: false,
                     tabBarIcon: ({ focused }) => (
-                        <TabIcon focused={focused} icon={icons.search} title="My Vehicle" />
+                        <TabIcon focused={focused} icon={icons.search} title="My Vehicles" />
                     ),
                 }}
             />
             
             <Tabs.Screen
-                name="sellcar"
+                name="sellvehicle"
                 options={{
                     title: "Sell Car",
                     headerShown: false,

@@ -7,49 +7,65 @@ import axios from 'axios';
 import images from '@/constants/images';
 import icons from '@/constants/icons';
 
-const MyCars = () => {
+const MyVehicles = () => {
   const [userPropertyData, setUserPropertyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const handleCardPress = (id) => router.push(`/vehicles/${id}`);
-  const handleEditPress = (id) => router.push(`/dashboard/editproperties/${id}`);
+  const handleEditPress = (id) => router.push(`/dashboard/editvehicle/${id}`);
+
+  const fetchUserData = async () => {
+    setLoading(true);
+    try {
+      const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
+
+      // Fetch user properties from API
+      const response = await axios.get(`https://carzchoice.com/api/myoldvehiclelist/${parsedUserData.id}`);
+      // console.log('API Response:', response.data.oldvehicles);
+
+      if (response.data && response.data.oldvehicles) {
+        const formattedData = response.data.oldvehicles.map((item) => {
+          // ✅ Parse `images` field since it's a JSON string
+          let parsedImages = [];
+          try {
+            parsedImages = JSON.parse(item.images); // Convert string to array
+          } catch (error) {
+            console.error("Error parsing images:", error);
+          }
+
+          // ✅ Get the first image (if exists) or fallback to a default image
+          let firstImage = parsedImages.length > 0 && parsedImages[0].imageurl
+            ? `https://carzchoice.com/${parsedImages[0].imageurl}`
+            : 'https://carzchoice.com/assets/backend-assets/images/1720680106_3.png'; // Fallback image
+
+            return {
+            id: item.id,
+            carname: item.carname,
+            brandname: item.brandname,
+            modalname: item.modalname,
+            address: item.address,
+            price: new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price), // ✅ Format price for Indian currency
+            status: item.activationstatus,
+            thumbnail: firstImage, // ✅ Use the first image
+            city: item.district,
+            state: item.state,
+            manufactureyear: item.manufactureyear,
+            };
+        });
+
+        setUserPropertyData(formattedData);
+      } else {
+        console.error('Unexpected API response format:', response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      setLoading(true);
-      try {
-        const parsedPropertyData = JSON.parse(await AsyncStorage.getItem('userData'));
 
-        // Fetch user properties from API
-        const response = await axios.get(`https://investorlands.com/api/viewuserlistings?id=${parsedPropertyData.id}`);
-        // console.log('API Response:', response.data);
-
-        if (response.data && response.data.properties) {
-          const formattedData = response.data.properties.map((item) => ({
-            id: item.id,
-            property_name: item.property_name,
-            address: item.address,
-            price: item.price,
-            status: item.status,
-            category: item.category,
-            thumbnail: item.thumbnail && typeof item.thumbnail === 'string' && item.thumbnail.startsWith('http')
-              ? item.thumbnail
-              : item.thumbnail
-              ? `https://investorlands.com/assets/images/Listings/${item.thumbnail}`
-              : 'https://investorlands.com/assets/images/default-thumbnail.jpg', // Fallback default image
-            city: item.city, // Limit to 10 words
-          }));
-        
-          setUserPropertyData(formattedData);
-        } else {
-          console.error('Unexpected API response format:', response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchUserData();
   }, []);
@@ -60,7 +76,7 @@ const MyCars = () => {
         <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
           <Image source={icons.backArrow} className="w-5 h-5" />
         </TouchableOpacity>
-        <Text className="text-lg mr-2 text-center font-rubik text-gray-700">My Cars</Text>
+        <Text className="text-lg mr-2 text-center font-rubik text-gray-700">My Vehicles</Text>
         <TouchableOpacity onPress={() => router.push('/notifications')}>
           <Image source={icons.bell} className='size-6' />
         </TouchableOpacity>
@@ -89,14 +105,14 @@ const MyCars = () => {
                 {/* Property Details */}
                 <View className="ml-4 flex-1">
                   <View className="flex-row justify-between mt-2">
-                    <Text className="text-md font-rubik text-gray-900">{item.property_name}</Text>
-                    <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik border  ${item.status === 'published' ? ' bg-green-50  text-green-700  border-green-500 ' : 'bg-red-50  text-red-700 border-red-600/20'}`}>{item.status}</Text>
+                    <Text className="text-md font-rubik text-gray-900">{item.manufactureyear} {item.carname}</Text>
+                    <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik border  ${item.status === 'Activated' ? ' bg-green-50  text-green-700  border-green-500 ' : 'bg-red-50  text-red-700 border-red-600/20'}`}>{item.status}</Text>
                   </View>
-                  <Text className="text-sm font-semibold text-gray-700">{item.address}</Text>
-                  <Text className="text-sm text-gray-500 mt-1">{item.city}</Text>
+                  <Text className="text-sm font-semibold text-gray-700">{item.modalname}</Text>
+                  <Text className="text-sm text-gray-500 mt-1">{item.city} {item.state}</Text>
                   <View className="flex-row justify-between mt-2">
-                    <Text className="text-sm font-semibold text-gray-700">{item.category}</Text>
-                    {/* <Text className="text-sm font-semibold text-gray-700">₹{item.price}</Text> */}
+                    <Text className="text-sm font-semibold text-gray-700">{item.brandname}</Text>
+                    <Text className="text-sm font-semibold text-blue-700">{item.price}</Text>
                     <TouchableOpacity onPress={() => handleEditPress(item.id)}>
                       <Text className="inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik border border-red-600 bg-gray-50 text-red-600">Edit</Text>
                     </TouchableOpacity>
@@ -111,6 +127,6 @@ const MyCars = () => {
   );
 };
 
-export default MyCars;
+export default MyVehicles;
 
 const styles = StyleSheet.create({});

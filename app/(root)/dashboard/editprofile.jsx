@@ -18,11 +18,13 @@ const EditProfile = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [companyName, setCompanyName] = useState('');
     const [usertype, setUsertype] = useState('');
-    const [companyDocs, setCompanyDocs] = useState([]);
+    const [district, setDistrict] = useState([]);
     const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState(null);
+    const [pincode, setPincode] = useState('');
+    const [state, setState] = useState('');
+    const [address, setAddress] = useState('');
 
     // Fetch existing profile data
     useEffect(() => {
@@ -33,7 +35,9 @@ const EditProfile = () => {
     const fetchProfileData = async () => {
         try {
             setLoading(true);
-            const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
+
+            const storedUserData = await AsyncStorage.getItem('userData');
+            const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
 
             if (!parsedUserData || !parsedUserData.id) {
                 await AsyncStorage.removeItem('userData');
@@ -41,37 +45,43 @@ const EditProfile = () => {
                 return;
             }
 
-            const response = await axios.get(`https://investorlands.com/api/userprofile?id=${parsedUserData.id}`);
-            const data = response.data.data;
-            // console.log(response.data.data);
+            const response = await axios.get(`https://carzchoice.com/api/userprofile/${parsedUserData.id}`);
+            const data = response.data?.userData?.[0]; // ✅ Correct key
+
+            if (!data || typeof data !== 'object') {
+                console.error("Invalid API response format:", response.data);
+                return;
+            }
+
+            console.log("userData:", data);
 
             setUserId(data.id);
-            setUsername(data.name);
-            setUsertype(data.user_type);
+            setUsername(data.fullname);
+            setUsertype(data.usertype);
             setEmail(data.email);
-            setPhoneNumber(data.mobile);
-            setCompanyName(data.company_name);
-            setCompanyDocs(data.company_document ? [data.company_document] : []);
+            setPhoneNumber(data.contactno);
+            setDistrict(data.district);
+            setState(data.state);
+            setPincode(data.pincode);
+            setAddress(data.addresss);
 
-            let profileImage = data.profile_photo_path;
+            let profileImage = data?.dp || ""; // Ensure it’s at least an empty string
 
-            // 🔹 Ensure profile_photo_path is a valid string before setting it
-            if (typeof profileImage === 'number') {
+            if (typeof profileImage === "number") {
                 profileImage = profileImage.toString(); // Convert number to string
             }
 
-            if (typeof profileImage === 'string' && profileImage.trim() !== '' && profileImage !== 'null' && profileImage !== 'undefined') {
-                profileImage = profileImage.startsWith('http')
+            if (profileImage && profileImage !== "null" && profileImage !== "undefined") {
+                profileImage = profileImage.startsWith("http")
                     ? profileImage
-                    : `https://investorlands.com/assets/images/Users/${profileImage}`;
+                    : `https://carzchoice.com/assets/backend-assets/images/${profileImage}`;
             } else {
-                profileImage = images.avatar; // Ensure default image is a valid source
+                profileImage = images.avatar; // Fallback to default
             }
 
-            // console.log('Final Image URL:', profileImage); // Debugging
             setImage(profileImage);
         } catch (error) {
-            console.error('Error fetching profile data:', error);
+            console.error("Error fetching profile data:", error);
         } finally {
             setLoading(false);
         }
@@ -120,105 +130,32 @@ const EditProfile = () => {
         }
     };
 
-    // Handle document selection
-    const pickDocument = async () => {
-        try {
-            const result = await DocumentPicker.getDocumentAsync({
-                type: ['image/*', 'application/pdf'],
-                copyToCacheDirectory: true,
-                multiple: false,
-            });
-
-            if (result.canceled) return;
-
-            const { mimeType, uri, name } = result.assets[0]; // Ensure correct structure
-
-            if (!['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'].includes(mimeType)) {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Invalid File',
-                    text2: 'Please select a PDF or an image file (PNG, JPG, JPEG).',
-                });
-                return;
-            }
-
-            // Replace the old document with the new one
-            setCompanyDocs([{ uri, name, mimeType }]);
-
-            Toast.show({
-                type: 'success',
-                text1: 'File Added',
-                text2: `${name} has been successfully added.`,
-            });
-
-        } catch (error) {
-            console.error('Document Picker Error:', error);
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'An error occurred while selecting a document.',
-            });
-        }
-    };
-
-    const openFileInBrowser = async (fileName) => {
-        try {
-            if (!fileName) {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: 'File not found.',
-                });
-                return;
-            }
-
-            const fileUrl = `https://investorlands.com/assets/images/Users/${fileName}`;
-            await Linking.openURL(fileUrl);
-        } catch (error) {
-            console.error('Error opening file:', error);
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'Could not open the file.',
-            });
-        }
-    };
-
     const handleSubmit = async () => {
         setLoading(true);
-        
+    
         try {
             const formData = new FormData();
-            formData.append('name', username);
+            formData.append('fullname', username);
             formData.append('email', email);
-            formData.append('mobile', phoneNumber);
-            formData.append('company_name', companyName);
+            formData.append('contactno', phoneNumber);
+            formData.append('district', district);
+            formData.append('pincode', pincode);
+            formData.append('state', state);
+            formData.append('addresss', address); // Ensure spelling matches DB field
     
             // ✅ Append image ONLY if it's a local file
-            if (image && image.startsWith('file://')) { 
-                formData.append('myprofileimage', {
+            if (image && image.startsWith('file://')) {
+                formData.append('dp', {
                     uri: image,
                     name: 'profile.jpg',
                     type: 'image/jpeg',
                 });
             }
     
-            // ✅ Append document if changed
-            if (companyDocs.length > 0) {
-                const doc = companyDocs[0];
-                if (doc.uri && doc.uri.startsWith('file://')) {
-                    formData.append('company_document', {
-                        uri: doc.uri,
-                        name: doc.name || 'document.pdf',
-                        type: doc.mimeType || 'application/pdf',
-                    });
-                }
-            }
-    
             console.log("Submitting FormData:", formData);
     
             const response = await axios.post(
-                `https://investorlands.com/api/updateuserprofile/${userId}`,
+                `https://carzchoice.com/api/updateuserprofile/${userId}`,
                 formData,
                 {
                     headers: {
@@ -228,7 +165,7 @@ const EditProfile = () => {
                 }
             );
     
-            if (response.status === 200) {
+            if (response.data.success) {
                 Toast.show({
                     type: 'success',
                     text1: 'Success',
@@ -237,10 +174,10 @@ const EditProfile = () => {
     
                 fetchProfileData(); // Refresh profile
             } else {
-                throw new Error('Unexpected server response.');
+                throw new Error(response.data.message || 'Unexpected server response.');
             }
         } catch (error) {
-            console.error('Error updating profile:', error);
+            console.error('Error updating profile:', error.response?.data || error.message);
             Toast.show({
                 type: 'error',
                 text1: 'Update Failed',
@@ -251,16 +188,16 @@ const EditProfile = () => {
         }
     };
     
-    
+
+
 
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
+                <Text style={styles.headerText} className="capitalize">Edit {usertype} Profile</Text>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Image source={icons.backArrow} style={styles.icon} />
                 </TouchableOpacity>
-                <Text style={styles.headerText} className="capitalize">Edit {usertype} Profile</Text>
-                <View></View>
             </View>
             <Toast config={toastConfig} position="top" />
 
@@ -269,12 +206,16 @@ const EditProfile = () => {
             ) : (
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <View style={styles.profileImageContainer}>
+
                         <Image source={image ? { uri: image } : images.avatar} style={styles.profileImage} />
                         <TouchableOpacity onPress={pickImage} style={styles.editIconContainer}>
                             <Image source={icons.edit} style={styles.editIcon} />
                         </TouchableOpacity>
-                        <Text style={styles.roleText} className="capitalize text-black font-rubik-bold">{username}</Text>
-                        <Text style={styles.roleText} className="capitalize font-rubik">{usertype}</Text>
+
+                        <View>
+                            <Text style={styles.roleText} className="capitalize text-black font-rubik-bold">{username}</Text>
+                            <Text className="capitalize font-rubik me-4">({usertype})</Text>
+                        </View>
                     </View>
 
                     <View>
@@ -286,39 +227,31 @@ const EditProfile = () => {
 
                         <Text style={styles.label}>Phone Number</Text>
                         <TextInput style={styles.input} value={phoneNumber} onChangeText={setPhoneNumber} placeholder="Enter phone number" />
-                        {usertype === 'agent' && (
-                            <View>
-                                <Text style={styles.label}>Company Name</Text>
-                                <TextInput style={styles.input} value={companyName} onChangeText={setCompanyName} placeholder="Enter company name" />
-
-                                <Text style={styles.label}>Company Document</Text>
-                                {companyDocs.length > 0 ? (
-                                    companyDocs.map((doc, index) => {
-                                        const fileName = typeof doc === "string" ? doc : doc.name;
-                                        const displayFileName = fileName.length > 10 ? `${fileName.substring(0, 10)}...` : fileName;
-                                        const fileExtension = fileName.split('.').pop();
-
-                                        return (
-                                            <View key={index} style={styles.docItem}>
-                                                <Image source={{ uri: "https://cdn-icons-png.flaticon.com/512/337/337946.png" }} style={styles.thumbnail} />
-                                                <Text>{displayFileName}.{fileExtension}</Text>
-                                                <TouchableOpacity onPress={() => openFileInBrowser(typeof doc === 'string' ? doc : doc.name)} style={styles.dropbox}>
-                                                    <Text style={styles.downloadText}>View Document</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        );
-                                    })
-                                ) : (
-                                    <Text>No document available</Text>
-                                )}
-
-
-
-                                <TouchableOpacity onPress={pickDocument} style={styles.dropbox}>
-                                    <Text style={styles.downloadText}>Change Company Document</Text>
-                                </TouchableOpacity>
+                        <View className="flex flex-row gap-4">
+                            <View className="flex-1">
+                                <Text style={styles.label}>District</Text>
+                                <TextInput style={styles.input} value={district} onChangeText={setDistrict} placeholder="Enter district" />
                             </View>
-                        )}
+
+                            <View className="flex-1">
+                                <Text style={styles.label}>State</Text>
+                                <TextInput style={styles.input} value={state} onChangeText={setState} placeholder="Enter State" />
+                            </View>
+                        </View>
+
+
+                        <Text style={styles.label}>Pincode</Text>
+                        <TextInput style={styles.input} value={pincode} onChangeText={setPincode} placeholder="Enter Pincode" />
+
+                        <Text style={styles.label}>Address</Text>
+                        <TextInput
+                            style={styles.textarea}
+                            value={address}
+                            onChangeText={setAddress} maxLength={120}
+                            placeholder="Enter Address here"
+                            multiline numberOfLines={5}
+                        />
+
                     </View>
                 </ScrollView>
             )}
@@ -368,7 +301,7 @@ const styles = StyleSheet.create({
     },
     editIconContainer: {
         position: 'absolute',
-        bottom: 70,
+        bottom: 60,
         right: 135,
     },
     editIcon: {
@@ -423,5 +356,14 @@ const styles = StyleSheet.create({
     submitButtonText: {
         color: 'white',
         fontWeight: 'bold',
+    },
+    textarea: {
+        textAlignVertical: 'top',  // hack android
+        height: 110,
+        fontSize: 14,
+        borderRadius: 10,
+        color: '#333',
+        padding: 15,
+        backgroundColor: '#edf5ff',
     },
 });

@@ -80,14 +80,14 @@ export const settings = [
 
   },
   {
-    title: "My Investments",
+    title: "My Vehicles",
     icon: icons.shield,
-    onPress: '/myproperties',
+    onPress: '/myvehicles',
   },
   {
-    title: "Add New Investment",
+    title: "Sell Your Vehicle",
     icon: icons.addproperty,
-    onPress: '/addproperty',
+    onPress: '/sellvehicle',
   },
 
 ];
