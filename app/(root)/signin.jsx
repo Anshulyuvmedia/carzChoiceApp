@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   highlight: { color: '#0061ff' },
   subtitle: { fontSize: 18, fontFamily: 'Rubik-Regular', color: '#555', textAlign: 'center', marginVertical: 15 },
   input: { height: 45, borderColor: '#ccc', borderWidth: 2, borderRadius: 50, paddingHorizontal: 10, marginBottom: 10, width: '100%' },
-  loginButton: { backgroundColor: '#0061ff', borderRadius: 25, paddingVertical: 14, alignItems: 'center', marginTop: 10, width: '100%' },
+  loginButton: { backgroundColor: '#0061ff', borderRadius: 25, paddingVertical: 7, alignItems: 'center', marginTop: 10, width: '100%' },
   loginButtonText: { fontSize: 18, fontFamily: 'Rubik-Medium', color: 'white' },
   registerLink: { marginTop: 20, alignItems: 'center' },
   registerText: { fontSize: 16, fontFamily: 'Rubik-Regular', color: '#000', textAlign: 'center' },

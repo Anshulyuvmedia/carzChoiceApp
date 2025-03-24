@@ -205,7 +205,7 @@ const Signup = () => {
 
           <TouchableOpacity
             onPress={handleRegister}
-            className="bg-primary-300 rounded-2xl py-4 mt-5 items-center"
+            className="bg-primary-300 rounded-2xl py-2 mt-5 items-center"
           >
             <Text className="text-lg font-rubik text-white">
               {isUser ? 'Register as User' : 'Register as Dealer'}
