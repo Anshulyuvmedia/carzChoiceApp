@@ -9,9 +9,6 @@ import { Link, router, useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MapView, { Marker } from "react-native-maps";
-import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
-import Constants from "expo-constants";
 import 'react-native-get-random-values';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
@@ -19,43 +16,44 @@ import Toast, { BaseToast } from 'react-native-toast-message';
 
 const EditVehicle = () => {
     const { id } = useLocalSearchParams();
-
-    const GOOGLE_MAPS_API_KEY = Constants.expoConfig.extra.GOOGLE_MAPS_API_KEY;
-    const [step1Data, setStep1Data] = useState({ property_name: '', description: '', nearbylocation: '', });
-    const [step2Data, setStep2Data] = useState({ approxrentalincome: '', historydate: [], price: '' });
-    const [step3Data, setStep3Data] = useState({ sqfoot: '', bathroom: '', floor: '', city: '', officeaddress: '', bedroom: '' });
-    const [isValid, setIsValid] = useState(false);
     const navigation = useNavigation();
-
-    const [propertyData, setPropertyData] = useState([]);
-    const [propertyDocuments, setPropertyDocuments] = useState([]);
-    const [masterPlanDoc, setMasterPlanDoc] = useState([]);
     const [errors, setErrors] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [selectedStatus, setSelectedStatus] = useState("unpublished");
-    const [mainImage, setMainImage] = useState(null);
+    const [vehicleStatus, setVehicleStatus] = useState('Deactivate');
+    const [isValid, setIsValid] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [carData, setCarData] = useState(null);
 
-    const [videos, setVideos] = useState([]);
+    const [brandData, setBrandData] = useState([]);
+    const [modalData, setModalData] = useState(null);
+    const [variantData, setVariantData] = useState(null);
+    const [cityData, setCityData] = useState(null);
+    const [stateData, setStateData] = useState("");
+    const [pincodeList, setPincodeList] = useState([]); // Store multiple pincodes
+
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedBrand, setSelectedBrand] = useState('');
+    const [selectedModal, setSelectedModal] = useState(null);
+    const [selectedVariant, setSelectedVariant] = useState(null);
+    const [city, setCity] = useState(null);
+    const [state, setState] = useState(null);
+    const [pincode, setPincode] = useState("");
+    const [insurance, setInsurance] = useState(null);
+    const [color, setColor] = useState("");
+
+    const [sellingPrice, setSellingPrice] = useState(null);
+    const [kmsDriven, setKmsDriven] = useState(null);
+    const [selectedFuel, setSelectedFuel] = useState(null);
+    const [regType, setRegType] = useState(null);
+    const [ownerChanged, setOwnerChanged] = useState(null);
+    const [transmissionType, setTransmissionType] = useState(null);
+    const [regYear, setRegYear] = useState(null);
+    const [makeYear, setMakeYear] = useState(null);
+    const [lastUpdate, setLastUpdate] = useState(null);
+
     const [galleryImages, setGalleryImages] = useState([]);
 
-    const [loading, setLoading] = useState(false);
-    const [amenity, setAmenity] = useState([]);
-    const [amenities, setAmenities] = useState([]);
-    const [region, setRegion] = useState({
-        latitude: 20.5937,
-        longitude: 78.9629,
-        latitudeDelta: 0.015,
-        longitudeDelta: 0.0121,
-    });
-    const [coordinates, setCoordinates] = useState({
-        latitude: "",
-        longitude: "",
-    });
-    const [fullAddress, setFullAddress] = useState("");
-
     const [show, setShow] = useState(false);
-    const [selectedDate, setSelectedDate] = useState('');
-    const [historyPrice, setHistoryPrice] = useState('');
+
     const buttonPreviousTextStyle = {
         paddingInline: 20,
         paddingBlock: 5,
@@ -70,16 +68,9 @@ const EditVehicle = () => {
         backgroundColor: 'lightgreen',
         color: 'black',
     };
-    const categories = [
-        { label: 'Apartment', value: 'Apartment' },
-        { label: 'Villa', value: 'Villa' },
-        { label: 'Penthouse', value: 'Penthouse' },
-        { label: 'Residences', value: 'Residences' },
-        { label: 'Luxury House', value: 'Luxury House' },
-        { label: 'Bunglow', value: 'Bunglow' },
-    ];
+
     const status = [
-        { label: 'Unpublished', value: 'unpublished' },
+        { label: 'Deactivate', value: 'Deactivate' },
     ];
     const toastConfig = {
         success: (props) => (
@@ -110,32 +101,15 @@ const EditVehicle = () => {
         ),
     };
 
-    const [visibleData, setVisibleData] = useState([]);
-    const [currentIndex, setCurrentIndex] = useState(10);
-
-    // Update visibleData when historydate updates
-    useEffect(() => {
-        if (step2Data.historydate.length > 0) {
-            setVisibleData(step2Data.historydate.slice(0, 10));
-        }
-    }, [step2Data.historydate]);
-
-    const loadMore = () => {
-        const nextIndex = currentIndex + 10;
-        setVisibleData(step2Data.historydate.slice(0, nextIndex));
-        setCurrentIndex(nextIndex);
-    };
-
-
-    const validateStep = (step) => {
-        if (step === 1) {
-            return step1Data?.property_name && step1Data?.description && step1Data?.nearbylocation;
-        }
-        if (step === 2) {
-            return step3Data?.sqfoot && step3Data?.bathroom && step3Data?.floor && step3Data?.city;
-        }
-        return true;
-    };
+    // const validateStep = (step) => {
+    //     if (step === 1) {
+    //         return step1Data?.property_name && step1Data?.description && step1Data?.nearbylocation;
+    //     }
+    //     if (step === 2) {
+    //         return step3Data?.sqfoot && step3Data?.bathroom && step3Data?.floor && step3Data?.city;
+    //     }
+    //     return true;
+    // };
 
     const onNextStep = (step) => {
         if (!validateStep(step)) {
@@ -161,70 +135,6 @@ const EditVehicle = () => {
             return false;
         }
         return true;
-    };
-
-    const handleAddAmenity = () => {
-        if (amenity.trim() !== '') {
-            setAmenities([...amenities, amenity.trim()]);
-            setAmenity('');
-        }
-    };
-
-    const pickMainImage = async () => {
-        if (!(await requestPermissions())) return;
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.5,
-        });
-
-        if (!result?.canceled) {
-            setMainImage(result.assets[0].uri);
-        }
-    };
-
-
-    // Handle Date Change
-    const handleDateChange = (event, date) => {
-        setShow(false);
-        if (date) {
-            const formattedDate = date.toLocaleDateString("en-GB"); // Convert to YYYY-MM-DD
-            setSelectedDate(formattedDate);
-        }
-    };
-
-    // Add Price History Entry
-    const formatDate = (dateString) => {
-        const [day, month, year] = dateString.split("/");  // Split DD/MM/YYYY
-        return `${year}-${month}-${day}`;  // Convert to YYYY-MM-DD
-    };
-
-    const addPriceHistory = () => {
-        if (selectedDate && historyPrice) {
-            const newHistoryEntry = {
-                dateValue: formatDate(selectedDate),  // Convert date format
-                priceValue: historyPrice
-            };
-
-            setStep2Data((prevData) => {
-                const updatedHistory = [newHistoryEntry, ...prevData.historydate]; // Add new entry at the top
-                return { ...prevData, historydate: updatedHistory };
-            });
-
-            setSelectedDate('');
-            setHistoryPrice('');
-        }
-    };
-
-    const removePriceHistory = (index) => {
-        setStep2Data((prevData) => {
-            const updatedHistory = prevData.historydate.filter((_, i) => i !== index);
-            return { ...prevData, historydate: updatedHistory };
-        });
-
-        // Update visible data after removal
-        setVisibleData((prevData) => prevData.filter((_, i) => i !== index));
     };
 
     const pickGalleryImages = async () => {
@@ -258,188 +168,40 @@ const EditVehicle = () => {
         }
     };
 
-    const pickVideo = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-            allowsMultipleSelection: true,
-        });
-
-        if (!result.canceled) {
-            // console.log("Selected Videos:", result.assets);
-
-            const defaultThumbnail =
-                typeof icons.videofile === "number" // If it's a local import
-                    ? Image.resolveAssetSource(icons.videofile).uri
-                    : icons.videofile; // If it's a URL or valid string
-
-            const selectedVideos = result.assets.map(video => ({
-                id: video.uri,
-                uri: video.uri,
-                thumbnailImages: defaultThumbnail, // ✅ Make sure this is correct
-            }));
-
-            // console.log("Processed Videos:", selectedVideos);
-            setVideos(prevVideos => [...new Set([...prevVideos, ...selectedVideos])]);
-        }
-    };
-
-    const pickDocument = async () => {
-        let result = await DocumentPicker.getDocumentAsync({
-            type: 'application/pdf',
-            multiple: true, // Enable multiple selection
-        });
-
-        if (result.canceled) return;
-
-        const selectedDocuments = Array.isArray(result.assets) ? result.assets : [result];
-
-        const newDocuments = selectedDocuments.map(doc => ({
-            uri: doc.uri,
-            name: doc.name || 'Unnamed Document',
-            thumbnail: 'https://cdn-icons-png.flaticon.com/512/337/337946.png', // PDF icon
-        }));
-
-        setPropertyDocuments(prevDocs => [...prevDocs, ...newDocuments]);
-    };
-
-    const pickMasterPlan = async () => {
-        let result = await DocumentPicker.getDocumentAsync({
-            type: ['application/pdf', 'image/*'], // Allow PDFs and images
-            multiple: true,
-        });
-
-        if (result.canceled) return;
-
-        const selectedDocuments = Array.isArray(result.assets) ? result.assets : [result];
-
-        const newDocuments = selectedDocuments.map(doc => ({
-            uri: doc.uri,
-            name: doc.name || 'Unnamed Document',
-            thumbnail: doc.mimeType.startsWith('image') ? doc.uri : 'https://cdn-icons-png.flaticon.com/512/337/337946.png', // Image preview or PDF icon
-        }));
-
-        setMasterPlanDoc(prevDocs => [...prevDocs, ...newDocuments]);
-    };
-
-    // Function to handle location selection from Google Places
-    const handlePlaceSelect = (data, details = null) => {
-        if (details?.geometry?.location) {
-            const { lat, lng } = details.geometry.location;
-            setFullAddress(details.formatted_address);
-            setRegion({
-                latitude: lat,
-                longitude: lng,
-                latitudeDelta: 0.015,
-                longitudeDelta: 0.0121,
-            });
-
-            // Store selected coordinates
-            setCoordinates({
-                latitude: parseFloat(lat) ?? 0,  // Ensure it's a number
-                longitude: parseFloat(lng) ?? 0,
-            });
-
-        }
-    };
-
     const removeGalleryImage = async (index, imageUri) => {
         setGalleryImages(prevImages => prevImages.filter((_, i) => i !== index));
 
         if (imageUri.startsWith("http")) {
             try {
-                await axios.post("https://investorlands.com/api/deletefile", {
-                    property_id: propertyData.id,
+                await axios.post("https://carzchoice.com/api/deletefile", {
+                    vehicle_id: carData.id,
                     file_type: "gallery",
-                    file_path: imageUri.replace("https://investorlands.com/", ""),
+                    file_path: imageUri.replace("https://carzchoice.com/", ""),
                 });
+
                 Toast.show({ type: "success", text1: "Image deleted successfully." });
+
+                // Fetch updated images from API (optional, if required)
+                // fetchUpdatedImages();
             } catch (error) {
                 console.error("Failed to delete image:", error);
+                Toast.show({ type: "error", text1: "Failed to delete image." });
             }
         }
     };
 
-    const removeVideo = async (index, videoUri) => {
-        console.log("Removing video at index:", index, "Video URI:", videoUri);
-
-        // Update UI first
-        setVideos(prevVideos => prevVideos.filter((_, i) => i !== index));
-
-        if (videoUri.startsWith("http")) {
-            try {
-                const response = await axios.post("https://investorlands.com/api/deletefile", {
-                    property_id: propertyData.id,
-                    file_type: "video",
-                    file_path: videoUri.replace("https://investorlands.com/", ""),
-                });
-
-                console.log("Server Response:", response.data);
-
-                if (response.data.error) {
-                    console.error("Error from API:", response.data.message);
-                    Toast.show({ type: "error", text1: response.data.message });
-                } else {
-                    console.log("Deleted video successfully:", videoUri);
-                    Toast.show({ type: "success", text1: "Video deleted successfully." });
-                }
-            } catch (error) {
-                console.error("Failed to delete video:", error.response ? error.response.data : error.message);
-            }
+    // Handle Date Selection
+    const handleLastUpdated = (event, date) => {
+        if (date) {
+            const formattedDate = date.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
+            setLastUpdate(formattedDate);
+            setSelectedDate(date);
         }
-    };
-
-
-    const removeDocument = async (index, docUri) => {
-        setPropertyDocuments(prevDocs => prevDocs.filter((_, i) => i !== index));
-
-        if (docUri.startsWith("http")) {
-            try {
-                await axios.post("https://investorlands.com/api/deletefile", {
-                    property_id: propertyData.id,
-                    file_type: "document",
-                    file_path: docUri.replace("https://investorlands.com/", ""),
-                });
-                Toast.show({ type: "success", text1: "Document deleted successfully." });
-            } catch (error) {
-                console.error("Failed to delete document:", error);
-            }
-        }
-    };
-
-    const removeMasterPlan = async (index, docUri) => {
-        setMasterPlanDoc(prevDocs => prevDocs.filter((_, i) => i !== index));
-
-        if (docUri.startsWith("http")) {
-            try {
-                await axios.post("https://investorlands.com/api/deletefile", {
-                    property_id: propertyData.id,
-                    file_type: "masterplan",
-                    file_path: docUri.replace("https://investorlands.com/", ""),
-                });
-                Toast.show({ type: "success", text1: "Master Plan Document deleted successfully." });
-            } catch (error) {
-                console.error("Failed to delete master plan document:", error);
-            }
-        }
-    };
-
-    // Function to handle manual selection on the map
-    const handleMapPress = (e) => {
-        if (!e?.nativeEvent?.coordinate) return;
-        const { latitude, longitude } = e.nativeEvent.coordinate;
-        setRegion({
-            latitude,
-            longitude,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.0121,
-        });
-
-        // Store manual coordinates
-        setCoordinates({
-            latitude: parseFloat(latitude),
-            longitude: parseFloat(longitude),
-        });
-
+        setShow(false); // Hide picker after selection
     };
 
     const getUserData = async () => {
@@ -465,115 +227,59 @@ const EditVehicle = () => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const { userData, userToken } = await getUserData();
-            if (!userData || !userToken) {
+            const { userData } = await getUserData();
+            if (!userData) {
                 throw new Error("User is not authenticated. Token missing.");
             }
-            const propertyId = propertyData?.id ?? id; // Ensure property ID is used
+            const carId = carData?.id ?? id;
             const { id, user_type } = userData;
 
             const formData = new FormData();
 
-            // ✅ Append Step 1, 2, and 3 Data
-            [step1Data, step2Data, step3Data].forEach(data => {
-                Object.entries(data).forEach(([key, value]) => {
-                    if (value !== null && value !== undefined) {
-                        formData.append(key, value);
-                    }
-                });
-            });
+            formData.append("userid", id ?? "");
+            formData.append("brandname", selectedBrand);
+            formData.append("carname", selectedModal);
+            formData.append("modalname", selectedVariant);
+            formData.append("district", city);
+            formData.append("state", state);
+            formData.append("pincode", pincode);
+            formData.append("price", sellingPrice);
+            formData.append("kilometersdriven", kmsDriven);
+            formData.append("fueltype", selectedFuel);
+            formData.append("registeryear", regYear);
+            formData.append("manufactureyear", makeYear);
+            formData.append("ownernumbers", ownerChanged);
+            formData.append("transmissiontype", transmissionType);
+            formData.append("color", color);
+            formData.append("insurance", insurance || "Unavailable");
+            formData.append("registertype", regType);
+            formData.append("lastupdated", lastUpdate);
+            formData.append("activationstatus", vehicleStatus);
 
-            // ✅ Append additional fields
-            formData.append("bedroom", step3Data?.bedroom ?? "");
-            formData.append("category", selectedCategory ?? "");
-            formData.append("status", selectedStatus ?? "");
-            formData.append("roleid", id ?? "");
-            formData.append("usertype", user_type ?? "");
-            formData.append("amenities", JSON.stringify(amenities));
-            formData.append("historydate", step2Data?.historydate ? JSON.stringify(step2Data.historydate) : "[]");
-
-            // ✅ Append Location Data
-            formData.append("location", JSON.stringify({
-                Latitude: coordinates.latitude,
-                Longitude: coordinates.longitude,
-            }));
-
-            // ✅ Append Thumbnail Image
-            if (mainImage && !mainImage.startsWith("http")) {
-                const fileType = mainImage.split('.').pop();
-                formData.append("thumbnailImages", {
-                    uri: mainImage,
-                    name: `thumbnail.${fileType}`,
-                    type: `image/${fileType}`,
-                });
-            }
-
-            // ✅ Append Gallery Images
+            // ✅ Fix: Append Images as "images" array
             galleryImages.forEach((imageUri, index) => {
-                if (!imageUri.startsWith("http")) {
-                    const fileType = imageUri.split('.').pop();
-                    formData.append(`galleryImages[${index}]`, {
+                if (imageUri) {
+                    const fileType = imageUri.split('.').pop() || "jpeg";
+                    formData.append(`images[${index}]`, {
                         uri: imageUri,
                         type: `image/${fileType}`,
-                        name: `gallery-${index}.${fileType}`,
+                        name: `vehicle-image-${index}.${fileType}`,
                     });
                 }
             });
 
-            // ✅ Append Videos
-            videos.forEach((video, index) => {
-                if (video?.uri && !video.uri.startsWith("http")) {
-                    const fileType = video.uri.split('.').pop();
-                    formData.append(`propertyvideos[${index}]`, {
-                        uri: video.uri,
-                        type: video.type || `video/${fileType}`,
-                        name: `video-${index}.${fileType}`,
-                    });
-                }
-            });
 
-            // ✅ Append Documents
-            propertyDocuments.forEach((doc, index) => {
-                if (doc?.uri && !doc.uri.startsWith("http")) {
-                    const fileType = doc.uri.split('.').pop();
-                    formData.append(`documents[${index}]`, {
-                        uri: doc.uri,
-                        type: `application/${fileType}`,
-                        name: `document-${index}.${fileType}`,
-                    });
-                }
-            });
-
-            // ✅ Append Master Plan Document
-            masterPlanDoc.forEach((doc, index) => {
-                if (doc?.uri && !doc.uri.startsWith("http")) {
-                    const fileType = doc.uri.split('.').pop()?.toLowerCase() || "pdf";
-                    formData.append("masterplandocument", {
-                        uri: doc.uri,
-                        type: fileType === "pdf" ? "application/pdf" : `image/${fileType}`,
-                        name: `masterplan-${index}.${fileType}`,
-                    });
-                }
-            });
-
-            // ✅ File Data Object for Reference
-            const fileData = {
-                galleryImages: galleryImages.filter(img => !img.startsWith("http")),
-                propertyvideos: videos.filter(vid => vid.uri && !vid.uri.startsWith("http")),
-                thumbnailImages: mainImage && !mainImage.startsWith("http") ? [mainImage] : [],
-                documents: propertyDocuments.filter(doc => doc.uri && !doc.uri.startsWith("http")),
-                masterplandocument: masterPlanDoc.filter(doc => doc.uri && !doc.uri.startsWith("http")),
-            };
-            formData.append("fileData", JSON.stringify(fileData));
-
+            // console.log("Uploading FormData:");
+            // for (let pair of formData.entries()) {
+            //     console.log(pair[0], pair[1]);
+            // }
             // console.log("Uploading FormData:", formData);
 
             // ✅ Send API Request
-            const response = await axios.post(`https://investorlands.com/api/updatelisting/${propertyId}`, formData, {
+            const response = await axios.post(`https://carzchoice.com/api/updateOldCarData/${carId}`, formData, {
                 headers: {
                     "Accept": "application/json",
                     "Content-Type": "multipart/form-data; charset=utf-8",
-                    "Authorization": `Bearer ${userToken}`
                 },
             });
 
@@ -604,215 +310,231 @@ const EditVehicle = () => {
         }
     };
 
-
-    // Fetch Property Data
-    const fetchPropertyData = async () => {
+    // Fetch Car Data
+    const fetchCarData = async (id) => {
         try {
-            setLoading(true);
-            const response = await axios.get(`https://investorlands.com/api/property-details/${id}`);
-            // console.log(response.data);
-            if (response.data) {
-                const apiData = response.data.details;
-                setPropertyData(apiData);
+            // console.log("🚗 Fetching Vehicle ID:", id);
 
-                setStep1Data({
-                    property_name: apiData.property_name || '',
-                    description: apiData.discription || '',
-                    nearbylocation: apiData.nearbylocation || '',
-                });
+            const response = await axios.get(`https://carzchoice.com/api/getOldCarData/${id}`);
+            // console.log("API Full Response:", response.data);
 
-                setStep2Data({
-                    approxrentalincome: apiData.approxrentalincome || '',
-                    historydate: apiData.historydate || '',
-                    price: apiData.price || '',
-                });
+            if (response.data && response.data.success && response.data.data) {
+                let apiData = response.data.data; // Correctly accessing nested `data`
 
-                setStep3Data({
-                    sqfoot: apiData.squarefoot || '',
-                    bathroom: apiData.bathroom || '',
-                    bedroom: apiData.bedroom || '',
-                    floor: apiData.floor || '',
-                    city: apiData.city || '',
-                    officeaddress: apiData.address || '',
-                });
+                // ✅ Update states correctly
+                setCarData(apiData);
+                setSelectedBrand(apiData.brandname);
+                setSelectedModal(apiData.carname);
+                setSelectedVariant(apiData.modalname);
+                setCity(apiData.district);
+                setState(apiData.state);
+                setPincode(apiData.pincode);
+                setInsurance(apiData.insurance);
+                setColor(apiData.color);
+                setSellingPrice(apiData.price);
+                setRegType(apiData.registertype);
+                setRegYear(apiData.registeryear);
+                setMakeYear(apiData.manufactureyear);
+                setLastUpdate(apiData.lastupdated);
+                setKmsDriven(apiData.kilometersdriven);
+                setSelectedFuel(apiData.fueltype);
+                setOwnerChanged(apiData.ownernumbers);
+                setVehicleStatus(apiData.activationstatus);
+                // ✅ Handle Transmission Type (Fix JSON parsing issue)
+                let transmissionType = "Unknown";
+                try {
+                    transmissionType = JSON.parse(apiData.transmissiontype)[0] || "Unknown";
+                } catch (error) {
+                    console.warn("⚠️ Error parsing transmission type:", error);
+                }
+                setTransmissionType(transmissionType);
 
-                setSelectedCategory(apiData.category || '');
-                setSelectedStatus(apiData.status || '');
+                // ✅ Handle Images
+                let imageBaseURL = "https://carzchoice.com/";
+                let fallbackImage = "https://carzchoice.com/assets/backend-assets/images/placeholder.png"; // Use an actual fallback URL
+                let imagesArray = [];
 
-                const fetchedAmenities = apiData.amenties || apiData.amenities || [];
-
-                // Ensure it's a proper array
-                let parsedAmenities = fetchedAmenities;
-
-                if (typeof fetchedAmenities === "string") {
+                if (typeof apiData.images === "string") {
                     try {
-                        parsedAmenities = JSON.parse(fetchedAmenities);
+                        imagesArray = JSON.parse(apiData.images);
                     } catch (error) {
-                        console.error("Error parsing amenities:", error);
-                        parsedAmenities = []; // Default to empty array
+                        console.error("❌ Error parsing images JSON:", error);
                     }
                 }
 
-                if (Array.isArray(parsedAmenities)) {
-                    // console.log("Final Amenities from API:", parsedAmenities);
-                    setAmenities([...parsedAmenities]);
-                } else {
-                    console.error("Invalid amenities format:", parsedAmenities);
-                }
+                // ✅ Handle Gallery Images
+                let formattedImages = imagesArray.map(image =>
+                    `${imageBaseURL}${image.imageurl.replace(/\\/g, "/")}`
+                );
+                setGalleryImages(formattedImages);
 
-                // Extract map location and convert to numbers
-                if (apiData.maplocations) {
-                    try {
-                        const locationData = JSON.parse(apiData.maplocations);
-                        // console.log("locationData:", locationData);
-                        const latitude = parseFloat(locationData.Latitude);
-                        const longitude = parseFloat(locationData.Longitude);
-
-                        if (latitude && longitude) {
-                            // Update state
-                            setCoordinates({ latitude, longitude });
-                            setRegion({
-                                latitude,
-                                longitude,
-                                latitudeDelta: 0.015,
-                                longitudeDelta: 0.0121,
-                            });
-
-                        } else {
-                            console.error("Invalid latitude or longitude values.");
-                        }
-                    } catch (error) {
-                        console.error("Error parsing map locations:", error);
-                    }
-                }
-
-                if (apiData.gallery) {
-                    try {
-                        let galleryArray = typeof apiData.gallery === 'string' ? JSON.parse(apiData.gallery) : apiData.gallery;
-
-                        const galleryImages = galleryArray.map(img =>
-                            img.startsWith('http') ? img : `https://investorlands.com/${img}`
-                        );
-
-                        setGalleryImages(galleryImages);
-                    } catch (error) {
-                        console.error("Error processing gallery images:", error);
-                    }
-                }
-
-                if (apiData.videos) {
-                    try {
-                        let galleryVideos = typeof apiData.videos === 'string' ? JSON.parse(apiData.videos) : apiData.videos;
-
-                        const defaultThumbnail =
-                            typeof icons.videofile === "number"
-                                ? Image.resolveAssetSource(icons.videofile).uri
-                                : icons.videofile; // Fallback to a local or external thumbnail
-
-                        const videoObjects = galleryVideos.map(video => ({
-                            id: video,
-                            uri: video.startsWith('http') ? video : `https://investorlands.com/${video}`,
-                            thumbnailImages: defaultThumbnail, // ✅ Assigning default thumbnail
-                        }));
-
-                        setVideos(videoObjects);
-                    } catch (error) {
-                        console.error("Error processing videos:", error);
-                    }
-                }
-
-
-                if (apiData.documents) {
-                    try {
-                        let propertyDocuments = typeof apiData.documents === 'string'
-                            ? JSON.parse(apiData.documents)
-                            : apiData.documents;
-
-                        setPropertyDocuments(
-                            propertyDocuments.map(uri => ({
-                                uri: uri.startsWith('http') ? uri : `https://investorlands.com/${uri}`,
-                                name: uri.split('/').pop() || 'Unnamed Document',
-                                thumbnail: 'https://cdn-icons-png.flaticon.com/512/337/337946.png', // Default PDF icon
-                            }))
-                        );
-                    } catch (error) {
-                        console.error("Error processing documents:", error);
-                    }
-                }
-
-
-                if (apiData.masterplandoc) {
-                    try {
-                        let masterPlanDocs = Array.isArray(apiData.masterplandoc)
-                            ? apiData.masterplandoc
-                            : [apiData.masterplandoc]; // Convert single string to array
-
-                        setMasterPlanDoc(
-                            masterPlanDocs.map(filePath => ({
-                                uri: filePath.startsWith('http') ? filePath : `https://investorlands.com/${filePath}`,
-                                name: filePath.split('/').pop() || 'Unnamed Document',
-                                thumbnail: filePath.endsWith('.pdf')
-                                    ? 'https://cdn-icons-png.flaticon.com/512/337/337946.png'  // PDF icon for PDFs
-                                    : `https://investorlands.com/${filePath}`, // Show image preview for images
-                            }))
-                        );
-                    } catch (error) {
-                        console.error("Error processing masterplandoc:", error);
-                    }
-                }
-
-                // Process API data
-                let priceHistoryData = apiData.pricehistory;
-
-                // Parse if it's a string
-                if (typeof priceHistoryData === "string") {
-                    try {
-                        priceHistoryData = JSON.parse(priceHistoryData);
-                    } catch (error) {
-                        console.error("Error parsing pricehistory:", error);
-                        priceHistoryData = [];
-                    }
-                }
-
-                // Ensure it's an array before updating state
-                if (Array.isArray(priceHistoryData)) {
-                    // Sort in descending order (most recent date first)
-                    priceHistoryData.sort((a, b) => new Date(b.dateValue) - new Date(a.dateValue));
-
-                    setStep2Data((prevData) => ({
-                        ...prevData,
-                        historydate: priceHistoryData.map(item => ({
-                            dateValue: item.dateValue,
-                            priceValue: item.priceValue.toString(),
-                        })),
-                    }));
-                } else {
-                    console.error("priceHistoryData is not an array:", priceHistoryData);
-                }
-
-
-
-
-                if (apiData.thumbnail) {
-                    setMainImage(
-                        apiData.thumbnail.startsWith('http')
-                            ? apiData.thumbnail
-                            : `https://investorlands.com/assets/images/Listings/${apiData.thumbnail}`
-                    );
-                }
+                // console.log("✅ Car Data Fetched Successfully!");
+            } else {
+                console.error("⚠️ Unexpected API response format:", response.data);
             }
         } catch (error) {
-            console.error('Error fetching property data:', error);
+            console.error("❌ Error fetching Car data:", error.response?.status, error.message);
         } finally {
             setLoading(false);
         }
     };
 
+
     useEffect(() => {
         if (id) {
-            fetchPropertyData();
+            fetchCarData(id);
         }
     }, [id]);
+
+    const fetchBrandList = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get("https://carzchoice.com/api/brandlist");
+            if (response.data && response.data.data) {
+                setBrandData(response.data.data); // API now sends correctly formatted {label, value}
+                // console.log("Brand List:", brandData);
+            } else {
+                console.error("Unexpected API response format:", response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching brand list:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getCarModal = async (selectedBrand) => {
+        if (!selectedBrand) return; // Ensure selectedBrand is valid
+        setLoading(true);
+
+        const url = `https://carzchoice.com/api/getCarModal/${selectedBrand}`;
+        // console.log("Fetching:", url);
+
+        try {
+            const response = await axios.get(url);
+            // console.log("Response:", response.data);
+
+            if (response.data && response.data.carModal) {
+                setModalData(response.data.carModal);
+            } else {
+                console.error("Unexpected API response format:", response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching car models:", error.response?.data || error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getCarVariant = async (modalName) => {
+        if (!modalName) return; // Ensure modalName is valid
+        setLoading(true);
+        try {
+            const response = await axios.get(`https://carzchoice.com/api/getCarVariant/${modalName}`);
+            if (response.data && response.data.carVariant) {
+                setVariantData(response.data.carVariant.map((variant) => ({
+                    label: String(variant), // Ensure it's a string
+                    value: String(variant), // Ensure it's a string
+                })));
+            } else {
+                console.error("Unexpected API response format:", response.data);
+            }
+
+        } catch (error) {
+            console.error("Error fetching car variants:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getCityList = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get("https://carzchoice.com/api/getCityList");
+            // console.log("API Response:", response.data); // Debug API response
+
+            if (response.data && Array.isArray(response.data.data)) {
+                const formattedCities = response.data.data.map((city, index) => ({
+                    label: city.District || `City ${index}`, // Use "District" instead of "name"
+                    value: city.District || index, // Ensure a valid value
+                }));
+
+                // console.log("Formatted Cities:", formattedCities); // Debug formatted data
+                setCityData(formattedCities);
+            } else {
+                console.error("Unexpected API response format:", response.data);
+            }
+
+        } catch (error) {
+            console.error("Error fetching city list:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getLocationData = async (city) => {
+        if (!city) return;
+        setLoading(true);
+
+        const url = `https://carzchoice.com/api/getLocationData/${city}`;
+        // console.log("Fetching:", url);
+
+        try {
+            const response = await axios.get(url);
+            // console.log("Response:", response.data);
+
+            if (response.data && response.data.data) {
+                const locationData = response.data.data;
+
+                // Extract unique state (since all values are the same, pick the first)
+                const uniqueState = Object.values(locationData)[0] || "";
+
+                // Convert pincodes into an array for dropdown
+                const pincodesArray = Object.keys(locationData).map((pincode) => ({
+                    label: pincode, // Show pincode in dropdown
+                    value: pincode, // Set value as pincode
+                }));
+
+                // Update state values
+                setStateData(uniqueState); // Set single state value
+                setState(uniqueState);
+                setPincodeList(pincodesArray); // Set pincode dropdown list
+                setPincode(pincodesArray[0]?.value || ""); // Reset selected pincode
+                // console.log("State:", pincode);
+
+            } else {
+                console.error("Unexpected API response format:", response.data);
+                setStateData("");
+                setPincodeList([]); // Clear pincode dropdown if no data
+                setPincode("");
+            }
+        } catch (error) {
+            console.error("Error fetching location data:", error.response?.data || error);
+            setStateData("");
+            setPincodeList([]);
+            setPincode("");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Call functions when dependencies change
+    useEffect(() => {
+        fetchBrandList();
+        getCityList();
+    }, []);
+
+    useEffect(() => {
+        if (selectedBrand) getCarModal(selectedBrand);
+    }, [selectedBrand]);
+
+    useEffect(() => {
+        if (selectedModal) getCarVariant(selectedModal);
+    }, [selectedModal]);
+
+    useEffect(() => {
+        if (city) getLocationData(city);
+    }, [city]);
 
     if (loading) {
         return (
@@ -820,7 +542,7 @@ const EditVehicle = () => {
         );
     }
 
-    if (!propertyData) {
+    if (!carData) {
         return (
             <ActivityIndicator size="large" color="#8a4c00" style={{ marginTop: 400 }} />
         );
@@ -833,7 +555,7 @@ const EditVehicle = () => {
                     <Image source={icons.backArrow} style={{ width: 20, height: 20 }} />
                 </TouchableOpacity>
                 <Text style={{ fontSize: 16, marginRight: 10, textAlign: 'center', fontFamily: 'Rubik-Medium', color: '#4A4A4A' }}>
-                    Edit My Property
+                    Edit My Vehicle
                 </Text>
                 <TouchableOpacity onPress={() => router.push('/notifications')}>
                     <Image source={icons.bell} className='size-6' />
@@ -841,8 +563,8 @@ const EditVehicle = () => {
             </View>
 
             <View className="flex justify-between items-center pt-3 flex-row">
-                <Text className="font-rubik-bold text-lg">{step1Data.property_name}</Text>
-                <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik-bold border ${selectedStatus === 'published' ? ' bg-green-50  text-green-700  border-green-600 ' : 'bg-red-50  text-red-700 border-red-600'}`}>{selectedStatus === 'published' ? 'Published' : 'Under Review'}</Text>
+                <Text className="font-rubik-bold text-lg">{carData.name}</Text>
+                <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik-bold border ${vehicleStatus === 'Activated' ? ' bg-green-50  text-green-700  border-green-600 ' : 'bg-red-50  text-red-700 border-red-600'}`}>{vehicleStatus === 'Activated' ? 'Activated' : 'Under Review'}</Text>
             </View>
             <Toast config={toastConfig} position="top" />
 
@@ -854,446 +576,345 @@ const EditVehicle = () => {
                     // errors={errors}
                     >
                         <View style={styles.stepContent}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <View style={{ flex: 1, marginRight: 10 }}>
+                                    {/* Car Brand Name */}
+                                    <Text style={styles.label}>Car Brand Name</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            onValueChange={(value) => setSelectedBrand(value)}
+                                            value={selectedBrand}  // ✅ Ensure selected value is shown
+                                            items={brandData || []}
+                                            style={pickerSelectStyles}
+                                            placeholder={{ label: 'Choose an option...', value: null }}
+                                        />
+                                    </View>
+                                </View>
 
-                            {/* enter property name */}
-                            <Text style={styles.label}>Property Name</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter property name"
-                                value={step1Data.property_name}
-                                onChangeText={text => setStep1Data({ ...step1Data, property_name: text })}
-                            />
-
-
-
-                            {/* enter description */}
-                            <Text style={styles.label}>Property Description</Text>
-                            <TextInput
-                                style={styles.textarea}
-                                value={step1Data.description}
-                                onChangeText={text => setStep1Data({ ...step1Data, description: text })} maxLength={120}
-                                placeholder="Enter property description"
-                                multiline numberOfLines={5}
-                            />
-
-                            {/* enter thumbnail */}
-                            <Text style={styles.label}>Property Thumbnail</Text>
-                            <View className="flex flex-row">
-                                <TouchableOpacity onPress={pickMainImage} style={styles.dropbox}>
-                                    <Text style={{ textAlign: 'center' }}>Pick an image from gallery</Text>
-                                </TouchableOpacity>
-                                {mainImage && <Image source={{ uri: mainImage }} style={styles.image} />}
+                                <View style={{ flex: 1 }}>
+                                    {/* Car Model */}
+                                    <Text style={styles.label}>Car Model</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            onValueChange={(value) => setSelectedModal(value)}
+                                            value={selectedModal}  // ✅ Ensure selected value is shown
+                                            items={modalData?.map((model, index) => ({
+                                                label: model,
+                                                value: model,
+                                                key: index.toString(),
+                                            })) || []}
+                                            style={pickerSelectStyles}
+                                            placeholder={{ label: 'Choose an option...', value: null }}
+                                        />
+                                    </View>
+                                </View>
                             </View>
 
-                            {/* select category */}
-                            <Text style={styles.label}>Select category</Text>
+                            {/* Car Variant */}
+                            <Text style={styles.label}>Car Version</Text>
                             <View style={styles.pickerContainer}>
                                 <RNPickerSelect
-                                    onValueChange={(value) => setSelectedCategory(value)}
-                                    items={categories}
-                                    value={selectedCategory}
+                                    onValueChange={(value) => setSelectedVariant(value)}
+                                    value={selectedVariant}  // ✅ Ensure selected value is shown
+                                    items={variantData && Array.isArray(variantData) ? variantData : []}
                                     style={pickerSelectStyles}
                                     placeholder={{ label: 'Choose an option...', value: null }}
                                 />
                             </View>
 
-                            {/* enter near by location */}
-                            <Text style={styles.label}>Near By Location</Text>
+                            {/* Select City */}
+                            <Text style={styles.label}>Select District / City</Text>
+                            <View style={styles.pickerContainer}>
+                                <RNPickerSelect
+                                    onValueChange={(value) => setCity(value)}
+                                    value={city}  // ✅ Ensure selected value is shown
+                                    items={Array.isArray(cityData) ? cityData : []}
+                                    style={pickerSelectStyles}
+                                    placeholder={{ label: 'Choose an option...', value: null }}
+                                />
+                            </View>
+
+                            {/* State */}
+                            <Text style={styles.label}>State</Text>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Enter near by location"
-                                value={step1Data.nearbylocation}
-                                onChangeText={text => setStep1Data({ ...step1Data, nearbylocation: text })}
+                                value={stateData}
+                                placeholder='Enter state...'
+                                onChangeText={(text) => setState(text)}
                             />
 
+                            {/* Select Pincode */}
+                            <Text style={styles.label}>Select Pincode</Text>
+                            <View style={styles.pickerContainer}>
+                                <RNPickerSelect
+                                    onValueChange={(value) => setPincode(value)}
+                                    value={pincode}  // ✅ Ensure selected value is shown
+                                    items={pincodeList}
+                                    style={pickerSelectStyles}
+                                    placeholder={{ label: "Choose Pincode...", value: null }}
+                                />
+                            </View>
 
+                            {/* Car Color */}
+                            <Text style={styles.label}>Enter Car Color</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={color}
+                                placeholder='Enter Color...'
+                                onChangeText={(text) => setColor(text)}
+                            />
                         </View>
+
                     </ProgressStep>
 
-                    <ProgressStep label="Price"
+                    <ProgressStep label="Car Details"
                         nextBtnTextStyle={buttonNextTextStyle}
                         previousBtnTextStyle={buttonPreviousTextStyle}
                     // onNext={() => onNextStep(2)}
                     // errors={errors}
                     >
-                        <View>
-                            <Text style={{ textAlign: 'center', fontFamily: 'Rubik-Bold' }}>Pricing & Other Details</Text>
-                        </View>
-
                         <View style={styles.stepContent}>
-                            {/* enter rental income */}
-                            <Text style={styles.label}>Approx Rental Income</Text>
-                            <TextInput
-                                style={styles.input}
-                                keyboardType="numeric"
-                                placeholder="Enter approx rental income"
-                                value={step2Data.approxrentalincome}
-                                onChangeText={text => {
-                                    const numericText = text.replace(/[^0-9]/g, '');
-                                    setStep2Data(prevState => ({ ...prevState, approxrentalincome: numericText }));
-                                }}
-                            />
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <View style={{ flex: 1, marginRight: 10 }}>
+                                    {/* enter rental income */}
+                                    <Text style={styles.label}>Expected Selling Price</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        keyboardType="number-pad" // ✅ Better compatibility for numeric input
+                                        placeholder="Enter Selling Price"
+                                        value={sellingPrice}
+                                        onChangeText={text => {
+                                            // ✅ Allow only numbers & remove leading zeros
+                                            let numericText = text.replace(/[^0-9]/g, '');
+                                            if (numericText.startsWith("0")) {
+                                                numericText = numericText.replace(/^0+/, ""); // Remove leading zeros
+                                            }
+                                            setSellingPrice(numericText);
+                                        }}
+                                    />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    {/* enter vehicle name */}
+                                    <Text style={styles.label}>Insurance status</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            onValueChange={(value) => { setInsurance(value) }}
+                                            items={[
+                                                { label: "Available", value: "Available" },
+                                                { label: "Unavailable", value: "Unavailable" },
+                                            ]}
+                                            value={insurance}
+                                            style={pickerSelectStyles}
+                                            placeholder={{ label: "Choose status...", value: null }}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <View className="flex-1">
+                                    <Text style={styles.label}>Killometer Driven</Text>
+                                    <View style={{ flex: 1, marginRight: 10 }}>
+                                        <TextInput
+                                            style={styles.input}
+                                            keyboardType="numeric"
+                                            placeholder="Enter km Driven"
+                                            value={kmsDriven}
+                                            onChangeText={text => {
+                                                const numericText = text.replace(/[^0-9]/g, '');
+                                                setKmsDriven(numericText);
+                                            }}
+                                        />
+                                    </View>
 
+                                </View>
 
-                            <Text style={styles.label}>Current Property Price</Text>
-                            <TextInput
-                                style={styles.input}
-                                keyboardType="numeric"
-                                placeholder="Enter current price"
-                                value={step2Data.price}
-                                onChangeText={text => {
-                                    const numericText = text.replace(/[^0-9]/g, '');
-                                    setStep2Data(prevState => ({ ...prevState, price: numericText }));
-                                }}
-                            />
+                                <View style={{ flex: 1 }}>
+                                    {/* enter vehicle name */}
+                                    <Text style={styles.label}>Fuel Selection</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            onValueChange={(value) => setSelectedFuel(value)}
+                                            items={[
+                                                { label: "Petrol", value: "petrol" },
+                                                { label: "Diesel", value: "diesel" },
+                                                { label: "Electric", value: "electric" },
+                                                { label: "Hybrid", value: "hybrid" },
+                                            ]}
+                                            style={pickerSelectStyles}
+                                            value={selectedFuel}
+                                            placeholder={{ label: "Choose Fuel Type...", value: null }}
+                                        />
+
+                                    </View>
+                                </View>
+                            </View>
 
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                 <View style={{ flex: 1, marginRight: 10 }}>
 
-                                    {/* enter property price */}
-                                    <Text style={styles.label}>Historical Price</Text>
-
-                                    {/* Enter Price */}
+                                    {/* enter vehicle name */}
+                                    <Text style={styles.label}>Make Year</Text>
                                     <TextInput
                                         style={styles.input}
-                                        placeholder="Historical Price"
-                                        value={historyPrice}
                                         keyboardType="numeric"
-                                        onChangeText={(text) => {
+                                        placeholder="Enter make year"
+                                        value={makeYear}
+                                        onChangeText={text => {
                                             const numericText = text.replace(/[^0-9]/g, '');
-                                            setHistoryPrice(numericText);
+                                            setMakeYear(numericText);
                                         }}
                                     />
+
+                                </View>
+                                <View style={{ flex: 1, }}>
+                                    {/* enter description */}
+                                    <Text style={styles.label}>Registration year</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        keyboardType="numeric"
+                                        placeholder="Enter Year"
+                                        value={regYear}
+                                        onChangeText={text => {
+                                            const numericText = text.replace(/[^0-9]/g, '');
+                                            setRegYear(numericText);
+                                        }}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+
+                                <View style={{ flex: 1, marginRight: 10 }}>
+                                    {/* enter vehicle name */}
+                                    <Text style={styles.label}>Registration Type</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            onValueChange={(value) => setRegType(value)}
+                                            items={[
+                                                { label: "Private", value: "private" },
+                                                { label: "Commercial", value: "commercial" },
+                                            ]}
+                                            value={regType}
+                                            style={pickerSelectStyles}
+                                            placeholder={{ label: "Choose Fuel Type...", value: null }}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={{ flex: 1, }}>
+                                    {/* enter description */}
+                                    <Text style={styles.label}>Car Ownership</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            onValueChange={(value) => setOwnerChanged(value)}
+                                            items={[
+                                                { label: "1st Hand", value: "1st Hand" },
+                                                { label: "2nd Hand", value: "2nd Hand" },
+                                                { label: "3rd Hand", value: "3rd Hand" },
+                                                { label: "4th Hand", value: "4th Hand" },
+                                                { label: "5th Hand or More", value: "5th Hand" },
+                                            ]}
+                                            placeholder={{ label: "Select Ownership", value: null }}
+                                            value={ownerChanged}
+                                            style={pickerSelectStyles}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <View style={{ flex: 1, marginRight: 10 }}>
+
+                                    {/* enter vehicle price */}
+                                    <Text style={styles.label}>Transmission Type</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            onValueChange={(value) => setTransmissionType(value)}
+                                            items={[
+                                                { label: "Manual", value: "manual" },
+                                                { label: "Automatic", value: "automatic" },
+                                            ]}
+                                            value={transmissionType}
+                                            style={pickerSelectStyles} // Ensure picker styles are correctly defined
+                                            placeholder={{ label: "Enter Transmission Type", value: null }}
+                                        />
+
+
+                                    </View>
+
                                 </View>
 
                                 <View style={{ flex: 1 }}>
 
                                     {/* Select Date */}
-                                    <Text style={styles.label}>Historical Date</Text>
+                                    <Text style={styles.label}>Last updated</Text>
                                     <TouchableOpacity onPress={() => setShow(true)}>
                                         <TextInput
                                             style={styles.input}
                                             placeholder="DD-MM-YYYY"
-                                            value={selectedDate}
+                                            value={lastUpdate}
                                             editable={false}
                                         />
                                     </TouchableOpacity>
 
                                     {show && (
                                         <DateTimePicker
-                                            value={new Date()}
+                                            value={selectedDate}
                                             mode="date"
-                                            display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
-                                            onChange={handleDateChange}
+                                            display={Platform.OS === "ios" ? "inline" : "calendar"}
+                                            onChange={handleLastUpdated}
                                         />
                                     )}
                                 </View>
                             </View>
-
-                            {/* Add to Price History */}
-                            <TouchableOpacity style={styles.addButton} onPress={addPriceHistory}>
-                                <Text style={styles.addButtonText}>Add to Table</Text>
-                            </TouchableOpacity>
-
-                            {/* Show Table */}
-                            {step2Data.historydate.length > 0 && (
-                                <View style={{ flexGrow: 1, minHeight: 1, marginTop: 10 }}>
-                                    <FlatList
-                                        data={visibleData}
-                                        keyExtractor={(item, index) => index.toString()}
-                                        nestedScrollEnabled={true}
-                                        contentContainerStyle={{
-                                            flexGrow: 1,
-                                            borderWidth: 1,
-                                            borderColor: '#c7c7c7',
-                                            borderRadius: 10,
-                                        }}
-                                        ListHeaderComponent={
-                                            <Text className="text-center font-rubik-bold my-2 border-b border-gray-300">
-                                                Price Data for Graph
-                                            </Text>
-                                        }
-                                        renderItem={({ item, index }) => (
-                                            <View style={styles.tableRow}>
-                                                <Text style={styles.tableCell}>
-                                                    Rs. {parseInt(item.priceValue).toLocaleString()}
-                                                </Text>
-                                                <Text style={styles.tableCell}>{item.dateValue}</Text>
-                                                <TouchableOpacity onPress={() => removePriceHistory(index)}>
-                                                    <Text style={styles.removeBtn}>❌</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        )}
-                                    />
-
-                                    {currentIndex < step2Data.historydate.length && (
-                                        <TouchableOpacity onPress={loadMore} style={styles.addButton}>
-                                            <Text style={styles.addButtonText}>View More</Text>
-                                        </TouchableOpacity>
-                                    )}
-                                </View>
-                            )}
-
                         </View>
                     </ProgressStep>
 
-                    <ProgressStep label="Details"
-                        nextBtnTextStyle={buttonNextTextStyle}
-                        previousBtnTextStyle={buttonPreviousTextStyle}
-                    // onNext={() => onNextStep(3)}
-                    // errors={errors}
-                    >
-
-                        <View style={styles.stepContent}>
-
-                            {/* enter amenities */}
-                            <View className='flex flex-row items-center'>
-
-                                <Text style={styles.label}>Features & Amenities</Text>
-                            </View>
-                            <View className='flex flex-row align-center'>
-                                <View className='flex-grow'>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="Enter to Add Amenities"
-                                        value={amenity}
-                                        onChangeText={setAmenity}
-                                        onSubmitEditing={handleAddAmenity} // Adds item on Enter key press
-                                    />
-                                </View>
-                                <TouchableOpacity onPress={() => handleAddAmenity()}>
-                                    <Image
-                                        source={icons.addicon}
-                                        style={styles.addBtn}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-                            <View style={{ flexDirection: "row", alignItems: "center", minHeight: 50 }}>
-                                <FlatList
-                                    data={amenities}
-                                    keyExtractor={(item, index) => index.toString()}
-                                    horizontal
-                                    nestedScrollEnabled
-                                    showsHorizontalScrollIndicator={false}
-                                    contentContainerStyle={{ flexDirection: "row", alignItems: "center" }}
-                                    renderItem={({ item }) => (
-                                        <View style={styles.amenityItem}>
-                                            <Text className="font-rubik-bold px-2 capitalize text-nowrap text-green-600">{item}</Text>
-                                            <TouchableOpacity onPress={() => setAmenities(amenities.filter(a => a !== item))}>
-                                                <Text style={styles.removeBtn}>❌</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
-                                />
-                            </View>
-
-
-
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                {/* enter squre foot area */}
-                                <View style={{ flex: 1, marginRight: 5 }}>
-                                    <Text style={styles.label}>Square Foot</Text>
-                                    <TextInput style={styles.input} placeholder="Square Foot" keyboardType="numeric" value={step3Data.sqfoot} onChangeText={text => setStep3Data({ ...step3Data, sqfoot: text })} />
-                                </View>
-
-                                {/* enter number of bathrooms */}
-                                <View style={{ flex: 1, marginLeft: 5 }}>
-                                    <Text style={styles.label}>Bathroom</Text>
-                                    <TextInput style={styles.input} placeholder="Bathroom" keyboardType="numeric" value={step3Data.bathroom} onChangeText={text => setStep3Data({ ...step3Data, bathroom: text })} />
-                                </View>
-                                {/* enter number of bathrooms */}
-
-                                <View style={{ flex: 1, marginLeft: 5 }}>
-                                    <Text style={styles.label}>Bedroom</Text>
-                                    <TextInput style={styles.input} placeholder="bedrooms" keyboardType="numeric" value={step3Data.bedroom} onChangeText={text => setStep3Data({ ...step3Data, bedroom: text })} />
-                                </View>
-                            </View>
-
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                {/* enter number of floors */}
-                                <View style={{ flex: 1, marginRight: 5 }}>
-                                    <Text style={styles.label}>Floor</Text>
-                                    <TextInput style={styles.input} placeholder="Floor" keyboardType="numeric" value={step3Data.floor} onChangeText={text => setStep3Data({ ...step3Data, floor: text })} />
-                                </View>
-
-                                {/* enter property city */}
-                                <View style={{ flex: 1, marginLeft: 5 }}>
-                                    <Text style={styles.label}>City</Text>
-                                    <TextInput style={styles.input} placeholder="Enter City" value={step3Data.city} onChangeText={text => setStep3Data({ ...step3Data, city: text })} />
-                                </View>
-                            </View>
-
-                            {/* enter property address */}
-                            <Text style={styles.label}>Property Address</Text>
-                            <TextInput style={styles.textarea} placeholder="Property Address" value={step3Data.officeaddress} onChangeText={text => setStep3Data({ ...step3Data, officeaddress: text })} multiline numberOfLines={5} maxLength={120} />
-
-                            <Text style={styles.label}>Pin Location in Map</Text>
-                            <View styles={styles.mapTextInput}>
-                                <GooglePlacesAutocomplete
-                                    placeholder="Search location"
-                                    fetchDetails={true}
-                                    onPress={handlePlaceSelect}
-                                    onFail={(error) => console.error(error)}
-                                    query={{
-                                        key: GOOGLE_MAPS_API_KEY,
-                                        language: "en",
-                                    }}
-                                    styles={styles.mapTextInput}
-                                    debounce={400} // Reduce API calls
-                                />
-                            </View>
-                            <View style={{ backgroundColor: '#edf5ff', padding: 5, borderRadius: 10 }}>
-                                <Text style={styles.label}>Location: {fullAddress}</Text>
-                            </View>
-                            <Text style={{ marginVertical: 10, fontWeight: "bold" }}>Pin Location on Map</Text>
-                            <View>
-                                <MapView
-                                    style={{ height: 150, borderRadius: 10 }}
-                                    region={region}
-                                    initialRegion={region}
-                                    onPress={handleMapPress}
-                                >
-                                    {region && <Marker coordinate={{ latitude: parseFloat(coordinates.latitude), longitude: parseFloat(coordinates.longitude) }} />}
-                                </MapView>
-                                <Text>Latitude: {region.latitude}</Text>
-                                <Text>Longitude: {region.longitude}</Text>
-                            </View>
-
-                        </View>
-                    </ProgressStep>
-
-                    <ProgressStep label="Documents"
+                    <ProgressStep label="Gallery"
                         nextBtnTextStyle={buttonNextTextStyle}
                         previousBtnTextStyle={buttonPreviousTextStyle}
                         onSubmit={handleSubmit}>
 
-                        {/* Select Status */}
-                        <View style={styles.stepContent}>
-                            <Text style={styles.label}>Select Status</Text>
-                            <View style={styles.pickerContainer}>
-                                <RNPickerSelect
-                                    onValueChange={(value) => setSelectedStatus(value)}
-                                    items={status}
-                                    value={selectedStatus}
-                                    style={pickerSelectStyles}
-                                    placeholder={{ label: 'Choose an option...', value: null }}
-                                />
-                            </View>
+                        {/* upload gallery */}
+                        <Text style={styles.label}>Upload Car Images</Text>
+                        <View style={{ flexGrow: 1, minHeight: 1 }}>
+                            <FlatList
+                                data={galleryImages}
+                                horizontal
+                                keyExtractor={(item, index) => index.toString()}
+                                nestedScrollEnabled={true}
+                                contentContainerStyle={styles.fileContainer}
+                                renderItem={({ item, index }) => (
+                                    <View style={styles.thumbnailBox} className="border border-gray-300">
+                                        <Image source={{ uri: item }} style={styles.thumbnail} />
+                                        <Text className="text-center font-rubik-bold">Image: {index + 1}</Text>
+
+                                        <TouchableOpacity
+                                            onPress={() => removeGalleryImage(index, item)}
+                                            style={styles.deleteButton}
+                                        >
+                                            <Text className="text-white">X</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+                            />
                         </View>
+                        <TouchableOpacity onPress={pickGalleryImages} style={styles.dropbox}>
+                            <Text style={{ textAlign: 'center' }}>Pick images from gallery</Text>
+                        </TouchableOpacity>
 
-                        {/* Upload Gallery */}
-                        <View style={styles.stepContent}>
-                            <Text style={styles.label}>Property Gallery</Text>
-                            <View style={{ flexGrow: 1, minHeight: 1 }}>
-                                <FlatList
-                                    data={galleryImages}
-                                    horizontal
-                                    keyExtractor={(item, index) => index.toString()}
-                                    contentContainerStyle={styles.fileContainer}
-                                    renderItem={({ item, index }) => (
-                                        <View style={styles.thumbnailBox} className="border border-gray-300">
-                                            <Image source={{ uri: item }} style={styles.thumbnail} />
-                                            <Text className="text-center font-rubik-bold">Image: {index + 1}</Text>
-                                            <TouchableOpacity
-                                                onPress={() => removeGalleryImage(index, item)}
-                                                style={styles.deleteButton}>
-                                                <Text className="text-white">X</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                            <TouchableOpacity onPress={pickGalleryImages} style={styles.dropbox}>
-                                <Text style={{ textAlign: 'center' }}>Pick images from gallery</Text>
-                            </TouchableOpacity>
-                        </View>
 
-                        {/* Upload Video */}
-                        <View style={styles.stepContent}>
-                            <Text style={styles.label}>Upload Videos</Text>
-                            <View style={{ flexGrow: 1, minHeight: 1 }}>
-                                <FlatList
-                                    data={videos}
-                                    horizontal
-                                    keyExtractor={(item, index) => index.toString()}
-                                    contentContainerStyle={styles.fileContainer}
-                                    renderItem={({ item, index }) => (
-                                        <View style={styles.thumbnailBox} className="border border-gray-300">
-                                            <Image source={{ uri: `${item.thumbnailImages}?update=${new Date().getTime()}` }} style={styles.thumbnail} />
-                                            <Text className="text-center font-rubik-bold">Video {index + 1}</Text>
-                                            <TouchableOpacity
-                                                onPress={() => removeVideo(index, item.uri)}
-                                                style={styles.deleteButton}
-                                            >
-                                                <Text className="text-white">X</Text>
-                                            </TouchableOpacity>
+                        {/* enter vehicle name */}
+                        <Text style={styles.label}>Vehicle status</Text>
+                        <View style={styles.pickerContainer}>
+                            <RNPickerSelect
+                                onValueChange={(value) => { setVehicleStatus(value) }}
+                                items={status}
+                                value={vehicleStatus}
+                                style={pickerSelectStyles}
+                                placeholder={{ label: "Choose status...", value: null }}
+                            />
 
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                            <TouchableOpacity onPress={pickVideo} style={styles.dropbox}>
-                                <Text style={{ textAlign: 'center' }}>Pick videos from gallery</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Upload Property Documents */}
-                        <View style={styles.stepContent}>
-                            <Text style={styles.label}>Upload Property Documents</Text>
-                            <View style={{ flexGrow: 1, minHeight: 1 }}>
-                                <FlatList
-                                    data={propertyDocuments}
-                                    horizontal
-                                    keyExtractor={(item, index) => index.toString()}
-                                    contentContainerStyle={styles.fileContainer}
-                                    renderItem={({ item, index }) => (
-                                        <View style={styles.thumbnailBox} className="border border-gray-300">
-                                            <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-                                            <Text className="text-center font-rubik-bold">Doc {index + 1}</Text>
-                                            <TouchableOpacity
-                                                onPress={() => removeDocument(index, item.uri)}  // Pass the correct URI
-                                                style={styles.deleteButton}>
-                                                <Text className="text-white">X</Text>
-                                            </TouchableOpacity>
-
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                            <TouchableOpacity onPress={pickDocument} style={styles.dropbox}>
-                                <Text style={{ textAlign: 'center' }}>Pick Doc from gallery</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Upload Master Plan */}
-                        <View style={styles.stepContent}>
-                            <Text style={styles.label}>Upload Master Plan of Property</Text>
-                            <View style={{ flexGrow: 1, minHeight: 1 }}>
-                                <FlatList
-                                    data={masterPlanDoc}
-                                    horizontal
-                                    keyExtractor={(item, index) => index.toString()}
-                                    contentContainerStyle={styles.fileContainer}
-                                    renderItem={({ item, index }) => (
-                                        <View style={styles.thumbnailBox} className="border border-gray-300">
-                                            <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-                                            <Text className="text-center font-rubik-bold">Plan {index + 1}</Text>
-                                            <TouchableOpacity
-                                                onPress={() => removeMasterPlan(index, item.uri)}  // Pass the correct URI
-                                                style={styles.deleteButton}>
-                                                <Text className="text-white">X</Text>
-                                            </TouchableOpacity>
-
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                            <TouchableOpacity onPress={pickMasterPlan} style={styles.dropbox}>
-                                <Text style={{ textAlign: 'center' }}>Pick Master Plan from gallery</Text>
-                            </TouchableOpacity>
                         </View>
                     </ProgressStep>
-
                 </ProgressSteps>
             </View>
             {loading && (

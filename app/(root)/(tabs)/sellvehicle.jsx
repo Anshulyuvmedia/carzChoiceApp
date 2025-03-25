@@ -24,13 +24,15 @@ const SellVehicle = () => {
     const [stateData, setStateData] = useState("");
     const [pincodeList, setPincodeList] = useState([]); // Store multiple pincodes
 
-
-    const [selectedBrand, setSelectedBrand] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [selectedBrand, setSelectedBrand] = useState('');
     const [selectedModal, setSelectedModal] = useState(null);
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [city, setCity] = useState(null);
     const [state, setState] = useState(null);
-    const [pincode, setPincode] = useState(""); // Selected pincode
+    const [pincode, setPincode] = useState("");
+    const [insurance, setInsurance] = useState(null);
+    const [color, setColor] = useState("");
 
     const [sellingPrice, setSellingPrice] = useState(null);
     const [kmsDriven, setKmsDriven] = useState(null);
@@ -45,7 +47,6 @@ const SellVehicle = () => {
     const [galleryImages, setGalleryImages] = useState([]);
 
     const [loading, setLoading] = useState(false);
-
     const [show, setShow] = useState(false);
 
     const buttonPreviousTextStyle = {
@@ -62,14 +63,6 @@ const SellVehicle = () => {
         backgroundColor: 'lightgreen',
         color: 'black',
     };
-    const categories = [
-        { label: 'Apartment', value: 'Apartment' },
-        { label: 'Villa', value: 'Villa' },
-        { label: 'Penthouse', value: 'Penthouse' },
-        { label: 'Residences', value: 'Residences' },
-        { label: 'Luxury House', value: 'Luxury House' },
-        { label: 'Bunglow', value: 'Bunglow' },
-    ];
     const toastConfig = {
         success: (props) => (
             <BaseToast
@@ -98,94 +91,43 @@ const SellVehicle = () => {
             />
         ),
     };
-    // const status = [
-    //     { label: 'Unpublished', value: 'unpublished' },
-    //     { label: 'Published', value: 'published' },
-    // ];
 
-    // const validateStep = (step) => {
-    //     if (step === 1) {
-    //         if (!step1Data?.property_name || !step1Data?.description || !step1Data?.nearbylocation) {
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Step 1 Error',
-    //                 text2: 'Vehicle Name, Description, and Nearby Location are required.',
-    //             });
-    //             return false;
-    //         }
-    //     }
+    const validateStep = (step) => {
+        if (step === 1) {
+            if (!selectedBrand || !selectedModal || !selectedVariant || !city || !stateData || !pincode || !color) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Step 1 Error',
+                    text2: 'Car Brand, Model, Version, City, State, Pincode, and Color are required.',
+                });
+                return false;
+            }
+        }
 
-    //     if (step === 2) {
-    //         if (!step2Data?.approxrentalincome || step2Data?.historydate.length === 0 || !step2Data?.price) {
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Step 2 Error',
-    //                 text2: 'Approx Rental Income, Price, and at least one History Date are required.',
-    //             });
-    //             return false;
-    //         }
-    //     }
+        if (step === 2) {
+            if (!sellingPrice || !insurance || !kmsDriven || !selectedFuel || !makeYear || !regYear || !regType || !ownerChanged || !transmissionType || !lastUpdate) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Step 2 Error',
+                    text2: 'Selling Price, Insurance, Kilometers Driven, Fuel Type, Make Year, Registration Year, Registration Type, Ownership, Transmission Type, and Last Update are required.',
+                });
+                return false;
+            }
+        }
 
-    //     if (step === 3) {
-    //         if (!step3Data?.sqfoot || !step3Data?.bathroom || !step3Data?.floor || !step3Data?.city || !step3Data?.officeaddress || !step3Data?.bedroom) {
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Step 3 Error',
-    //                 text2: 'Square Foot, Bathroom, Floor, City, Office Address, and Bedroom are required.',
-    //             });
-    //             return false;
-    //         }
-    //     }
+        if (step === 3) {
+            if (!galleryImages || galleryImages.length === 0) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Step 3 Error',
+                    text2: 'At least one car image is required.',
+                });
+                return false;
+            }
+        }
 
-    //     if (step === 4) {
-    //         if (!selectedCategory) {
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Category Required',
-    //                 text2: 'Please select a vehicle category.',
-    //             });
-    //             return false;
-    //         }
-
-    //         if (!mainImage) {
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Image Required',
-    //                 text2: 'Please upload a main vehicle image.',
-    //             });
-    //             return false;
-    //         }
-
-    //         if (galleryImages.length < 2) {
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Gallery Images Required',
-    //                 text2: 'Please upload at least 2 gallery images.',
-    //             });
-    //             return false;
-    //         }
-
-    //         if (!coordinates.latitude || !coordinates.longitude) {
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Location Required',
-    //                 text2: 'Please provide a valid vehicle location.',
-    //             });
-    //             return false;
-    //         }
-
-    //         if (propertyDocuments.length === 0) {
-    //             Toast.show({
-    //                 type: 'error',
-    //                 text1: 'Documents Required',
-    //                 text2: 'Please upload at least one vehicle document.',
-    //             });
-    //             return false;
-    //         }
-    //     }
-
-    //     return true;
-    // };
+        return true;
+    };
 
     const onNextStep = (step) => {
         if (!validateStep(step)) {
@@ -239,119 +181,112 @@ const SellVehicle = () => {
         }
     };
 
-    // Handle Date Change
-    const handleMakeYear = (event, date) => {
+    // Handle Date Selection
+    const handleLastUpdated = (event, date) => {
         if (date) {
-            const options = { year: "numeric", month: "long" }; // Example: March 2025
-            const formattedDate = date.toLocaleDateString("en-GB", options);
-            setMakeYear(formattedDate);
-        }
-        setShow(false);
-    };
-    const handlLastUpdated = (event, date) => {
-        if (date) {
-            const formattedDate = date.toLocaleDateString("en-GB", options);
+            const formattedDate = date.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
             setLastUpdate(formattedDate);
+            setSelectedDate(date);
         }
-        setShow(false);
+        setShow(false); // Hide picker after selection
     };
 
     const getUserData = async () => {
         try {
             const userData = await AsyncStorage.getItem('userData');
-            const userToken = await AsyncStorage.getItem('userToken');
 
             return {
                 userData: userData ? JSON.parse(userData) : null,
-                userToken: userToken ? userToken : null
             };
         } catch (error) {
-            console.error("Error fetching user data:", error);
+            console.error("❌ Error fetching user data:", error);
             Toast.show({
                 type: 'error',
                 text1: 'Error',
                 text2: "Could not retrieve user data.",
             });
-            return null;
+            return { userData: null, userToken: null };
         }
     };
 
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const { userData, userToken } = await getUserData();
-            if (!userData || !userToken) {
-                throw new Error("User is not authenticated. Token missing.");
+            const { userData } = await getUserData(); // Only fetching userData, ignoring userToken
+
+            if (!userData) {
+                throw new Error("User data is missing.");
             }
 
-            const { id, user_type } = userData;
-
+            const { id } = userData;
             const formData = new FormData();
 
-            // formData.append("status", selectedStatus ?? "");
-            formData.append("roleid", id ?? "");
-            formData.append("usertype", user_type ?? "");
-            formData.append("amenities", JSON.stringify(amenities));
+            formData.append("userid", id ?? "");
+            formData.append("brandname", selectedBrand);
+            formData.append("carname", selectedModal);
+            formData.append("modalname", selectedVariant);
+            formData.append("district", city);
+            formData.append("state", state);
+            formData.append("pincode", pincode);
+            formData.append("price", sellingPrice);
+            formData.append("kilometersdriven", kmsDriven);
+            formData.append("fueltype", selectedFuel);
+            formData.append("registeryear", regYear);
+            formData.append("manufactureyear", makeYear);
+            formData.append("ownernumbers", ownerChanged);
+            formData.append("transmissiontype", transmissionType);
+            formData.append("color", color);
+            formData.append("insurance", insurance || "Unavailable");
+            formData.append("registertype", regType);
+            formData.append("lastupdated", lastUpdate);
 
-
-            // ✅ Append Gallery Images Correctly
+            // ✅ Fix: Append Images as "images" array
             galleryImages.forEach((imageUri, index) => {
-                if (imageUri) { // Directly check string
-                    const fileType = imageUri.includes('.') ? imageUri.split('.').pop() : "jpeg";
-
-                    formData.append(`galleryImages[${index}]`, {
-                        uri: imageUri, // ✅ Corrected
+                if (imageUri) {
+                    const fileType = imageUri.split('.').pop() || "jpeg";
+                    formData.append(`images[${index}]`, {
+                        uri: imageUri,
                         type: `image/${fileType}`,
-                        name: `gallery-image-${index}.${fileType}`,
+                        name: `vehicle-image-${index}.${fileType}`,
                     });
-                } else {
-                    console.warn("Skipping image due to missing URI.");
                 }
             });
 
-            // console.log("Uploading galleryImages", galleryImages);
 
+            console.log("Uploading FormData:");
+            for (let pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
+            }
 
-            // ✅ Prepare File Data Object & Append
-            const safeFileName = (uri, defaultExt) => {
-                return uri && uri.includes('.') ? uri.split('.').pop() : defaultExt;
-            };
-
-            const fileData = {
-                galleryImages: galleryImages.map((image, index) => `gallery-image-${index}.${safeFileName(image.uri, "jpg")}`),
-
-            };
-            formData.append("fileData", JSON.stringify(fileData));
-            console.log("Uploading FormData add vehicle:", formData);
-
-            // Send API request
-            const response = await axios.post("https://carzchoice.com/api/insertlisting", formData, {
+            // ✅ API request WITHOUT authentication
+            const response = await axios.post("https://carzchoice.com/api/sellvehicle", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
-                    "Authorization": `Bearer ${userToken}`,
                 },
             });
 
-            // console.log("API Response:", response.data);
-            if (response.status === 200 && !response.data.error) {
+            if (response.status === 201 && response.data.success) {
                 Toast.show({
-                    type: 'success',
-                    text1: 'Success',
+                    type: "success",
+                    text1: "Success",
                     text2: "Vehicle added successfully!",
                 });
             } else {
-                console.error("Error", response.data.message || "Failed to add vehicle.");
                 Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: "Failed to add vehicle.",
+                    type: "error",
+                    text1: "Error",
+                    text2: response.data.message || "Failed to add vehicle.",
                 });
             }
         } catch (error) {
             console.error("API Error:", error?.response?.data || error);
             Toast.show({
-                type: 'error',
-                text1: 'Error',
+                type: "error",
+                text1: "Error",
                 text2: "Something went wrong. Please try again.",
             });
         } finally {
@@ -383,7 +318,6 @@ const SellVehicle = () => {
         }
     };
 
-
     const getCarModal = async (selectedBrand) => {
         if (!selectedBrand) return; // Ensure selectedBrand is valid
         setLoading(true);
@@ -407,7 +341,6 @@ const SellVehicle = () => {
         }
     };
 
-
     const getCarVariant = async (modalName) => {
         if (!modalName) return; // Ensure modalName is valid
         setLoading(true);
@@ -428,21 +361,6 @@ const SellVehicle = () => {
             setLoading(false);
         }
     };
-
-    // Call functions when dependencies change
-    useEffect(() => {
-        fetchBrandList();
-        getCityList();
-    }, []);
-
-    useEffect(() => {
-        if (selectedBrand) getCarModal(selectedBrand);
-    }, [selectedBrand]);
-
-    useEffect(() => {
-        if (selectedModal) getCarVariant(selectedModal);
-    }, [selectedModal]);
-
 
     const getCityList = async () => {
         setLoading(true);
@@ -494,8 +412,11 @@ const SellVehicle = () => {
 
                 // Update state values
                 setStateData(uniqueState); // Set single state value
+                setState(uniqueState);
                 setPincodeList(pincodesArray); // Set pincode dropdown list
-                setPincode(""); // Reset selected pincode
+                setPincode(pincodesArray[0]?.value || ""); // Reset selected pincode
+                // console.log("State:", pincode);
+
             } else {
                 console.error("Unexpected API response format:", response.data);
                 setStateData("");
@@ -512,12 +433,19 @@ const SellVehicle = () => {
         }
     };
 
+    // Call functions when dependencies change
+    useEffect(() => {
+        fetchBrandList();
+        getCityList();
+    }, []);
 
+    useEffect(() => {
+        if (selectedBrand) getCarModal(selectedBrand);
+    }, [selectedBrand]);
 
-
-
-
-
+    useEffect(() => {
+        if (selectedModal) getCarVariant(selectedModal);
+    }, [selectedModal]);
 
     useEffect(() => {
         if (city) getLocationData(city);
@@ -546,8 +474,8 @@ const SellVehicle = () => {
                 <ProgressSteps>
                     <ProgressStep label="General"
                         nextBtnTextStyle={buttonNextTextStyle}
-                    // onNext={() => onNextStep(1)}
-                    // errors={errors}
+                        onNext={() => onNextStep(1)}
+                        errors={errors}
                     >
                         <View style={styles.stepContent}>
 
@@ -610,7 +538,11 @@ const SellVehicle = () => {
                             <TextInput
                                 style={styles.input}
                                 value={stateData} // Show state value
-                                editable={false} // Prevent user from modifying state
+                                // editable={false} // Prevent user from modifying state
+                                placeholder='Enter state...'
+                                onChangeText={(text) => {
+                                    setState(text);
+                                }}
                             />
 
 
@@ -626,7 +558,16 @@ const SellVehicle = () => {
                                 />
                             </View>
 
-
+                            <Text style={styles.label}>Enter Car Color</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={color} // Show state value
+                                // editable={false} // Prevent user from modifying state
+                                placeholder='Enter Color...'
+                                onChangeText={(text) => {
+                                    setColor(text);
+                                }}
+                            />
 
 
                         </View>
@@ -635,22 +576,47 @@ const SellVehicle = () => {
                     <ProgressStep label="Car Details"
                         nextBtnTextStyle={buttonNextTextStyle}
                         previousBtnTextStyle={buttonPreviousTextStyle}
-                    // onNext={() => onNextStep(2)}
-                    // errors={errors}
+                        onNext={() => onNextStep(2)}
+                        errors={errors}
                     >
                         <View style={styles.stepContent}>
-                            {/* enter rental income */}
-                            <Text style={styles.label}>Expected Selling Price</Text>
-                            <TextInput
-                                style={styles.input}
-                                keyboardType="numeric"
-                                placeholder="Enter Selling Price"
-                                value={sellingPrice}
-                                onChangeText={text => {
-                                    const numericText = text.replace(/[^0-9]/g, '');
-                                    setSellingPrice(numericText);
-                                }}
-                            />
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <View style={{ flex: 1, marginRight: 10 }}>
+                                    {/* enter rental income */}
+                                    <Text style={styles.label}>Expected Selling Price</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        keyboardType="number-pad" // ✅ Better compatibility for numeric input
+                                        placeholder="Enter Selling Price"
+                                        value={sellingPrice}
+                                        onChangeText={text => {
+                                            // ✅ Allow only numbers & remove leading zeros
+                                            let numericText = text.replace(/[^0-9]/g, '');
+                                            if (numericText.startsWith("0")) {
+                                                numericText = numericText.replace(/^0+/, ""); // Remove leading zeros
+                                            }
+                                            setSellingPrice(numericText);
+                                        }}
+                                    />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    {/* enter vehicle name */}
+                                    <Text style={styles.label}>Insurance status</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            onValueChange={(value) => { setInsurance(value) }}
+                                            items={[
+                                                { label: "Available", value: "Available" },
+                                                { label: "Unavailable", value: "Unavailable" },
+                                            ]}
+                                            value={insurance}
+                                            style={pickerSelectStyles}
+                                            placeholder={{ label: "Choose status...", value: null }}
+                                        />
+
+                                    </View>
+                                </View>
+                            </View>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                 <View className="flex-1">
                                     <Text style={styles.label}>Killometer Driven</Text>
@@ -694,23 +660,17 @@ const SellVehicle = () => {
 
                                     {/* enter vehicle name */}
                                     <Text style={styles.label}>Make Year</Text>
-                                    <TouchableOpacity onPress={() => setShow(true)}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="DD-MM-YYYY"
-                                            value={makeYear}
-                                            editable={false}
-                                        />
-                                    </TouchableOpacity>
+                                    <TextInput
+                                        style={styles.input}
+                                        keyboardType="numeric"
+                                        placeholder="Enter make year"
+                                        value={makeYear}
+                                        onChangeText={text => {
+                                            const numericText = text.replace(/[^0-9]/g, '');
+                                            setMakeYear(numericText);
+                                        }}
+                                    />
 
-                                    {show && (
-                                        <DateTimePicker
-                                            value={new Date()}
-                                            mode="date"
-                                            display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
-                                            onChange={handleMakeYear}
-                                        />
-                                    )}
                                 </View>
                                 <View style={{ flex: 1, }}>
                                     {/* enter description */}
@@ -801,10 +761,10 @@ const SellVehicle = () => {
 
                                     {show && (
                                         <DateTimePicker
-                                            value={new Date()}
+                                            value={selectedDate}
                                             mode="date"
-                                            display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
-                                            onChange={handlLastUpdated}
+                                            display={Platform.OS === "ios" ? "inline" : "calendar"}
+                                            onChange={handleLastUpdated}
                                         />
                                     )}
                                 </View>
@@ -844,7 +804,6 @@ const SellVehicle = () => {
                         <TouchableOpacity onPress={pickGalleryImages} style={styles.dropbox}>
                             <Text style={{ textAlign: 'center' }}>Pick images from gallery</Text>
                         </TouchableOpacity>
-
                     </ProgressStep>
                 </ProgressSteps>
             </View>
@@ -855,7 +814,7 @@ const SellVehicle = () => {
                     </View>
                 )
             }
-        </SafeAreaView >
+        </SafeAreaView>
     )
 }
 

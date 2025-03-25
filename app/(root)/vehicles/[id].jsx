@@ -318,7 +318,7 @@ const CarDetails = () => {
     }
 
     const carDetails = [
-        { key: 'Registration Year', icon: icons.registrationYear, value: CarData.registrationyear || '-' },
+        { key: 'Registration Year', icon: icons.registrationYear, value: CarData.registeryear || '-' },
         { key: 'Insurance', icon: icons.insuranceValidity, value: CarData.insurance || '-' },
         { key: 'Fuel Type', icon: icons.fuel, value: CarData.fueltype || '-' },
         { key: 'Seats', icon: icons.seats, value: CarData.seats || '-' },
@@ -472,9 +472,10 @@ const CarDetails = () => {
                     <View className="flex flex-col items-start">
                         <Text className="text-black-200 text-xs font-rubik-medium">Price</Text>
                         <Text numberOfLines={1} className="text-primary-300 text-start text-2xl font-rubik-bold">
-                            ₹{CarData.price}
+                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(CarData.price)}
                         </Text>
                     </View>
+
 
                     <TouchableOpacity onPress={() => handleEnquiry()} className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
                         <Text className="text-white text-lg text-center font-rubik-bold">Book Now</Text>
