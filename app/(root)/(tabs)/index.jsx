@@ -42,32 +42,30 @@ const Index = () => {
     const fetchUserData = async () => {
         setLoading(true);
         try {
-            const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
+            const storedUserData = await AsyncStorage.getItem('userData');
+            const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
 
-            if (!parsedUserData || !parsedUserData.id) {
+            if (!parsedUserData || typeof parsedUserData !== 'object' || !parsedUserData.id) {
                 await AsyncStorage.removeItem('userData');
                 router.push('/signin');
                 return;
             }
 
             // Fetch user data from API
-            const response = await axios.get(`https://investorlands.com/api/userprofile?id=${parsedUserData.id}`);
-            // console.log('API Response:', response.data);
+            const response = await axios.get(`https://carzchoice.com/api/userprofile/${parsedUserData.id}`);
 
-            if (response.data && response.data.data) {
-                const apiData = response.data.data;
-                setUserData(apiData);
+            if (response.data && Array.isArray(response.data.userData) && response.data.userData.length > 0) {
+                const apiUserData = response.data.userData[0];
+                setUserData(apiUserData);
 
                 // Set Profile Image, ensuring fallback to default avatar
-                if (apiData.profile_photo_path) {
-                    setImage(
-                        apiData.profile_photo_path.startsWith('http')
-                            ? apiData.profile_photo_path
-                            : `https://investorlands.com/assets/images/Users/${apiData.profile_photo_path}`
-                    );
-                } else {
-                    setImage(images.avatar);
-                }
+                setImage(
+                    apiUserData.dp
+                        ? apiUserData.dp.startsWith('http')
+                            ? apiUserData.dp
+                            : `https://carzchoice.com/assets/backend-assets/images/${apiUserData.dp}`
+                        : images.avatar
+                );
             } else {
                 console.error('Unexpected API response format:', response.data);
                 setImage(images.avatar);
@@ -125,7 +123,7 @@ const Index = () => {
     // };
 
     useEffect(() => {
-        // fetchUserData();
+        fetchUserData();
         fetchListingData();
     }, []);
 
@@ -150,7 +148,7 @@ const Index = () => {
                                         Welcome
                                     </Text>
                                     <Text className='text-lg font-rubik-medium text-black-300'>
-                                        {userData?.name?.split(' ')[0] || 'User'}
+                                        {userData?.fullname?.split(' ')[0] || 'User'}
                                     </Text>
                                 </View>
                             </TouchableOpacity>

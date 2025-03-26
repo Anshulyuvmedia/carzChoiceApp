@@ -18,34 +18,29 @@ const Explore = () => {
   const fetchFilterData = async () => {
     setLoading(true);
     setListingData([]);
-  
+
     console.log("params:", params);
-  
+
     try {
       let apiUrl = "https://carzchoice.com/api/filterOldCarByAttribute";
       let requestBody = {};
-  
+
       // List of predefined locations
-      const locations = [
-        "ahmedabad", "bangalore", "chennai", "gurgaon",
-        "hyderabad", "jaipur", "kolkata", "lucknow",
-        "mumbai", "delhi", "pune"
-      ];
-  
+
+
       if (params.propertyType) {
-        if (locations.includes(params.propertyType.toLowerCase())) {
-          requestBody = { location: params.propertyType };  // 🔹 Send location
-        } else {
-          requestBody = { attribute: params.propertyType }; // 🔹 Send attribute
-        }
+        requestBody = { location: params.propertyType };  // 🔹 Send location
+      } else {
+        requestBody = { attribute: params.propertyType }; // 🔹 Send attribute
       }
-  
+
+
       const response = await axios.post(apiUrl, requestBody, {
         headers: {
           "Content-Type": "application/json",
         },
       });
-  
+
       if (response.data && response.data.variants) {
         const formattedData = Object.values(response.data.variants).map((item) => ({
           ...item,
@@ -53,7 +48,7 @@ const Explore = () => {
           fueltype: safeParseJSON(item.fueltype),
           transmission: safeParseJSON(item.transmission),
         }));
-  
+
         setListingData(formattedData);
         // console.log("item:", formattedData);
       } else {
@@ -66,7 +61,7 @@ const Explore = () => {
       setLoading(false);
     }
   };
-  
+
   // Function to safely parse JSON strings
   const safeParseJSON = (value) => {
     if (!value || typeof value !== "string") return value; // Return as-is if empty or not a string
@@ -120,7 +115,6 @@ const Explore = () => {
             </View>
 
             <Search />
-            <Filters />
 
             <View className='my-5'>
               <Text className='text-xl font-rubik-bold text-black-300'>

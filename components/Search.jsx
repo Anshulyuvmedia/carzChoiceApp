@@ -1,103 +1,71 @@
-import { View, TouchableOpacity, Image, TextInput, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity,TouchableWithoutFeedback, Keyboard, Image, TextInput, Text, StyleSheet, ActivityIndicator, FlatList, Modal } from "react-native";
 import { useLocalSearchParams, router, usePathname } from "expo-router";
 import React, { useState, useRef, useEffect } from "react";
 import icons from "@/constants/icons";
-import RBSheet from "react-native-raw-bottom-sheet";
-import RNPickerSelect from 'react-native-picker-select';
-import axios from 'axios';
+import axios from "axios";
+import Filters from "./Filters";
+import LocationScroll from "./LocationScroll";
+import RangeSlider, { Slider } from 'react-native-range-slider-expo';
 
 const Search = () => {
-    const path = usePathname();
-    const params = useLocalSearchParams();
     const refRBSheet = useRef(null);
-
-    const [categoryData, setCategoryData] = useState([]);
     const [cityData, setCityData] = useState([]);
-
-    const [selectedCity, setSelectedCity] = useState();
-    const [selectedPropertyType, setSelectedPropertyType] = useState();
-
-    const [minPrice, setMinPrice] = useState("");
-    const [maxPrice, setMaxPrice] = useState("");
-    const [sqftfrom, setsqftfrom] = useState("");
-    const [sqftto, setsqftto] = useState("");
-
+    const [selectedCity, setSelectedCity] = useState("");
+    const [searchText, setSearchText] = useState("");
+    const [filteredCities, setFilteredCities] = useState([]);
     const [loading, setLoading] = useState(false);
-
-
-    const fetchCategories = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(`https://investorlands.com/api/get-categories`);
-            if (response.data && response.data.categories) {
-                setCategoryData(response.data.categories);
-            } else {
-                console.error('Unexpected API response format:', response.data);
-            }
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchCityListing = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(`https://investorlands.com/api/listingscitywise`);
-            if (response.data && response.data.data) {
-                setCityData(response.data.data);
-            } else {
-                console.error('Unexpected API response format:', response.data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching cities:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const [modalVisible, setModalVisible] = useState(false);
+    const inputRef = useRef(null);
+    const [fromValue, setFromValue] = useState(0);
+    const [toValue, setToValue] = useState(0);
+    const [value, setValue] = useState(0);
 
     useEffect(() => {
-        fetchCategories();
-        fetchCityListing();
+        getCityList();
     }, []);
 
-    const handleSubmit = async () => {
+    const getCityList = async () => {
         setLoading(true);
+        try {
+            const response = await axios.get("https://carzchoice.com/api/getCityList");
+            if (response.data && Array.isArray(response.data.data)) {
+                const formattedCities = response.data.data.map((city, index) => ({
+                    label: city.District || `City ${index}`,
+                    value: city.District || index,
+                }));
+                setCityData(formattedCities);
+            } else {
+                console.error("Unexpected API response format:", response.data);
+            }
+        } catch (error) {
+            console.error("Error fetching city list:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        // Construct query parameters
-        const filterParams = {
-            city: selectedCity || undefined,
-            minPrice: minPrice || undefined,
-            maxPrice: maxPrice || undefined,
-            sqftfrom: sqftfrom || undefined,
-            sqftto: sqftto || undefined,
-            propertyType: selectedPropertyType || undefined,
-        };
-
-        // Remove undefined values from query parameters
-        const cleanFilters = Object.fromEntries(
-            Object.entries(filterParams).filter(([_, v]) => v !== undefined)
-        );
-
-        router.push({
-            pathname: "/vehicles/explore",
-            params: cleanFilters,
-        });
-
-        setLoading(false);
+    const handleSearch = (text) => {
+        setSearchText(text);
+        if (text.length > 0) {
+            const filtered = cityData.filter((city) =>
+                city.label.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredCities(filtered);
+        } else {
+            setFilteredCities([]);
+        }
     };
 
     return (
         <View className="flex-1">
-            <TouchableOpacity onPress={() => refRBSheet.current?.open()}>
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
                 <View className="flex flex-row items-center justify-between w-full px-4 rounded-lg bg-accent-100 border border-primary-100 mt-5 py-2">
                     <View className="flex-1 flex flex-row items-center justify-start">
                         <Image source={icons.search} className="size-5" />
                         <TextInput
-                            value={cityData?.city || 'Search...'}
+                            value={selectedCity || "Search Vehicle..."}
                             editable={false}
-                            placeholder="Search..."
+                            placeholder="Search Vehicle..."
                             className="text-sm font-rubik text-black-300 ml-2 flex-1"
                         />
                     </View>
@@ -105,110 +73,98 @@ const Search = () => {
                 </View>
             </TouchableOpacity>
 
-            <RBSheet
-                ref={refRBSheet}
-                closeOnDragDown={true}
-                closeOnPressMask={true}
-                height={500}
-                customStyles={{
-                    wrapper: { backgroundColor: "rgba(0,0,0,0.5)" },
-                    container: { borderTopLeftRadius: 15, borderTopRightRadius: 15, padding: 20, backgroundColor: "white" },
-                    draggableIcon: { backgroundColor: "#000" },
-                }}
-            >
-                <View>
-                    <Text className="text-lg font-rubik-bold text-black-300">Filter</Text>
-                    <RNPickerSelect
-                        onValueChange={(value) => setSelectedCity(value)}
-                        items={cityData.length > 0 ? cityData.map((city, index) => ({
-                            label: city.label || "Unknown", // Ensure there's a label
-                            value: city.label || "", // Ensure 'value' is never undefined
-                            key: city.id || `city-${index}`, // Add unique key
-                        })) : []}
-                        style={pickerSelectStyles}
-                        placeholder={{ label: 'Choose a City...', value: null }}
-                    />
+            {/* Search Modal */}
+            <Modal animationType="slide" visible={modalVisible} transparent={true}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <View className="flex flex-row justify-between items-center mb-3">
+                            <Text className="text-lg font-rubik-bold text-black-300">
+                                Search City
+                            </Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Text className="text-lg font-rubik-bold text-red-500">
+                                    Close
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
 
+                        <View className="flex flex-row items-center w-full bg-blue-50 rounded-lg px-3 py-2">
+                            <Image source={icons.location} className="size-6" />
+                            <TextInput
+                                ref={inputRef}
+                                value={searchText}
+                                onChangeText={handleSearch}
+                                placeholder="Search City..."
+                                className="flex-1 ml-2 text-black-300 text-sm"
+                                autoFocus={true}
+                            />
+                        </View>
 
+                        {filteredCities.length > 0 && (
+                            <FlatList
+                                data={filteredCities}
+                                keyExtractor={(item, index) => `city-${index}`}
+                                keyboardShouldPersistTaps="handled"
+                                style={{ backgroundColor: "#fff", borderRadius: 10, marginTop: 5 }}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setSelectedCity(item.label);
+                                            setSearchText(item.label);
+                                            setFilteredCities([]);
+                                            setModalVisible(false);
+                                        }}
+                                        className="p-2 border-b border-gray-200 bg-primary-100 "
+                                    >
+                                        <Text className="text-black-300 ">{item.label}</Text>
+                                    </TouchableOpacity>
+                                )}
+                            />
+                        )}
+                        <LocationScroll />
 
-                    <Text className="text-lg font-rubik-bold text-black-300 mt-5">Price Range</Text>
-                    <View className="flex flex-row items-center justify-between mt-2">
-                        <TextInput
-                            placeholder="Min"
-                            keyboardType="numeric"
-                            value={minPrice}
-                            onChangeText={setMinPrice}
-                            className=" rounded p-2 flex-1 bg-blue-50"
-                        />
-                        <Text className="mx-2">-</Text>
-                        <TextInput
-                            placeholder="Max"
-                            keyboardType="numeric"
-                            value={maxPrice}
-                            onChangeText={setMaxPrice}
-                            className=" rounded p-2 flex-1 bg-blue-50"
-                        />
+                        <Text className="text-lg font-rubik-bold text-black-300 mt-3">
+                            Search by brand
+                        </Text>
+                        <Filters />
+
+                        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                            <View>
+                                <RangeSlider
+                                    min={5}
+                                    max={250000}
+                                    fromValueOnChange={value => setFromValue(value)}
+                                    toValueOnChange={value => setToValue(value)}
+                                    initialFromValue={20}
+                                    thumbRadius={5}
+                                    inRangeBarHeight={2}
+                                    outOfRangeBarHeight={2}
+                                />
+                                <Text>From Value: {fromValue}</Text>
+                                <Text>To Value: {toValue}</Text>
+                            </View>
+                        </TouchableWithoutFeedback>
+
                     </View>
-
-                    <Text className="text-lg font-rubik-bold text-black-300 mt-5">Square Feet</Text>
-                    <View className="flex flex-row items-center justify-between mt-2">
-                        <TextInput
-                            placeholder="Min"
-                            keyboardType="numeric"
-                            value={sqftfrom}
-                            onChangeText={setsqftfrom}
-                            className=" rounded p-2 flex-1 bg-blue-50"
-                        />
-                        <Text className="mx-2">-</Text>
-                        <TextInput
-                            placeholder="Max"
-                            keyboardType="numeric"
-                            value={sqftto}
-                            onChangeText={setsqftto}
-                            className=" rounded p-2 flex-1 bg-blue-50"
-                        />
-                    </View>
-
-                    <Text className="text-lg font-rubik-bold text-black-300 mt-5">Select Type</Text>
-                    <RNPickerSelect
-                        onValueChange={(value) => setSelectedPropertyType(value)}
-                        items={categoryData.length > 0 ? categoryData.map((cat, index) => ({
-                            label: cat.label || "Unknown",
-                            value: cat.label || "",
-                            key: cat.id || `category-${index}`, // Add unique key
-                        })) : []}
-                        style={pickerSelectStyles}
-                        placeholder={{ label: 'Select investment type', value: null }}
-                    />
-
-
-
-                    <TouchableOpacity onPress={handleSubmit} className="p-2 rounded-lg bg-primary-300 mt-5">
-                        {loading ? <ActivityIndicator color="white" /> : <Text className="font-rubik-bold text-white text-center">Apply Filters</Text>}
-                    </TouchableOpacity>
                 </View>
-            </RBSheet>
+            </Modal>
         </View>
     );
 };
 
 export default Search;
 
-const pickerSelectStyles = StyleSheet.create({
-    inputIOS: {
-        fontSize: 16,
-        paddingHorizontal: 10,
-        backgroundColor: '#edf5ff',
-        borderRadius: 20,
-        color: 'black',
-        paddingRight: 30,
+const styles = StyleSheet.create({
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0,0,0,0.5)",
     },
-    inputAndroid: {
-        fontSize: 16,
-        paddingHorizontal: 10,
-        backgroundColor: '#edf5ff',
-        borderRadius: 20,
-        color: 'black',
-        paddingRight: 30,
+    modalContent: {
+        width: "95%",
+        backgroundColor: "white",
+        padding: 20,
+        borderRadius: 15,
     },
 });
