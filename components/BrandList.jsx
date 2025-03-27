@@ -7,7 +7,7 @@ const BrandList = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
 
-    const [selectedCategory, setSelectedCategory] = useState(params.propertyType || 'All');
+    const [selectedCategory, setSelectedCategory] = useState(params.brand || 'All');
     const [brandData, setBrandData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -18,7 +18,7 @@ const BrandList = () => {
         if (isRemovingFilter) {
             setSelectedCategory(category);
         } else {
-            updatedParams.propertyType = category;
+            updatedParams.brand = category;
             setSelectedCategory(category);
         }
 

@@ -14,7 +14,6 @@ import axios from 'axios';
 import { useNavigation } from "@react-navigation/native";
 import BrandList from '../../../components/BrandList';
 import { Colors } from '@/constants/Colors'
-import BodyTypeList from '../../../components/BodyTypeList';
 import LocationList from '../../../components/LocationList';
 
 const Index = () => {

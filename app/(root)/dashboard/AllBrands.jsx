@@ -8,7 +8,7 @@ const AllBrands = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
 
-    const [selectedCategory, setSelectedCategory] = useState(params.propertyType || 'All');
+    const [selectedCategory, setSelectedCategory] = useState(params.brand || 'All');
     const [brandData, setBrandData] = useState([]);
     const [filteredBrands, setFilteredBrands] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -19,10 +19,10 @@ const AllBrands = () => {
         const updatedParams = { ...params };
 
         if (isRemovingFilter) {
-            delete updatedParams.propertyType;
+            delete updatedParams.brand;
             setSelectedCategory('All');
         } else {
-            updatedParams.propertyType = category;
+            updatedParams.brand = category;
             setSelectedCategory(category);
         }
 

@@ -7,7 +7,7 @@ import cities from '@/constants/cities'
 const LocationList = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
-    const [selectedCategory, setSelectedCategory] = useState(params.propertyType || 'All');
+    const [selectedCategory, setSelectedCategory] = useState(params.city || 'All');
     const [brandData, setBrandData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -18,7 +18,7 @@ const LocationList = () => {
         if (isRemovingFilter) {
             setSelectedCategory(category);
         } else {
-            updatedParams.propertyType = category;
+            updatedParams.city = category;
             setSelectedCategory(category);
         }
     

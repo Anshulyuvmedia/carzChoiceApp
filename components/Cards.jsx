@@ -1,20 +1,23 @@
-import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
-import React from 'react'
-import images from '@/constants/images'
-import icons from '@/constants/icons'
+import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import React from 'react';
+import images from '@/constants/images';
+import icons from '@/constants/icons';
 
+const safeParseJSON = (value, fallback = null) => {
+  if (!value || typeof value !== "string") return fallback || value;
+
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    console.warn(`JSON Parsing Failed: ${value}`, error.message);
+    return fallback || value;
+  }
+};
 
 const FeaturedCard = ({ item, onPress }) => {
-  // Safely parse images array
-  // console.log("item:",item);
-  let imagesArray = [];
-  try {
-    imagesArray = typeof item.images === "string" ? JSON.parse(item.images) : item.images || [];
-  } catch (error) {
-    console.warn("Error parsing images:", error.message);
-  }
-
+  let imagesArray = safeParseJSON(item.images, []);
   const firstImageUrl = imagesArray.length > 0 ? imagesArray[0]?.imageurl : null;
+  const transmissionType = item.transmissiontype;
 
   return (
     <View>
@@ -38,7 +41,7 @@ const FeaturedCard = ({ item, onPress }) => {
               {item.fueltype} •
             </Text>
             <Text className='text-s font-rubik text-white capitalize ms-1'>
-              {JSON.parse(item.transmissiontype)}
+              {transmissionType}
             </Text>
           </View>
           <View className='flex flex-row items-center justify-between w-full'>
@@ -54,15 +57,9 @@ const FeaturedCard = ({ item, onPress }) => {
 export { FeaturedCard };
 
 const Card = ({ item, onPress }) => {
-  let imagesArray = [];
-  // console.log("carList:", item);
-  try {
-    imagesArray = typeof item.images === "string" ? JSON.parse(item.images) : item.images || [];
-  } catch (error) {
-    console.warn("Error parsing images:", error.message);
-  }
-
+  let imagesArray = safeParseJSON(item.images, []);
   const firstImageUrl = imagesArray.length > 0 ? imagesArray[0]?.imageurl : null;
+  const transmissionType = item.transmissiontype;
 
   return (
     <TouchableOpacity
@@ -78,10 +75,7 @@ const Card = ({ item, onPress }) => {
         <Text className="text-black">Image Not Available</Text>
       )}
 
-      {/* Main Content Container */}
       <View className='flex flex-1 flex-col justify-between mt-2'>
-
-        {/* Car Info */}
         <View className='flex-grow'>
           <Text className='text-base font-rubik-medium text-black-300'>
             {item.carname} {item.modalname}
@@ -104,16 +98,12 @@ const Card = ({ item, onPress }) => {
               {item.fueltype} •
             </Text>
             <Text className='text-s font-rubik text-black-100 capitalize ms-1'>
-              {JSON.parse(item.transmissiontype)}
+              {transmissionType}
             </Text>
           </View>
-
-
         </View>
 
-        {/* Footer Section (Always at Bottom) */}
         <View className="flex flex-col justify-start align-middle">
-
           <View className='flex flex-row items-center justify-between mt-2'>
             <Text className='text-base font-rubik-bold text-primary-300'>
               ₹ {item.price}
@@ -130,14 +120,11 @@ const Card = ({ item, onPress }) => {
             </Text>
           </View>
         </View>
-
       </View>
     </TouchableOpacity>
-
   );
 };
 
 export { Card };
 
-
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});

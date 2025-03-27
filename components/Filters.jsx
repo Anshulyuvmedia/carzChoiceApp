@@ -7,7 +7,7 @@ const Filters = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
 
-    const [selectedCategory, setSelectedCategory] = useState(params.propertyType || 'All');
+    const [selectedCategory, setSelectedCategory] = useState(params.brand || 'All');
     const [categoryData, setCategoryData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -18,10 +18,10 @@ const Filters = () => {
         const updatedParams = { ...params };
 
         if (isRemovingFilter) {
-            // delete updatedParams.propertyType; // Remove filter if category is already selected
+            // delete updatedParams.brand; // Remove filter if category is already selected
             setSelectedCategory(category);
         } else {
-            updatedParams.propertyType = category;
+            updatedParams.brand = category;
             setSelectedCategory(category);
         }
 

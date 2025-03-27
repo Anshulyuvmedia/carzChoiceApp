@@ -6,47 +6,48 @@ import cities from '@/constants/cities';
 const LocationScroll = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
-    const [selectedCategory, setSelectedCategory] = useState(params.propertyType || 'All');
+    const [selectedCategory, setSelectedCategory] = useState(params.city || '');
 
     const handleCategoryPress = (category) => {
         const updatedParams = { ...params };
 
         if (selectedCategory === category) {
-            setSelectedCategory(category);
+            setSelectedCategory('');  // Deselect if the same city is clicked again
+            delete updatedParams.city;  // Remove city from params
         } else {
-            updatedParams.propertyType = category;
             setSelectedCategory(category);
+            updatedParams.city = category;
         }
 
-        // 🔹 Slight delay for smooth navigation
-        setTimeout(() => {
-            router.push({ pathname: "/vehicles/explore", params: updatedParams });
-        }, 200);
+        // // 🔹 Slight delay for smooth navigation
+        // setTimeout(() => {
+        //     router.push({ pathname: "/vehicles/explore", params: updatedParams });
+        // }, 200);
     };
 
     return (
-
         <FlatList
             data={Object.keys(cities)}
             keyExtractor={(item) => item}
-            horizontal={true}
+            horizontal
             showsHorizontalScrollIndicator={false}
             nestedScrollEnabled={true} // ✅ Allows scrolling inside ScrollView
             contentContainerStyle={styles.flatListContainer}
             renderItem={({ item }) => {
                 const city = cities[item];
+                const isSelected = selectedCategory === item;
                 return (
                     <TouchableOpacity
                         onPress={() => handleCategoryPress(item)}
                         style={[
                             styles.touchableOpacity,
-                            selectedCategory === item ? styles.selectedCategory : styles.unselectedCategory
+                            isSelected ? styles.selectedCategory : styles.unselectedCategory
                         ]}
                     >
                         <Image source={city} style={styles.cityImg} />
                         <Text style={[
                             styles.text,
-                            selectedCategory === item ? styles.selectedText : styles.unselectedText
+                            isSelected ? styles.selectedText : styles.unselectedText
                         ]}>
                             {item}
                         </Text>
@@ -69,18 +70,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         margin: 6,
-        paddingInline: 10,
-        paddingBlock: 5,
-        // width: 96, // Same as `w-24`
+        paddingHorizontal: 10,
+        paddingVertical: 5,
         borderRadius: 50, // rounded-xl
         borderWidth: 2,
-        borderColor: 'blue',
     },
     selectedCategory: {
         backgroundColor: '#E0F2FE', // bg-blue-50
+        borderColor: 'blue',
     },
     unselectedCategory: {
-        borderWidth: 1,
+        borderWidth: 2,
         borderColor: 'lightgrey',
     },
     text: {
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     },
     selectedText: {
         color: '#000000',
-        marginTop: 0.5,
+        fontWeight: 'bold',
     },
     unselectedText: {
         color: 'black',
