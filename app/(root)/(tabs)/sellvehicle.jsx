@@ -906,7 +906,6 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         backgroundColor: 'white',
     },
-
     textarea: {
         textAlignVertical: 'top',  // hack android
         height: 110,

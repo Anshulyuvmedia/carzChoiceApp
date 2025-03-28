@@ -227,6 +227,7 @@ const EditProfile = () => {
 
                         <Text style={styles.label}>Phone Number</Text>
                         <TextInput style={styles.input} value={phoneNumber} onChangeText={setPhoneNumber} placeholder="Enter phone number" />
+                        
                         <View className="flex flex-row gap-4">
                             <View className="flex-1">
                                 <Text style={styles.label}>District</Text>

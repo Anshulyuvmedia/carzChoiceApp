@@ -66,7 +66,7 @@ const Explore = () => {
 
 
   useEffect(() => {
-    console.log("Params updated:", params);
+    // console.log("Params updated:", params);
 
     // Set selected filters from URL parameters
     setSelectedFilters({

@@ -111,7 +111,7 @@ const Dashboard = () => {
     <SafeAreaView>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-32 px-7">
         {loading ? (
-          <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 50 }} />
+          <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
         ) : (
           <View>
             <Toast config={toastConfig} position="top" />
@@ -145,11 +145,11 @@ const Dashboard = () => {
             <View className="flex flex-col mt-10 border-t pt-5 border-primary-200">
 
 
-              <TouchableOpacity onPress={() => router.push('/dashboard')} className="flex flex-row items-center py-3">
+              <TouchableOpacity onPress={() => router.push('/dashboard/carloan')} className="flex flex-row items-center py-3">
                 <Image source={icons.person} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-black-300 ml-3">Car Loan</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push('/dashboard')} className="flex flex-row items-center py-3">
+              <TouchableOpacity onPress={() => router.push('/dashboard/carinsurance')} className="flex flex-row items-center py-3">
                 <Image source={icons.person} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-black-300 ml-3">Buy Insurance </Text>
               </TouchableOpacity>
@@ -166,9 +166,9 @@ const Dashboard = () => {
                 <Image source={icons.person} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-black-300 ml-3">Edit Profile</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push('/dashboard')} className="flex flex-row items-center py-3">
+              <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center py-3">
                 <Image source={icons.person} className="size-6" />
-                <Text className="text-lg font-rubik-medium text-black-300 ml-3">Register as Dealer</Text>
+                <Text className="text-lg font-rubik-medium text-primary-300 ml-3">Become A Dealer</Text>
               </TouchableOpacity>
             </View>
 
@@ -177,7 +177,7 @@ const Dashboard = () => {
                 <Image source={icons.logout} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-danger ml-3">Logout</Text>
               </TouchableOpacity>
-              
+
             </View>
           </View>
         )}

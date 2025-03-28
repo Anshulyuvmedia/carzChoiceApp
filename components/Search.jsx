@@ -98,7 +98,7 @@ const Search = () => {
             brand: selectedBrand,
         };
 
-        console.log("Applied Filters:", filters);
+        // console.log("Applied Filters:", filters);
 
         if (refRBSheet.current) {
             refRBSheet.current.close();
@@ -132,7 +132,12 @@ const Search = () => {
                     <View className="flex-1 flex flex-row items-center justify-start">
                         <Image source={icons.search} className="size-5" />
                         <TextInput
-                            value={selectedCity || selectedBudget || selectedFuelType || selectedTransmission || selectedColor || selectedBrand}
+                            value={[
+                                selectedCity, selectedBudget, selectedTransmission, selectedFuelType,
+                                selectedColor, selectedBrand,
+                            ]
+                                .filter((val) => val) // Filter out empty values
+                                .join(", ")}
                             editable={false}
                             placeholder="Search Vehicle..."
                             className="text-sm font-rubik-medium text-black-300 ml-2 flex-1 capitalize "
