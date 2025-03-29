@@ -166,10 +166,13 @@ const Dashboard = () => {
                 <Image source={icons.person} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-black-300 ml-3">Edit Profile</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center py-3">
-                <Image source={icons.person} className="size-6" />
-                <Text className="text-lg font-rubik-medium text-primary-300 ml-3">Become A Dealer</Text>
-              </TouchableOpacity>
+
+              {userData && userData.usertype == 'User' && (
+                <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center py-3">
+                  <Image source={icons.person} className="size-6" />
+                  <Text className="text-lg font-rubik-medium text-primary-300 ml-3">Become A Dealer</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">

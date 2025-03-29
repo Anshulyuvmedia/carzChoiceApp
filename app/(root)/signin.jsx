@@ -126,7 +126,7 @@ const Signin = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Image source={images.appfavicon} style={styles.logo} resizeMode="contain" />
+        <Image source={images.applogo} style={styles.logo} resizeMode="contain" />
 
         <View style={styles.formContainer}>
           <Text style={styles.title}>Let's Get You Closer To <Text style={styles.highlight}>Your Dream Car</Text></Text>

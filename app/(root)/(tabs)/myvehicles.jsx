@@ -38,7 +38,7 @@ const MyVehicles = () => {
             ? `https://carzchoice.com/${parsedImages[0].imageurl}`
             : 'https://carzchoice.com/assets/backend-assets/images/1720680106_3.png'; // Fallback image
 
-            return {
+          return {
             id: item.id,
             carname: item.carname,
             brandname: item.brandname,
@@ -50,7 +50,7 @@ const MyVehicles = () => {
             city: item.district,
             state: item.state,
             manufactureyear: item.manufactureyear,
-            };
+          };
         });
 
         setUserPropertyData(formattedData);

@@ -45,7 +45,7 @@ const Notifications = () => {
     };
 
     useEffect(() => {
-        fetchNotifications();
+        // fetchNotifications();
     }, []);
 
     // Function to Toggle Read/Unread Status

@@ -320,6 +320,7 @@ const EditVehicle = () => {
 
             if (response.data && response.data.success && response.data.data) {
                 let apiData = response.data.data; // Correctly accessing nested `data`
+            // console.log("API Full Response:", apiData);
 
                 // ✅ Update states correctly
                 setCarData(apiData);
@@ -340,14 +341,8 @@ const EditVehicle = () => {
                 setSelectedFuel(apiData.fueltype);
                 setOwnerChanged(apiData.ownernumbers);
                 setVehicleStatus(apiData.activationstatus);
-                // ✅ Handle Transmission Type (Fix JSON parsing issue)
-                let transmissionType = "Unknown";
-                try {
-                    transmissionType = JSON.parse(apiData.transmissiontype)[0] || "Unknown";
-                } catch (error) {
-                    console.warn("⚠️ Error parsing transmission type:", error);
-                }
-                setTransmissionType(transmissionType);
+                setTransmissionType(apiData.transmissiontype.toLowerCase()); // Normalize to lowercase
+
 
                 // ✅ Handle Images
                 let imageBaseURL = "https://carzchoice.com/";

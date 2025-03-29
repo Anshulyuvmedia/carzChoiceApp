@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, ActivityIndicator, FlatList, TouchableOpacity, Image, TextInput } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast, { BaseToast } from 'react-native-toast-message';
 import icons from '@/constants/icons';
@@ -15,6 +15,7 @@ const RegisterDealer = () => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const router = useRouter();
+    const inputRef = useRef(null);
 
     const toastConfig = {
         success: (props) => (
@@ -44,6 +45,8 @@ const RegisterDealer = () => {
             />
         ),
     };
+    const [searchText, setSearchText] = useState("");
+    const [filteredCities, setFilteredCities] = useState([]);
 
     const [brandData, setBrandData] = useState([]);
     const [cityData, setCityData] = useState(null);
@@ -59,9 +62,11 @@ const RegisterDealer = () => {
     const [galleryImages, setGalleryImages] = useState([]);
     const [whatsappNumber, setWhatsappNumber] = useState([]);
 
-
-    const [show, setShow] = useState(false);
-
+    const BASE_URL = "https://carzchoice.com/assets/backend-assets/images/";
+    const formattedBrandData = brandData.map(item => ({
+        ...item,
+        image: item.iconimage ? `${BASE_URL}${item.iconimage}` : null,
+    }));
     const getUserData = async () => {
         try {
             const userData = await AsyncStorage.getItem('userData');
@@ -161,6 +166,7 @@ const RegisterDealer = () => {
             if (response.data && response.data.data) {
                 setBrandData(response.data.data); // API now sends correctly formatted {label, value}
                 // console.log("Brand List:", brandData);
+
             } else {
                 console.error("Unexpected API response format:", response.data);
             }
@@ -217,30 +223,41 @@ const RegisterDealer = () => {
         }
     };
 
+    const citySearch = (text) => {
+        setSearchText(text);
+        if (text.length > 0) {
+            const filtered = cityData.filter((city) =>
+                city.label.toLowerCase().includes(text.toLowerCase()) // ✅ Use label instead of district
+            );
+            setFilteredCities(filtered);
+        } else {
+            setFilteredCities(cityData);
+        }
+    };
+
     const getCityList = async () => {
         setLoading(true);
         try {
             const response = await axios.get("https://carzchoice.com/api/getCityList");
-            // console.log("API Response:", response.data); // Debug API response
 
             if (response.data && Array.isArray(response.data.data)) {
                 const formattedCities = response.data.data.map((city, index) => ({
-                    label: city.District || `City ${index}`, // Use "District" instead of "name"
-                    value: city.District || index, // Ensure a valid value
+                    label: city.District || `City ${index}`, // ✅ Correct property name
+                    value: city.District || index,
                 }));
 
-                // console.log("Formatted Cities:", formattedCities); // Debug formatted data
                 setCityData(formattedCities);
+                setFilteredCities(formattedCities); // ✅ Ensure dropdown is populated
             } else {
                 console.error("Unexpected API response format:", response.data);
             }
-
         } catch (error) {
             console.error("Error fetching city list:", error);
         } finally {
             setLoading(false);
         }
     };
+
 
     // Call functions when dependencies change
     useEffect(() => {
@@ -255,105 +272,121 @@ const RegisterDealer = () => {
     const validateForm = () => {
         let newErrors = {};
 
-        // Validate required fields
         if (!selectedBrand || selectedBrand.length === 0) newErrors.selectedBrand = true;
         if (!city || city.trim() === "") newErrors.city = true;
         if (!state || state.trim() === "") newErrors.state = true;
         if (!pincode || pincode.trim() === "" || isNaN(pincode)) newErrors.pincode = true;
         if (!businessName || businessName.trim() === "") newErrors.businessName = true;
-        if (!whatsappNumber || whatsappNumber.trim() === "" || whatsappNumber.length < 10) newErrors.whatsappNumber = true;
 
-        // Validate Images (At least one image required)
-        if (!galleryImages || galleryImages.length === 0) newErrors.galleryImages = "At least one office picture is required.";
+        // ✅ Improved WhatsApp Number Validation
+        if (!whatsappNumber || !/^\+?\d{10,13}$/.test(whatsappNumber))
+            newErrors.whatsappNumber = "Enter a valid WhatsApp number (including country code).";
 
-        // Validate Documents (At least one document required)
-        if (!businessDocuments || businessDocuments.length === 0) newErrors.businessDocuments = "At least one business document is required.";
+        if (!galleryImages || galleryImages.length === 0)
+            newErrors.galleryImages = "At least one office picture is required.";
+
+        if (!businessDocuments || businessDocuments.length === 0)
+            newErrors.businessDocuments = "At least one business document is required.";
 
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0; // Returns true if no errors
+        return Object.keys(newErrors).length === 0;
     };
+
 
     const handleSubmit = async () => {
         if (!validateForm()) {
+            const missingFields = Object.keys(errors)
+                .filter((key) => errors[key])
+                .map((key) => key.replace(/([A-Z])/g, ' $1').toLowerCase())
+                .join(', ');
+
             Toast.show({
                 type: "error",
                 text1: "Validation Error",
-                text2: "Please fill in all required fields correctly!",
+                text2: `Please fill in the following fields: ${missingFields}`,
             });
             return;
         }
-    
+
         setLoading(true);
+
         try {
             const { userData } = await getUserData();
-    
             if (!userData) throw new Error("User data is missing.");
-    
-            const { id } = userData;
+
+            const { id, email, contactno } = userData;
             const formData = new FormData();
-    
+
+            // ✅ Append Basic Data
             formData.append("id", id ?? "");
-            formData.append("brandname", selectedBrand);
             formData.append("businessname", businessName);
-            formData.append("emailaddress", userData.email);
+            formData.append("emailaddress", email);
             formData.append("dealertype", "Old Car Dealer");
-            formData.append("mobilenumber", userData.contactno);
+            formData.append("mobilenumber", contactno);
             formData.append("whatsappnumber", whatsappNumber);
             formData.append("district", city);
             formData.append("state", state);
             formData.append("pincode", pincode);
-    
-            // ✅ Append Gallery Images Correctly
+
+            // ✅ Append Brands as JSON string
+            formData.append("brands", JSON.stringify(selectedBrand));
+
+            // ✅ Append Gallery Images
             galleryImages.forEach((imageUri, index) => {
                 if (imageUri) {
-                    const fileType = imageUri.includes('.') ? imageUri.split('.').pop() : "jpeg";
-    
-                    formData.append(`officepics[${index}]`, {
+                    const fileType = imageUri.split('.').pop() || "jpeg";
+
+                    formData.append(`officepics[]`, {
                         uri: imageUri,
                         type: `image/${fileType}`,
                         name: `gallery-image-${index}.${fileType}`,
                     });
                 }
             });
-    
+
             // ✅ Append Business Documents
             businessDocuments.forEach((doc, index) => {
                 if (doc?.uri) {
                     const fileType = doc.uri.split('.').pop()?.toLowerCase() || "pdf";
                     const validFileTypes = ["pdf", "jpeg", "jpg", "png"];
-    
+
                     if (!validFileTypes.includes(fileType)) {
                         console.warn(`Invalid file type detected: ${fileType}`);
                         return;
                     }
-    
-                    formData.append("businesspics", {
+
+                    formData.append(`businesspics[]`, {
                         uri: doc.uri,
                         type: fileType === "pdf" ? "application/pdf" : `image/${fileType}`,
                         name: `business-doc-${index}.${fileType}`,
                     });
                 }
             });
-    
-            console.log("Uploading FormData:", formData);
-    
+
+            // console.log("Uploading FormData:", JSON.stringify(formData, null, 2));
+
+            // ✅ API Call
             const response = await axios.post("https://carzchoice.com/api/registerdealer", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
-    
-            if (response.status === 201 && response.data.success) {
-                Toast.show({ type: "success", text1: "Success", text2: "Vehicle added successfully!" });
+
+            // console.log("FormData response:", response);
+
+            if ((response.status === 201 || response.status === 200) && response.data.success) {
+                Toast.show({ type: "success", text1: "Success", text2: "Registration successfully!" });
             } else {
-                Toast.show({ type: "error", text1: "Error", text2: response.data.message || "Failed to add vehicle." });
+                throw new Error(response.data.message || "Failed to Register.");
             }
+
         } catch (error) {
             console.error("API Error:", error?.response?.data || error);
-            Toast.show({ type: "error", text1: "Error", text2: "Something went wrong. Please try again." });
+            Toast.show({ type: "error", text1: "Error", text2: error.message || "Something went wrong. Please try again." });
         } finally {
             setLoading(false);
         }
     };
-    
+
+
 
     return (
         <SafeAreaView className="flex-1">
@@ -363,42 +396,68 @@ const RegisterDealer = () => {
                 <View className="px-5 flex-1">
                     <View className="flex flex-row items-center justify-between my-5">
                         <Text className="text-xl font-rubik-bold upper">Become a Dealer</Text>
-
+                        <View style={{ position: 'absolute', top: 5, left: 0, right: 0, zIndex: 9999 }}>
+                            <Toast config={toastConfig} position="top" />
+                        </View>
                         <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
                             <Image source={icons.backArrow} className="w-5 h-5" />
                         </TouchableOpacity>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false} >
-                        <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
-                            <Toast config={toastConfig} position="bottom" />
-                        </View>
+
 
 
                         <Text className="text-2xl font-rubik-bold">Register yourself as a dealer</Text>
 
                         <View className="flex my-5 shadow rounded-lg bg-white p-5">
 
-                            <Text style={styles.label}>Business Name</Text>
-                            <TextInput style={styles.input} placeholder="Enter Business Name" onChangeText={setBusinessName} />
+                            <Text style={[styles.label, errors.businessName && { color: 'red' }]}>Business Name</Text>
+                            <TextInput style={styles.input} placeholder="Enter Business Name" onChangeText={setBusinessName} value={businessName} />
 
-                            <Text style={styles.label}>WhatsApp No.</Text>
-                            <TextInput style={styles.input} placeholder="Enter Whatsapp Number" onChangeText={setWhatsappNumber} />
+                            <Text style={[styles.label, errors.whatsappNumber && { color: 'red' }]}>WhatsApp No.</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter Whatsapp Number"
+                                keyboardType="numeric"
+                                onChangeText={(text) => {
+                                    const numericValue = text.replace(/[^0-9]/g, '');
+                                    setWhatsappNumber(numericValue);
+                                }}
+                                value={whatsappNumber}
+                            />
 
 
                             {/* Car Brand Name */}
-                            <Text style={[styles.label, errors.selectedBrand && { color: 'red' }]}>Choose Brands</Text>
+                            <Text style={[styles.label, errors.selectedBrand && { color: 'red' }]}>Choose Brands That You Represent</Text>
                             <View style={styles.pickerContainer}>
                                 <MultiSelect
-                                    data={brandData}
+                                    data={formattedBrandData} // ✅ Use formatted data with full image URLs
                                     labelField="label"
-                                    style={styles.brandpicker}
                                     valueField="value"
                                     placeholder="Choose an option..."
                                     value={selectedBrand}
+                                    placeholderStyle={styles.placeholderStyle}
                                     onChange={(items) => setSelectedBrand(items)}
-                                    selectedStyle={{ marginStart: 5, backgroundColor: 'white', padding: 5, borderRadius: 5 }}
-                                />
+                                    style={styles.brandpicker}
+                                    selectedStyle={styles.selectedStyle}
+                                    selectedTextStyle={styles.selectedTextStyle}
 
+                                    // ✅ Show image in dropdown list
+                                    renderItem={(item) => (
+                                        <View style={styles.itemContainer}>
+                                            {item.image && <Image source={{ uri: item.image }} style={styles.itemImage} />}
+                                            <Text style={styles.itemText}>{item.label}</Text>
+                                        </View>
+                                    )}
+
+                                    // ✅ Show image in selected items
+                                    renderSelectedItem={(item) => (
+                                        <View style={styles.selectedItemContainer}>
+                                            {item.image && <Image source={{ uri: item.image }} style={styles.selectedItemImage} />}
+                                            <Text style={styles.selectedItemText}>{item.label}</Text>
+                                        </View>
+                                    )}
+                                />
                             </View>
 
 
@@ -406,49 +465,82 @@ const RegisterDealer = () => {
                             <View style={{ flex: 1 }}>
                                 <Text style={[styles.label, errors.city && { color: 'red' }]}>Select District / City</Text>
                                 <View style={styles.pickerContainer}>
-                                    <RNPickerSelect
-                                        onValueChange={(value) => setCity(value)}
-                                        value={city}  // ✅ Ensure selected value is shown
-                                        items={Array.isArray(cityData) ? cityData : []}
-                                        style={pickerSelectStyles}
-                                        placeholder={{ label: 'Choose an option...', value: null }}
-                                    />
+                                    <View className="flex flex-row items-center w-full bg-blue-50 rounded-lg px-3 py-2">
+                                        <Image source={icons.location} className="size-6" />
+                                        <TextInput
+                                            ref={inputRef}
+                                            value={searchText}
+                                            onChangeText={(text) => {
+                                                setSearchText(text);
+                                                citySearch(text);
+                                            }}
+                                            placeholder="Select Your City..."
+                                            className="flex-1 ml-2 text-black-300 text-sm capitalize"
+                                        />
+                                    </View>
                                 </View>
 
-
-                                <Text style={styles.label}>State</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={stateData} // Show state value
-                                    // editable={false} // Prevent user from modifying state
-                                    placeholder='Enter state...'
-                                    onChangeText={(text) => {
-                                        setState(text);
-                                    }}
-                                />
-
-                                {/* Enter Pincode */}
-                                <Text style={styles.label}>Select Pincode</Text>
-                                <View style={styles.pickerContainer}>
-                                    <RNPickerSelect
-                                        onValueChange={(value) => setPincode(value)}
-                                        items={pincodeList} // Use dynamically generated pincodes
-                                        style={pickerSelectStyles}
-                                        placeholder={{ label: "Choose Pincode...", value: null }}
-                                    />
-                                </View>
+                                {/* ✅ Show FlatList only when searchText is not empty */}
+                                {searchText.length > 0 && (
+                                    <View style={{ maxHeight: 200, overflow: "hidden" }}>
+                                        <FlatList
+                                            data={filteredCities}
+                                            keyExtractor={(item, index) => `city-${index}`}
+                                            keyboardShouldPersistTaps="handled"
+                                            nestedScrollEnabled={true}
+                                            style={{ maxHeight: 200 }}
+                                            renderItem={({ item }) => (
+                                                <TouchableOpacity
+                                                    onPress={() => {
+                                                        setCity(item.label);
+                                                        setSearchText(item.label);
+                                                        setFilteredCities([]); // Hide dropdown after selection
+                                                    }}
+                                                    className="p-2 border-b border-gray-200 bg-primary-100"
+                                                >
+                                                    <Text className="text-black-300 capitalize">{item.label}</Text>
+                                                </TouchableOpacity>
+                                            )}
+                                        />
+                                    </View>
+                                )}
                             </View>
 
-                            {/* upload doc */}
 
-                            <Text style={styles.label}>Upload Business Documents</Text>
+
+
+                            <Text style={[styles.label, errors.city && { color: 'red' }]}>State</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={stateData} // Show state value
+                                // editable={false} // Prevent user from modifying state
+                                placeholder='Enter state...'
+                                onChangeText={(text) => {
+                                    setState(text);
+                                }}
+                            />
+
+                            {/* Enter Pincode */}
+                            <Text style={[styles.label, errors.pincode && { color: 'red' }]}>Select Pincode</Text>
+                            <View style={styles.pickerContainer}>
+                                <RNPickerSelect
+                                    onValueChange={(value) => setPincode(value)}
+                                    items={pincodeList} // Use dynamically generated pincodes
+                                    style={pickerSelectStyles}
+                                    value={pincode}
+                                    placeholder={{ label: "Choose Pincode...", value: null }}
+                                />
+                            </View>
+
+
+                            {/* upload doc */}
+                            <Text style={[styles.label, errors.businessDocuments && { color: 'red' }]}>Upload Business Documents</Text>
                             <View style={{ flexGrow: 1, minHeight: 1, marginTop: 5 }}>
                                 <FlatList
                                     data={businessDocuments}
                                     horizontal
                                     nestedScrollEnabled={true}
                                     keyExtractor={(_, index) => index.toString()}
-                                    contentContainerStyle={styles.fileContainer}
                                     renderItem={({ item, index }) => (
                                         <View style={styles.thumbnailBox} className="border border-gray-300">
                                             <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
@@ -467,14 +559,13 @@ const RegisterDealer = () => {
 
 
                             {/* upload gallery */}
-                            <Text style={styles.label}>Upload Office Photos</Text>
+                            <Text style={[styles.label, errors.galleryImages && { color: 'red' }]}>Upload Office Photos</Text>
                             <View style={{ flexGrow: 1, minHeight: 1, marginTop: 5 }}>
                                 <FlatList
                                     data={galleryImages}
                                     horizontal
                                     keyExtractor={(item, index) => index.toString()}
                                     nestedScrollEnabled={true}
-                                    contentContainerStyle={styles.fileContainer}
                                     renderItem={({ item, index }) => (
                                         <View style={styles.thumbnailBox} className="border border-gray-300">
                                             <Image source={{ uri: item }} style={styles.thumbnail} />
@@ -493,9 +584,6 @@ const RegisterDealer = () => {
                             <TouchableOpacity onPress={pickGalleryImages} style={styles.dropbox}>
                                 <Text style={{ textAlign: 'center' }}>Pick images from gallery</Text>
                             </TouchableOpacity>
-
-
-
 
                         </View>
                     </ScrollView>
@@ -524,17 +612,71 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         paddingHorizontal: 15,
         marginBottom: 10,
-        marginTop: 10
+        marginTop: 10,
     },
     pickerContainer: {
-        borderRadius: 10, // Apply borderRadius here
+        borderRadius: 10,
         overflow: 'hidden',
         backgroundColor: '#edf5ff',
         marginTop: 10,
-        // marginBottom: 20,
     },
     brandpicker: {
+        padding: 15,
+    },
+    placeholderStyle: {
+        color: 'gray', // Placeholder color
+        fontSize: 14, // Adjust font size if needed
+    },
+    selectedStyle: {
+        marginStart: 5,
+        backgroundColor: 'white',
+        padding: 5,
+        borderRadius: 10,
+        borderWidth: 2, // ✅ Add border width
+        borderColor: 'gray', // ✅ Ensure border appears
+    },
+
+    selectedTextStyle: {
+        color: 'black', // ✅ Set text color of selected items
+        fontSize: 14, // Adjust if needed
+    },
+    itemContainer: {
+        flexDirection: "row",
+        alignItems: "center",
         padding: 10,
+    },
+    itemImage: {
+        width: 30,
+        height: 30,
+        marginRight: 10,
+        borderRadius: 5, // Optional: Make it circular
+        objectFit: 'contain',
+    },
+    itemText: {
+        fontSize: 16,
+        color: "black",
+    },
+    selectedItemContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "white",
+        paddingVerticle: 5,
+        paddingHorizontal: 10,
+        borderRadius: 20,
+        margin: 3,
+        borderWidth: 2,
+        borderColor: 'lightgray',
+    },
+    selectedItemImage: {
+        width: 30,
+        height: 30,
+        marginRight: 5,
+        borderRadius: 15,
+        objectFit: 'contain',
+    },
+    selectedItemText: {
+        fontSize: 14,
+        color: "black",
     },
     submitButtonText: {
         color: 'white',
@@ -546,10 +688,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         alignItems: 'center',
         marginVertical: 20,
-    },
-    submitButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
     },
     image: {
         width: 100,
@@ -594,7 +732,7 @@ const styles = StyleSheet.create({
         top: 0,
         right: 0,
     },
-})
+});
 
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
@@ -612,5 +750,6 @@ const pickerSelectStyles = StyleSheet.create({
         borderRadius: 20,
         color: 'black',
         paddingRight: 30,
+        textTransform: 'capitalize',
     },
 });

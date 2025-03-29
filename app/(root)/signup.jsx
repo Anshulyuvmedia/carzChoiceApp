@@ -159,7 +159,7 @@ const Signup = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-        <Image source={images.appfavicon} className="w-full h-36" resizeMode="contain" />
+        <Image source={images.applogo} className="w-full h-36" resizeMode="contain" />
         <View className='pt-5'>
           <Text className='font-rubik-bold text-center'>Join Us and Explore New Opportunities</Text>
         </View>

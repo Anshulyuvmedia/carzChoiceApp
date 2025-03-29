@@ -129,6 +129,24 @@ const Index = () => {
     // console.log('Api listing data: ',listingData);
     return (
         <SafeAreaView className='bg-white h-full'>
+            <View className='flex flex-row items-center justify-between my-3 px-3'>
+                <TouchableOpacity onPress={() => router.push('/dashboard')} className='flex flex-row items-center ml-2 justify-center'>
+                    <Image source={typeof image === 'string' ? { uri: image } : images.avatar} className='size-12 rounded-full' />
+                    <View className='flex flex-col items-start ml-2 justify-center'>
+                        <Text className='text-sm font-rubik text-black-100'>
+                            Welcome
+                        </Text>
+                        <Text className='text-lg font-rubik-medium text-black-300'>
+                            {userData?.fullname?.split(' ')[0] || 'User'}
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => router.push('/notifications')}>
+                    <Image source={icons.bell} className='size-6' />
+                </TouchableOpacity>
+            </View>
+
             <FlatList
                 data={listingData?.data || []}
                 renderItem={({ item }) => <Card item={item} onPress={() => handleCardPress(item.id)} />}
@@ -139,25 +157,8 @@ const Index = () => {
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={
                     <View className='px-5'>
-                        <View className='flex flex-row items-center justify-between mt-5'>
-                            <TouchableOpacity onPress={() => router.push('/dashboard')} className='flex flex-row items-center ml-2 justify-center'>
-                                <Image source={typeof image === 'string' ? { uri: image } : images.avatar} className='size-12 rounded-full' />
-                                <View className='flex flex-col items-start ml-2 justify-center'>
-                                    <Text className='text-sm font-rubik text-black-100'>
-                                        Welcome
-                                    </Text>
-                                    <Text className='text-lg font-rubik-medium text-black-300'>
-                                        {userData?.fullname?.split(' ')[0] || 'User'}
-                                    </Text>
-                                </View>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity onPress={() => router.push('/notifications')}>
-                                <Image source={icons.bell} className='size-6' />
-                            </TouchableOpacity>
-                        </View>
-
                         <Search />
+
                         <View className='my-5'>
                             <View className='flex flex-row items-center justify-between'>
                                 <Text className='text-xl font-rubik-bold text-black-300'>Special Offer</Text>
