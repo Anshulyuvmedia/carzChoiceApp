@@ -106,7 +106,7 @@ const Card = ({ item, onPress }) => {
         <View className="flex flex-col justify-start align-middle">
           <View className='flex flex-row items-center justify-between mt-2'>
             <Text className='text-base font-rubik-bold text-primary-300'>
-              ₹ {item.price}
+              {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}
             </Text>
             <Text className='text-s font-rubik-medium text-black capitalize'>
               {item.manufactureyear}

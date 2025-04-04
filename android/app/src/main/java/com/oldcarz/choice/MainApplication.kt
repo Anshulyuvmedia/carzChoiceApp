@@ -1,4 +1,4 @@
-package com.anshulyuvmedia.carzChoiceApp
+package com.oldcarz.choice
 
 import android.app.Application
 import android.content.res.Configuration

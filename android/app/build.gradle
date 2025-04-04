@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anshulyuvmedia.carzChoiceApp'
+    namespace 'com.oldcarz.choice'
     defaultConfig {
-        applicationId 'com.anshulyuvmedia.carzChoiceApp'
+        applicationId 'com.oldcarz.choice'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

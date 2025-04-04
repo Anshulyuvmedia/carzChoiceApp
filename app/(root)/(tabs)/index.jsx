@@ -156,15 +156,15 @@ const Index = () => {
                 columnWrapperClassName='flex gap-2 px-3'
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={
-                    <View className='px-5'>
+                    <View className='px-3'>
                         <Search />
 
                         <View className='my-5'>
                             <View className='flex flex-row items-center justify-between'>
-                                <Text className='text-xl font-rubik-bold text-black-300'>Special Offer</Text>
-                                <TouchableOpacity>
+                                <Text className='text-xl font-rubik-bold text-black-300'>Featured Cars</Text>
+                                {/* <TouchableOpacity>
                                     <Text className='text-base font-rubik-bold' style={{ color: Colors.dark }}>See All</Text>
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
                         </View>
 
@@ -182,7 +182,7 @@ const Index = () => {
 
                         <View className='mt-5'>
                             <View className='flex flex-row items-center justify-between'>
-                                <Text className='text-xl font-rubik-bold text-black-300'>Used Car By Cities</Text>
+                                <Text className='text-xl font-rubik-bold text-black-300'>Old Car By Cities</Text>
                             </View>
                         </View>
                         <LocationList />

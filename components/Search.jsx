@@ -231,7 +231,7 @@ const Search = () => {
                                         paddingHorizontal: 16,
                                         paddingVertical: 6,
                                         borderRadius: 20,
-                                        borderWidth: 2,
+                                        borderWidth: 1,
                                         borderColor: selectedBrand === item.label ? "#007bff" : "#ddd",
                                         backgroundColor: selectedBrand === item.label ? "#e3f2fd" : "#f8f9fa",
                                         marginRight: 8,
@@ -244,6 +244,7 @@ const Search = () => {
                                                 height: 24,
                                                 marginRight: 6,
                                                 resizeMode: "contain",
+                                                borderRadius: 50,
                                             }}
                                             source={{ uri: `https://carzchoice.com/assets/backend-assets/images/${item.iconimage}` }}
                                         />
@@ -254,7 +255,7 @@ const Search = () => {
                                     <Text style={{
                                         fontSize: 14,
                                         fontWeight: selectedBrand === item.label ? "bold" : "normal",
-                                        color: selectedBrand === item.label ? "#007bff" : "#000",
+                                        color: selectedBrand === item.label ? "black" : "#000",
                                     }}>
                                         {item.label}
                                     </Text>

@@ -47,10 +47,16 @@ import transmission from "@/assets/icons/cardetails/transmission.png";
 import yearManufacture from "@/assets/icons/cardetails/yearManufacture.png";
 import lastUpdated from "@/assets/icons/cardetails/lastUpdated.png";
 import color from "@/assets/icons/cardetails/color.png";
+import transmission2 from "@/assets/icons/manualtransmission.png";
+import fuel2 from "@/assets/icons/gas-station.png";
+import kms from "@/assets/icons/kms.png";
 
 export default {
   engineDisplacement,
   fuel,
+  fuel2,
+  kms,
+  transmission2,
   lastUpdated,
   color,
   insuranceValidity,

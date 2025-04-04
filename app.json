@@ -1,35 +1,35 @@
 {
   "expo": {
-    "name": "carzChoiceApp",
+    "name": "Carz Choice",
     "slug": "carzChoiceApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo-light.jpg",
+    "icon": "./assets/images/carz-logo.png",
     "scheme": "carzChoiceApp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anshulyuvmedia.carzChoiceApp"
+      "bundleIdentifier": "com.oldcarz.choice"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo-light.jpg",
+        "foregroundImage": "./assets/images/carz-logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anshulyuvmedia.carzChoiceApp"
+      "package": "com.oldcarz.choice"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/carz-logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/logo-light.jpg",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -63,12 +63,12 @@
       "router": {
         "origin": false
       },
-      "eas": {
-        "projectId": "f1f7ea03-c4c5-43c2-929a-dac5cb2c84da"
-      },
       "ANDROID_CLIENT_ID": "722158200156-n7gte2ko0l7avcis3lq43rbuo9ljdt7n.apps.googleusercontent.com",
       "WEB_CLIENT_ID": "722158200156-u555v22qhd1j0euc44uffpv1isu3iqpm.apps.googleusercontent.com",
-      "IOS_CLIENT_ID": "722158200156-95qqsv8tcm227b5lan64r2c907to89a2.apps.googleusercontent.com"
+      "IOS_CLIENT_ID": "722158200156-95qqsv8tcm227b5lan64r2c907to89a2.apps.googleusercontent.com",
+      "eas": {
+        "projectId": "f1f7ea03-c4c5-43c2-929a-dac5cb2c84da"
+      }
     }
   }
 }

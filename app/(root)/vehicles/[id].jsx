@@ -15,15 +15,18 @@ import { AntDesign } from "@expo/vector-icons";
 import FeaturesAccordion from "../../../components/FeaturesAccordion";
 import SpecsAccordion from "../../../components/SpecsAccordion";
 import Toast, { BaseToast } from 'react-native-toast-message';
+import moment from 'moment';
 
 const { width } = Dimensions.get("window");
 const CarDetails = () => {
     const CarId = useLocalSearchParams().id;
     const windowHeight = Dimensions.get("window").height;
+    const [error, setError] = useState(null);
     const [CarData, setCarData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [CarThumbnail, setCarThumbnail] = useState(images.avatar);
-    const [CarGallery, setCarGallery] = useState();
+    const [CarGallery, setCarGallery] = useState([]);
+
     const [loggedinUserId, setLoggedinUserId] = useState([]);
     const carouselRef = useRef(null);
     const navigation = useNavigation();
@@ -81,12 +84,14 @@ const CarDetails = () => {
         try {
             setLoading(true); // Show loading indicator
             const storedData = await AsyncStorage.getItem('userData');
+
             if (!storedData) {
                 Toast.show({
                     type: 'error',
                     text1: 'Error',
                     text2: 'User data not found.',
                 });
+                setLoading(false);
                 return;
             }
 
@@ -157,138 +162,108 @@ const CarDetails = () => {
         }
     };
 
-
     const fetchCarData = async () => {
+        setLoading(true);
+        setError(null); // Reset error state before fetching
+
         try {
-            // Fetch Car data from API
+            // console.log("Fetching car data...",CarId);
             const response = await axios.get(`https://carzchoice.com/api/oldcarlistingdetails/${CarId}`);
-            // console.log("API Full Response:", response.data);
 
-            if (response.data && response.data.data && response.data.data.cardetails) {
+            // console.log("API Response:", response.data);
+
+            if (response.data?.data?.cardetails) {
                 let apiData = response.data.data.cardetails;
-
                 let parsedSpecifications = [];
+                let parsedFeatures = [];
+                let formattedImages = [];
 
+                // ✅ Parse Specifications
                 try {
-                    const carDetails = apiData;
-
-                    // console.log("Raw Specifications Data:", carDetails?.specifications); // Debugging
-
-                    if (carDetails?.specifications && Array.isArray(carDetails.specifications)) {
-                        let parsedSpecData = [];
-
-                        // Try parsing the first element if it's a JSON string
-                        try {
-                            parsedSpecData = JSON.parse(carDetails.specifications[0]);
-                        } catch (error) {
-                            console.error("❌ Error parsing specifications JSON:", error);
-                        }
-
-                        // Ensure it's an array before mapping
+                    if (Array.isArray(apiData.specifications) && apiData.specifications.length > 0) {
+                        let parsedSpecData = JSON.parse(apiData.specifications[0]);
                         if (Array.isArray(parsedSpecData)) {
                             parsedSpecifications = parsedSpecData.map((spec) => ({
                                 name: spec.type || "Unknown",
-                                details: [
-                                    {
-                                        label: spec.label || "N/A",
-                                        value: spec.value || "N/A"
-                                    }
-                                ]
+                                details: [{
+                                    label: spec.label || "N/A",
+                                    value: spec.value || "N/A"
+                                }]
                             }));
                         } else {
                             console.warn("⚠️ Parsed specifications is not an array:", parsedSpecData);
                         }
                     } else {
-                        console.warn("⚠️ Specifications field is missing or empty:", carDetails?.specifications);
+                        console.warn("⚠️ No valid specifications found.");
                     }
                 } catch (error) {
-                    console.error("❌ Error processing specifications:", error);
-                    parsedSpecifications = [];
+                    console.error("❌ Error parsing specifications:", error);
                 }
 
+                // ✅ Parse Features
                 try {
                     let rawFeatures = apiData.features;
-                    // console.log("✅ rawFeatures:", JSON.stringify(rawFeatures, null, 2));
-
-                    // 🔎 Check if rawFeatures is an array and contains a stringified JSON
                     if (Array.isArray(rawFeatures) && rawFeatures.length > 0 && typeof rawFeatures[0] === "string") {
-                        try {
-                            // 🛠️ Parse the first element (which is a stringified JSON)
-                            rawFeatures = JSON.parse(rawFeatures[0]);
-                            // console.log("✅ Parsed Features:", JSON.stringify(rawFeatures, null, 2));
-                        } catch (parseError) {
-                            console.error("❌ Error parsing nested features JSON string:", parseError);
-                            rawFeatures = [];
-                        }
+                        rawFeatures = JSON.parse(rawFeatures[0]); // Convert first element (if stringified JSON)
                     }
-
-                    // 🔎 Ensure it's an array before mapping
-                    let parsedFeatures = [];
-                    if (Array.isArray(rawFeatures) && rawFeatures.length > 0) {
+                    if (Array.isArray(rawFeatures)) {
                         parsedFeatures = rawFeatures.map((feature) => ({
                             name: feature?.type || "Unknown",
                             details: Array.isArray(feature?.label) ? feature.label : []
                         }));
                     } else {
-                        console.warn("⚠️ No valid features array found");
+                        console.warn("⚠️ No valid features found.");
                     }
-
-                    // ✅ Debug the final output
-                    // console.log("✅ Final Features Debug:", parsedFeatures);
-
-                    // 🔄 Set state with the correct data
-                    setFeatures(parsedFeatures);
                 } catch (error) {
                     console.error("❌ Error parsing features:", error);
-                    setFeatures([]);
                 }
-
-
-                // ✅ Set state with parsed data
-                setCarData(apiData);
-                setSpecifications(parsedSpecifications);
-
-                // ✅ Handle Images Array (Extract Thumbnail)
-                let imageBaseURL = "https://carzchoice.com/";
-                let fallbackImage = "https://carzchoice.com/assets/backend-assets/images/1721106135_9.png"; // Use an actual fallback URL
-                // Check if `apiData.images` is a valid JSON string and parse it
-                let imagesArray = [];
-                if (typeof apiData.images === "string") {
-                    try {
-                        imagesArray = JSON.parse(apiData.images);
-                    } catch (error) {
-                        console.error("Error parsing images JSON:", error);
-                    }
-                }
-
-                // Extract the first image
-                let thumbnail = fallbackImage; // Default image
-
-                if (Array.isArray(imagesArray) && imagesArray.length > 0) {
-                    let firstImage = imagesArray[0].imageurl;
-
-                    if (typeof firstImage === "string" && firstImage.trim() !== "") {
-                        thumbnail = firstImage.startsWith("http") ? firstImage : `${imageBaseURL}${firstImage}`;
-                    }
-                }
-                // ✅ Ensure it's a valid string before setting it
-                setCarThumbnail(thumbnail);
-
-
 
                 // ✅ Handle Gallery Images
-                let formattedImages = imagesArray.map(image =>
-                    `${imageBaseURL}${image.imageurl.replace(/\\/g, "/")}`
-                );
+                try {
+                    let imageBaseURL = "https://carzchoice.com/";
+                    let fallbackImage = "https://carzchoice.com/assets/backend-assets/images/1721106135_9.png";
 
+                    let imagesArray = [];
+                    if (typeof apiData.images === "string") {
+                        imagesArray = JSON.parse(apiData.images);
+                    }
+
+                    formattedImages = imagesArray.map(image =>
+                        `${imageBaseURL}${image.imageurl.replace(/\\/g, "/")}`
+                    );
+
+                } catch (error) {
+                    console.error("❌ Error parsing images:", error);
+                }
+
+                // ✅ Update state
+                setCarData(apiData);
+                setSpecifications(parsedSpecifications);
+                setFeatures(parsedFeatures);
                 setCarGallery(formattedImages);
 
-
             } else {
-                console.error('Unexpected API response format:', response.data);
+                throw new Error("Car details not found in response.");
             }
+
         } catch (error) {
-            console.error('Error fetching Car data:', error);
+            if (error.response) {
+                // API returned an error response
+                console.error("❌ API Error:", error.response.status, error.response.data);
+                if (error.response.status === 404) {
+                    setError("Car not found. Please check the Car ID.",error.response.data?.message);
+                } else {
+                    setError(`Error ${error.response.status}: ${error.response.data?.message || "Something went wrong."}`);
+                }
+            } else if (error.request) {
+                // Network error or no response
+                console.error("❌ Network Error: No response received from server.");
+                setError("Network error. Please try again later.");
+            } else {
+                // Other errors
+                console.error("❌ Unexpected Error:", error.message);
+                setError("An unexpected error occurred.");
+            }
         } finally {
             setLoading(false);
         }
@@ -296,24 +271,38 @@ const CarDetails = () => {
 
 
     useEffect(() => {
-        fetchCarData();
-    }, [CarId])
+        let isMounted = true;
+        if (CarId) {
+            fetchCarData().then(() => {
+                if (isMounted) setLoading(false);
+            });
+        }
+        return () => { isMounted = false; };  // Cleanup on unmount
+    }, [CarId]);
 
-    const renderCarouselItem = ({ item }) => (
-        <View style={styles.slide}>
-            <Image source={{ uri: item }} style={styles.image} />
-        </View>
-    );
 
+
+
+    // ✅ Loading State
     if (loading) {
+        return <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />;
+    }
+
+    // ✅ Error State
+    if (error) {
         return (
-            <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
+            <View className="flex-1 items-center justify-center p-5">
+                <Text className="text-lg font-bold text-red-500">{error}</Text>
+            </View>
         );
     }
 
+    // ✅ No Data State
     if (!CarData) {
         return (
-            <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
+            <View className="flex-1 items-center justify-center">
+                <Text className="text-lg font-bold text-gray-500">No car data available</Text>
+            </View>
         );
     }
 
@@ -326,14 +315,20 @@ const CarDetails = () => {
         { key: 'RTO', icon: icons.rto, value: CarData.district || '-' },
         { key: 'Ownership', icon: icons.ownership, value: CarData.ownernumbers || '-' },
         { key: 'Engine Displacement', icon: icons.engineDisplacement, value: CarData.engine || '-' },
-        { key: 'Transmission', icon: icons.transmission, value: JSON.parse(CarData.transmissiontype) },
+        { key: 'Transmission', icon: icons.transmission, value: CarData.transmissiontype },
         { key: 'Year of Manufacture', icon: icons.yearManufacture, value: CarData.manufactureyear || '-' },
         { key: 'Color', icon: icons.color, value: CarData.color || '-' },
-        { key: 'Last Updated', icon: icons.lastUpdated, value: CarData.lastupdated || '-' },
+        { key: 'Last Updated', icon: icons.lastUpdated, value: CarData.lastupdated ? moment(CarData.lastupdated, "YYYY-MM-DD HH:mm:ss").fromNow(true) : '-' },
     ];
 
+    const renderCarouselItem = ({ item }) => (
+        <View style={styles.slide}>
+            <Image source={{ uri: item }} style={styles.image} />
+        </View>
+    );
+
     const renderHeader = () => (
-        <View className="relative w-full" style={{ height: windowHeight / 4 }}>
+        <View className="relative w-full" >
             <View
                 className="z-50 absolute inset-x-7"
                 style={{ top: Platform.OS === "ios" ? 70 : 20, }}
@@ -382,6 +377,7 @@ const CarDetails = () => {
             ) : (
                 <Text>No Images Available</Text>
             )}
+
         </View>
     );
 
@@ -399,66 +395,73 @@ const CarDetails = () => {
                     <Text className='text-xl font-rubik-bold'>{CarData.manufactureyear} {CarData.brandname} {CarData.carname} {CarData.modalname}</Text>,
                     <View className='flex flex-row items-center gap-3'>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
-                            <Text className='text-xs font-rubik-bold'> State: </Text>
-                            <Text className='text-xs font-rubik-bold text-primary-300'> {CarData.state}</Text>
+                            <Text className='text-xs font-rubik-bold text-primary-300'> State: </Text>
+                            <Text className='text-xs font-rubik-bold '> {CarData.state}</Text>
                         </View>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
-                            <Text className='text-xs font-rubik-bold'> City: </Text>
-                            <Text className='text-xs font-rubik-bold text-primary-300 capitalize'> {CarData.district}</Text>
+                            <Text className='text-xs font-rubik-bold text-primary-300'> City: </Text>
+                            <Text className='text-xs font-rubik-bold capitalize'> {CarData.district}</Text>
                         </View>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
-                            <Text className='text-xs font-rubik-bold'> Color: </Text>
+                            <Text className='text-xs font-rubik-bold text-primary-300'> Color: </Text>
                             <Text className='text-black-300 text-sm font-rubik-medium ml-2'>{CarData.color}</Text>
                         </View>
                     </View>,
 
                     <View className='flex flex-row items-center flew-wrap mb-5'>
                         <View className='flex flex-row  items-center justify-center bg-primary-100 rounded-full size-10'>
-                            <Image source={icons.bed} className='size-4' />
+                            <Image source={icons.fuel2} className='size-4' />
                         </View>
                         <Text className={`text-black-300 text-sm font-rubik-medium ml-2 ${CarData.fueltype === 'CNG' ? 'uppercase' : 'capitalize'}`}>
                             {CarData.fueltype}
                         </Text>
                         <View className='flex  flex-row items-center justify-center bg-primary-100 rounded-full size-10 ml-7'>
-                            <Image source={icons.bed} className='size-4' />
+                            <Image source={icons.transmission2} className='size-4' />
                         </View>
                         <Text className='text-black-300 text-sm font-rubik-medium ml-2 capitalize'>
-                            {JSON.parse(CarData.transmissiontype)}
+                            {CarData.transmissiontype}
                         </Text>
                         <View className='flex  flex-row items-center justify-center bg-primary-100 rounded-full size-10 ml-7'>
-                            <Image source={icons.bath} className='size-4' />
+                            <Image source={icons.kms} className='size-4' />
                         </View>
                         <Text className='text-black-300 text-sm font-rubik-medium ml-2'>
                             {CarData.kilometersdriven} kms
                         </Text>
                     </View>,
+                    carDetails && (
+                        <View className="bg-white drop-shadow-sm px-5 py-3 rounded-lg mb-5">
+                            <Text className='text-xl font-rubik-bold text-primary-300'>Car Overview</Text>
+                            <FlatList
+                                data={carDetails}
+                                keyExtractor={(item) => item.key}
+                                className=""
+                                renderItem={({ item }) => (
+                                    <View className="flex flex-row justify-between my-2">
+                                        <View className="flex flex-row items-center justify-start gap-2">
+                                            <Image source={item.icon} className="w-5 h-5" />
+                                            <Text className="text-black text-base font-rubik-medium ">{item.key}:</Text>
+                                        </View>
+                                        <Text className="text-black-200 text-base font-rubik-medium capitalize">{item.value}</Text>
+                                    </View>
+                                )}
+                                scrollEnabled={false}
+                                nestedScrollEnabled={true}
+                            />
+                        </View>
+                    ),
+                    features && (
+                        <View className="bg-white rounded-lg pb-5">
+                            <Text className='text-xl font-rubik-bold text-primary-300 m-5'>Car Features</Text>
+                            <FeaturesAccordion features={features} />
+                        </View>
+                    ),
+                    specifications && (
+                        <View className="bg-white rounded-lg pb-5">
+                            <Text className='text-xl font-rubik-bold text-primary-300 m-5'>Car Specifications</Text>
+                            <SpecsAccordion specifications={specifications} />
+                        </View>
+                    ),
 
-                    <Text className='text-xl font-rubik-bold'>Car Overview</Text>,
-                    <FlatList
-                        data={carDetails}
-                        keyExtractor={(item) => item.key}
-                        className="bg-white drop-shadow-sm px-5 py-3 rounded-lg mb-5"
-                        renderItem={({ item }) => (
-                            <View className="flex flex-row justify-between my-2">
-                                <View className="flex flex-row items-center justify-start gap-2">
-                                    <Image source={item.icon} className="w-5 h-5" />
-                                    <Text className="text-black text-base font-rubik-medium capitalize">{item.key}:</Text>
-                                </View>
-                                <Text className="text-black-200 text-base font-rubik-medium capitalize">{item.value}</Text>
-                            </View>
-                        )}
-                        scrollEnabled={false}
-                        nestedScrollEnabled={true}
-                    />,
-                    <View className="bg-white rounded-lg pb-5">
-                        <Text className='text-xl font-rubik-bold text-primary-300 m-5'>Car Features</Text>
-                        <FeaturesAccordion features={features} />
-                    </View>,
-
-                    <View className="bg-white rounded-lg">
-                        <Text className='text-xl font-rubik-bold text-primary-300 m-5'>Car specifications</Text>
-                        <SpecsAccordion specifications={specifications} />
-                    </View>,
 
                     <MortgageCalculator />
                 ]}

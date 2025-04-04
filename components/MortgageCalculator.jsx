@@ -1,28 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, Text, TextInput, Dimensions, StyleSheet } from "react-native";
 import Slider from "@react-native-community/slider";
 import { PieChart } from "react-native-chart-kit";
 
 const MortgageCalculator = () => {
-    const [totalPrice, setTotalPrice] = useState(5000000); // Default ₹50 Lakhs
-    const [loanPeriod, setLoanPeriod] = useState(20); // Default 20 Years
-    const [downPayment, setDownPayment] = useState(1000000); // ₹10 Lakhs
-    const [interestRate, setInterestRate] = useState(8.5); // 8.5%
+    const [totalPrice, setTotalPrice] = useState(5000000);
+    const [loanPeriod, setLoanPeriod] = useState(20);
+    const [downPayment, setDownPayment] = useState(1000000);
+    const [interestRate, setInterestRate] = useState(8.5);
 
-    // Loan Amount after Down Payment
+    const downPaymentRef = useRef(downPayment);
+
+    useEffect(() => {
+        if (downPayment > totalPrice) {
+            setDownPayment(totalPrice);
+        }
+    }, [totalPrice]);
+
+    const handleDownPaymentChange = useCallback((value) => {
+        downPaymentRef.current = value;
+        setDownPayment(value);
+    }, []);
+
     const loanAmount = totalPrice - downPayment;
-
-    // Monthly Interest Rate
     const monthlyRate = (interestRate / 100) / 12;
-
-    // Number of Payments (Months)
     const numPayments = loanPeriod * 12;
-
-    // EMI Calculation Formula
-    const monthlyPayment =
-        (loanAmount * monthlyRate) /
-        (1 - Math.pow(1 + monthlyRate, -numPayments));
-
+    const monthlyPayment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -numPayments));
     const totalPayment = monthlyPayment * numPayments;
     const totalInterest = totalPayment - loanAmount;
 
@@ -73,16 +76,16 @@ const MortgageCalculator = () => {
                 <Text>Down Payment (₹): {downPayment.toLocaleString()}</Text>
                 <Slider
                     minimumValue={500000}
-                    maximumValue={totalPrice}
+                    maximumValue={totalPrice} 
                     step={500000}
-                    value={downPayment}
-                    onValueChange={setDownPayment}
+                    value={downPaymentRef.current}
+                    onValueChange={handleDownPaymentChange}
                 />
                 <TextInput 
                     style={styles.input} 
                     keyboardType="numeric"
                     value={downPayment.toString()} 
-                    onChangeText={(text) => setDownPayment(parseInt(text) || 0)}
+                    onChangeText={(text) => handleDownPaymentChange(parseInt(text) || 0)}
                 />
             </View>
 
@@ -107,8 +110,8 @@ const MortgageCalculator = () => {
             {/* Monthly Payment & Total Payment */}
             <View style={{ padding: 20, marginTop: 10 }}>
                 <Text style={{ fontSize: 18, fontWeight: "bold" }}>Results:</Text>
-                <Text>📅 Monthly Payment: ₹{monthlyPayment.toFixed(0).toLocaleString()}</Text>
-                <Text>💰 Total Payment: ₹{totalPayment.toFixed(0).toLocaleString()}</Text>
+                <Text className="font-rubik-medium mt-2">📅 Monthly Payment: ₹{monthlyPayment.toFixed(0).toLocaleString()}</Text>
+                <Text className="font-rubik-medium mt-2">💰 Total Payment: ₹{totalPayment.toFixed(0).toLocaleString()}</Text>
             </View>
 
             {/* Pie Chart for Principal & Interest */}
@@ -117,7 +120,7 @@ const MortgageCalculator = () => {
                     { name: "Principal", amount: loanAmount, color: "#4CAF50", legendFontColor: "#000", legendFontSize: 14 },
                     { name: "Interest", amount: totalInterest, color: "#FF5722", legendFontColor: "#000", legendFontSize: 14 }
                 ]}
-                width={Dimensions.get("window").width - 40}
+                width={Dimensions.get("window").width - 80}
                 height={220}
                 chartConfig={{ color: () => `rgba(0,0,0,0.8)` }}
                 accessor="amount"

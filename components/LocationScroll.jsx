@@ -70,17 +70,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         margin: 6,
-        paddingHorizontal: 10,
+        paddingHorizontal: 15,
         paddingVertical: 5,
         borderRadius: 50, // rounded-xl
-        borderWidth: 2,
+        borderWidth: 1,
     },
     selectedCategory: {
         backgroundColor: '#E0F2FE', // bg-blue-50
-        borderColor: 'blue',
+        borderColor: '#007bff',
     },
     unselectedCategory: {
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: 'lightgrey',
     },
     text: {
@@ -97,8 +97,8 @@ const styles = StyleSheet.create({
         fontFamily: 'Rubik-Medium',
     },
     cityImg: {
-        width: 30,
-        height: 30,
+        width: 25,
+        height: 25,
         resizeMode: "contain",
         marginEnd: 5,
     },
