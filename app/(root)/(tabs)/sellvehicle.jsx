@@ -9,8 +9,9 @@ import { Link, router } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-get-random-values';
-import DateTimePicker from '@react-native-community/datetimepicker';
+// import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast, { BaseToast } from 'react-native-toast-message';
+import CitySelector from '../../../components/CitySelector';
 
 const SellVehicle = () => {
 
@@ -24,7 +25,7 @@ const SellVehicle = () => {
     const [stateData, setStateData] = useState("");
     const [pincodeList, setPincodeList] = useState([]); // Store multiple pincodes
 
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    // const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedBrand, setSelectedBrand] = useState('');
     const [selectedModal, setSelectedModal] = useState(null);
     const [selectedVariant, setSelectedVariant] = useState(null);
@@ -42,7 +43,7 @@ const SellVehicle = () => {
     const [transmissionType, setTransmissionType] = useState(null);
     const [regYear, setRegYear] = useState(null);
     const [makeYear, setMakeYear] = useState(null);
-    const [lastUpdate, setLastUpdate] = useState(null);
+    // const [lastUpdate, setLastUpdate] = useState(null);
 
     const [galleryImages, setGalleryImages] = useState([]);
 
@@ -50,19 +51,23 @@ const SellVehicle = () => {
     const [show, setShow] = useState(false);
 
     const buttonPreviousTextStyle = {
-        paddingInline: 20,
-        paddingBlock: 5,
+        paddingHorizontal: 20,
+        paddingVertical: 5,
         borderRadius: 10,
         backgroundColor: '#ff938f',
         color: 'black',
+        marginEnd: 10, // Add margin to prevent overlap
     };
     const buttonNextTextStyle = {
-        paddingInline: 20,
-        paddingBlock: 5,
+        paddingHorizontal: 20,
+        paddingVertical: 5,
         borderRadius: 10,
         backgroundColor: 'lightgreen',
         color: 'black',
+        marginStart: 10, // Add margin to prevent overlap with the previous button
     };
+
+    const buttonPreviousText = "Back"; // Change text of the previous button to "Back"
     const toastConfig = {
         success: (props) => (
             <BaseToast
@@ -105,7 +110,7 @@ const SellVehicle = () => {
         }
 
         if (step === 2) {
-            if (!sellingPrice || !insurance || !kmsDriven || !selectedFuel || !makeYear || !regYear || !regType || !ownerChanged || !transmissionType || !lastUpdate) {
+            if (!sellingPrice || !insurance || !kmsDriven || !selectedFuel || !makeYear || !regYear || !regType || !ownerChanged || !transmissionType) {
                 Toast.show({
                     type: 'error',
                     text1: 'Step 2 Error',
@@ -182,18 +187,18 @@ const SellVehicle = () => {
     };
 
     // Handle Date Selection
-    const handleLastUpdated = (event, date) => {
-        if (date) {
-            const formattedDate = date.toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-            });
-            setLastUpdate(formattedDate);
-            setSelectedDate(date);
-        }
-        setShow(false); // Hide picker after selection
-    };
+    // const handleLastUpdated = (event, date) => {
+    //     if (date) {
+    //         const formattedDate = date.toLocaleDateString("en-GB", {
+    //             day: "2-digit",
+    //             month: "2-digit",
+    //             year: "numeric",
+    //         });
+    //         setLastUpdate(formattedDate);
+    //         setSelectedDate(date);
+    //     }
+    //     setShow(false); // Hide picker after selection
+    // };
 
     const getUserData = async () => {
         try {
@@ -242,7 +247,7 @@ const SellVehicle = () => {
             formData.append("color", color);
             formData.append("insurance", insurance || "Unavailable");
             formData.append("registertype", regType);
-            formData.append("lastupdated", lastUpdate);
+            // formData.append("lastupdated", lastUpdate);
 
             // ✅ Fix: Append Images as "images" array
             galleryImages.forEach((imageUri, index) => {
@@ -275,6 +280,9 @@ const SellVehicle = () => {
                     text1: "Success",
                     text2: "Vehicle added successfully!",
                 });
+                setTimeout(() => {
+                    router.push('/myvehicles');
+                }, 1500);
             } else {
                 Toast.show({
                     type: "error",
@@ -525,13 +533,16 @@ const SellVehicle = () => {
                             {/* select City */}
                             <Text style={styles.label}>Select District / City</Text>
                             <View style={styles.pickerContainer}>
-                                <RNPickerSelect
-                                    onValueChange={(value) => setCity(value)}
-                                    items={Array.isArray(cityData) ? cityData : []} // Ensure it's an array
-                                    style={pickerSelectStyles}
-                                    placeholder={{ label: 'Choose an option...', value: null }}
+
+                                {/* // Default mode */}
+                                <CitySelector
+                                    cityData={cityData}
+                                    onSelectCity={(value) => setCity(value)}
                                 />
+
                             </View>
+
+
 
 
                             <Text style={styles.label}>State</Text>
@@ -583,7 +594,7 @@ const SellVehicle = () => {
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                 <View style={{ flex: 1, marginRight: 10 }}>
                                     {/* enter rental income */}
-                                    <Text style={styles.label}>Expected Selling Price</Text>
+                                    <Text style={styles.label}>Expected Sell Price</Text>
                                     <TextInput
                                         style={styles.input}
                                         keyboardType="number-pad" // ✅ Better compatibility for numeric input
@@ -643,6 +654,7 @@ const SellVehicle = () => {
                                             onValueChange={(value) => setSelectedFuel(value)}
                                             items={[
                                                 { label: "Petrol", value: "petrol" },
+                                                { label: "Petrol & CNG", value: "Petrol & CNG" },
                                                 { label: "Diesel", value: "diesel" },
                                                 { label: "Electric", value: "electric" },
                                                 { label: "Hybrid", value: "hybrid" },
@@ -701,7 +713,7 @@ const SellVehicle = () => {
                                                 { label: "Commercial", value: "commercial" },
                                             ]}
                                             style={pickerSelectStyles}
-                                            placeholder={{ label: "Choose Fuel Type...", value: null }}
+                                            placeholder={{ label: "Choose Registration Type...", value: null }}
                                         />
                                     </View>
                                 </View>
@@ -712,7 +724,6 @@ const SellVehicle = () => {
                                         <RNPickerSelect
                                             onValueChange={(value) => setOwnerChanged(value)}
                                             items={[
-                                                { label: "1st Hand", value: "1st Hand" },
                                                 { label: "2nd Hand", value: "2nd Hand" },
                                                 { label: "3rd Hand", value: "3rd Hand" },
                                                 { label: "4th Hand", value: "4th Hand" },
@@ -740,15 +751,11 @@ const SellVehicle = () => {
                                             style={pickerSelectStyles} // Ensure picker styles are correctly defined
                                             placeholder={{ label: "Enter Transmission Type", value: null }}
                                         />
-
-
                                     </View>
-
                                 </View>
 
-                                <View style={{ flex: 1 }}>
-
-                                    {/* Select Date */}
+                                {/* Select Date */}
+                                {/* <View style={{ flex: 1 }}>
                                     <Text style={styles.label}>Last updated</Text>
                                     <TouchableOpacity onPress={() => setShow(true)}>
                                         <TextInput
@@ -767,7 +774,7 @@ const SellVehicle = () => {
                                             onChange={handleLastUpdated}
                                         />
                                     )}
-                                </View>
+                                </View> */}
                             </View>
                         </View>
                     </ProgressStep>
@@ -775,6 +782,7 @@ const SellVehicle = () => {
                     <ProgressStep label="Gallery"
                         nextBtnTextStyle={buttonNextTextStyle}
                         previousBtnTextStyle={buttonPreviousTextStyle}
+                        buttonPreviousText={buttonPreviousText}
                         onSubmit={handleSubmit}>
 
                         {/* upload gallery */}

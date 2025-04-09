@@ -251,7 +251,7 @@ const CarDetails = () => {
                 // API returned an error response
                 console.error("❌ API Error:", error.response.status, error.response.data);
                 if (error.response.status === 404) {
-                    setError("Car not found. Please check the Car ID.",error.response.data?.message);
+                    setError("Car not found. Please check the Car ID.", error.response.data?.message);
                 } else {
                     setError(`Error ${error.response.status}: ${error.response.data?.message || "Something went wrong."}`);
                 }
@@ -449,18 +449,25 @@ const CarDetails = () => {
                             />
                         </View>
                     ),
-                    features && (
-                        <View className="bg-white rounded-lg pb-5">
-                            <Text className='text-xl font-rubik-bold text-primary-300 m-5'>Car Features</Text>
-                            <FeaturesAccordion features={features} />
-                        </View>
-                    ),
-                    specifications && (
-                        <View className="bg-white rounded-lg pb-5">
-                            <Text className='text-xl font-rubik-bold text-primary-300 m-5'>Car Specifications</Text>
-                            <SpecsAccordion specifications={specifications} />
-                        </View>
-                    ),
+                    <View>
+                        {Array.isArray(features) && features.length > 0 && (
+                            <View className="bg-white rounded-lg pb-5">
+                                <Text className="text-xl font-rubik-bold text-primary-300 m-5">Car Features</Text>
+                                <FeaturesAccordion features={features} />
+                            </View>
+                        )
+                        }
+                    </View>,
+                    <View>
+                        {Array.isArray(specifications) && specifications.length > 0 && (
+                            <View className="bg-white rounded-lg pb-5">
+                                <Text className="text-xl font-rubik-bold text-primary-300 m-5">Car Specifications</Text>
+                                <SpecsAccordion specifications={specifications} />
+                            </View>
+                        )
+                        }
+                    </View>,
+
 
 
                     <MortgageCalculator />

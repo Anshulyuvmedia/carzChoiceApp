@@ -131,20 +131,25 @@ const Index = () => {
         <SafeAreaView className='bg-white h-full'>
             <View className='flex flex-row items-center justify-between my-3 px-3'>
                 <TouchableOpacity onPress={() => router.push('/dashboard')} className='flex flex-row items-center ml-2 justify-center'>
-                    <Image source={typeof image === 'string' ? { uri: image } : images.avatar} className='size-12 rounded-full' />
-                    <View className='flex flex-col items-start ml-2 justify-center'>
+                    <Image source={images.applogo} className='w-24 h-12' />
+                    {/* <View className='flex flex-col items-start justify-center'>
                         <Text className='text-sm font-rubik text-black-100'>
                             Welcome
                         </Text>
-                        <Text className='text-lg font-rubik-medium text-black-300'>
+                        <Text className='text-xl font-rubik-medium text-black-300'>
                             {userData?.fullname?.split(' ')[0] || 'User'}
                         </Text>
-                    </View>
+                    </View> */}
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => router.push('/notifications')}>
-                    <Image source={icons.bell} className='size-6' />
-                </TouchableOpacity>
+                <View className='flex flex-row items-center justify-between'>
+                    <TouchableOpacity onPress={() => router.push('/sellvehicle')}>
+                        <Text className=" font-rubik-bold text-lg">Sell</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/vehicles/explore')}>
+                        <Text className="ms-4 font-rubik-bold text-lg">Buy</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <FlatList
