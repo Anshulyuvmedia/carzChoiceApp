@@ -1,7 +1,11 @@
 import { Slot } from "expo-router";
-
+import { LocationProvider } from '@/components/LocationContext';
 const AppLayout = () => {
-    return <Slot />;
+    return (
+        <LocationProvider>
+            <Slot />
+        </LocationProvider>
+    );
 };
 
 export default AppLayout;

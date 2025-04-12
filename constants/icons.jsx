@@ -50,10 +50,12 @@ import color from "@/assets/icons/cardetails/color.png";
 import transmission2 from "@/assets/icons/manualtransmission.png";
 import fuel2 from "@/assets/icons/gas-station.png";
 import kms from "@/assets/icons/kms.png";
+import aim from "@/assets/icons/crosshair.png";
 
 export default {
   engineDisplacement,
   fuel,
+  aim,
   fuel2,
   kms,
   transmission2,

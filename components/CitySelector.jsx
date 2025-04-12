@@ -1,40 +1,63 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, TextInput, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import ModalSelector from 'react-native-modal-selector-searchable';
 
 const CitySelector = ({ cityData = [], onSelectCity }) => {
     const [selectedCity, setSelectedCity] = useState('');
     const [searchText, setSearchText] = useState('');
     const [filteredData, setFilteredData] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    // Format data initially
+    const selectorRef = useRef();
+
     const formattedCities = (cityData || []).map((city, index) => ({
         key: index,
         label: city.label || city.name || city,
         value: city.value || city.id || city,
     }));
 
-    // Show top 20 initially
     useEffect(() => {
         setFilteredData(formattedCities);
     }, [cityData]);
 
-    // Filter on search
     const handleSearch = (text) => {
         setSearchText(text);
-        if (text.length === 0) {
-            setFilteredData(formattedCities);
-        } else {
-            const filtered = formattedCities.filter((item) =>
+        const filtered = text.length
+            ? formattedCities.filter((item) =>
                 item.label.toLowerCase().includes(text.toLowerCase())
-            );
-            setFilteredData(filtered);
-        }
+            )
+            : formattedCities;
+        setFilteredData(filtered);
+    };
+
+    const handleOpenModal = () => {
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            selectorRef.current.open(); // trigger modal open
+        }, 300); // simulate delay
     };
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity onPress={handleOpenModal} activeOpacity={0.7}>
+                <View style={styles.input}>
+                    {loading ? (
+                        <ActivityIndicator color="gray" size="small" />
+                    ) : (
+                        <TextInput
+                            style={styles.textInput}
+                            editable={false}
+                            pointerEvents="none"
+                            placeholder="Search for your city"
+                            value={selectedCity}
+                        />
+                    )}
+                </View>
+            </TouchableOpacity>
+
             <ModalSelector
+                ref={selectorRef}
                 data={filteredData}
                 initValue="Choose a city"
                 onChange={(option) => {
@@ -48,14 +71,8 @@ const CitySelector = ({ cityData = [], onSelectCity }) => {
                 animationType="slide"
                 optionTextStyle={{ color: 'black', textTransform: 'capitalize' }}
                 optionContainerStyle={{ backgroundColor: 'white' }}
-            >
-                <TextInput
-                    style={styles.input}
-                    editable={false}
-                    placeholder="Choose a City"
-                    value={selectedCity}
-                />
-            </ModalSelector>
+                customSelector={<></>} // prevent default UI
+            />
         </View>
     );
 };
@@ -64,14 +81,18 @@ export default CitySelector;
 
 const styles = StyleSheet.create({
     container: {
-        marginVertical: 10,
+        marginVertical: 5,
     },
     input: {
-        borderWidth: 0,
-        borderColor: '#ccc',
-        padding: 10,
-        height: 40,
+        // backgroundColor: '#f0f0f0',
+        paddingHorizontal: 10,
+        height: 35,
         borderRadius: 5,
         justifyContent: 'center',
+    },
+    textInput: {
+        color: '#000',
+        textTransform: 'capitalize',
+        fontWeight: 600,
     },
 });

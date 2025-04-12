@@ -33,8 +33,7 @@ const Search = () => {
 
     const [cityData, setCityData] = useState([]);
     const [selectedCity, setSelectedCity] = useState(params.city || ""); // ✅ Retain value
-
-
+    
 
     useEffect(() => {
         // getCityList();
@@ -127,10 +126,11 @@ const Search = () => {
 
     return (
         <View className="flex-1 ">
+            
             <TouchableOpacity onPress={() => refRBSheet.current.open()}>
-                <View className="flex flex-row items-center justify-between w-full px-4 rounded-lg bg-accent-100 border border-primary-100 mt-5 py-2">
+                <View className="flex flex-row items-center justify-between w-full px-4 rounded-full bg-accent-100 border border-primary-200 py-1">
                     <View className="flex-1 flex flex-row items-center justify-start">
-                        <Image source={icons.search} className="size-5" />
+                        <Image source={icons.search} className="size-6 " />
                         <TextInput
                             value={[
                                 selectedCity, selectedBudget, selectedTransmission, selectedFuelType,
@@ -150,7 +150,7 @@ const Search = () => {
             {/* RBSheet for Search */}
             <RBSheet
                 ref={refRBSheet}
-                height={650}
+                height={600}
                 openDuration={250}
                 closeOnDragDown={true}
                 customStyles={{
@@ -174,7 +174,7 @@ const Search = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <View className="flex flex-row items-center w-full bg-blue-50 rounded-lg px-3 py-2">
+                    <View className="flex flex-row items-center w-full bg-blue-50 rounded-full px-3 py-1">
                         <Image source={icons.location} className="size-6" />
                         <TextInput
                             ref={inputRef}

@@ -1,61 +1,43 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import images from '@/constants/images';
-import icons from '@/constants/icons';
 import Search from '@/components/Search';
-import { Card, FeaturedCard } from '@/components/Cards';
-import Filters from '@/components/Filters';
+import { Card, FeaturedCard, LocationCard } from '@/components/Cards';
 import { Link, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-// import * as Location from 'expo-location';
-// import { useNavigation } from "expo-router"; 
-import { useNavigation } from "@react-navigation/native";
 import BrandList from '../../../components/BrandList';
-import { Colors } from '@/constants/Colors'
 import LocationList from '../../../components/LocationList';
+import GetLocation from '../../../components/GetLocation';
+import { LocationContext } from '@/components/LocationContext';
+import BannerSlider from '../../../components/BannerSlider';
 
 const Index = () => {
     const handleCardPress = (id) => router.push(`/vehicles/${id}`);
-    const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const [image, setImage] = useState(images.avatar); // Default avatar
-    const [listingData, setListingData] = useState(); // Default avatar
-    const navigation = useNavigation();
-
-
-    // const requestLocationPermission = async () => {
-    //     const { status } = await Location.requestForegroundPermissionsAsync();
-
-    //     if (status !== 'granted') {
-    //         Alert.alert('Permission Denied', 'Location permission is required to show the map.');
-    //         return false; // Return false if permission is denied
-    //     }
-
-    //     return true; // Return true if permission is granted
-    // };
-
+    const [image, setImage] = useState(images.avatar);
+    const [listingData, setListingData] = useState();
+    const [locationData, setLocationData] = useState();
+    const { currentCity } = useContext(LocationContext);
 
     const fetchUserData = async () => {
         setLoading(true);
         try {
             const storedUserData = await AsyncStorage.getItem('userData');
             const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
-
+            // console.log('Parsed User Data:', parsedUserData);
             if (!parsedUserData || typeof parsedUserData !== 'object' || !parsedUserData.id) {
                 await AsyncStorage.removeItem('userData');
                 router.push('/signin');
                 return;
             }
-
             // Fetch user data from API
             const response = await axios.get(`https://carzchoice.com/api/userprofile/${parsedUserData.id}`);
 
             if (response.data && Array.isArray(response.data.userData) && response.data.userData.length > 0) {
                 const apiUserData = response.data.userData[0];
-                setUserData(apiUserData);
 
                 // Set Profile Image, ensuring fallback to default avatar
                 setImage(
@@ -97,29 +79,44 @@ const Index = () => {
         }
     }
 
-    // useEffect(() => {
-    //     (async () => {
-    //         const hasPermission = await requestLocationPermission();
-    //         if (hasPermission) {
-    //             getLocation(); // Call the function instead of writing logic directly inside useEffect
-    //         }
-    //     })();
-    // }, []);
+    const fetchFilterData = async () => {
+        setLoading(true);
+        setListingData([]);
 
-    // Define the getLocation function
-    // const getLocation = async () => {
-    //     try {
-    //         const location = await Location.getCurrentPositionAsync({
-    //             accuracy: Location.Accuracy.High,
-    //             timeout: 5000, // Prevents infinite hang
-    //         });
+        let requestBody = {
+            location: currentCity || null,
+            attribute: {} // Initialize attribute to avoid breaking below
+        };
 
-    //         console.log("User Location:", location);
-    //     } catch (error) {
-    //         console.error("Location fetch failed, using fallback:", error);
-    //         // You can set a default location or show an alert here
-    //     }
-    // };
+        // Remove null keys from attribute
+        Object.keys(requestBody.attribute).forEach(
+            (key) => requestBody.attribute[key] === null && delete requestBody.attribute[key]
+        );
+
+        if (!requestBody.location) delete requestBody.location;
+
+        try {
+            const response = await axios.post("https://carzchoice.com/api/filterOldCarByAttribute", requestBody, {
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (response.data.variants) {
+                setLocationData(response.data.variants);
+            } else {
+                setLocationData([]);
+            }
+        } catch (error) {
+            console.error("Error fetching listings:", error.response?.data || error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (currentCity) {
+            fetchFilterData(); // Call only after currentCity is available
+        }
+    }, [currentCity]);
 
     useEffect(() => {
         fetchUserData();
@@ -142,6 +139,8 @@ const Index = () => {
                     </View> */}
                 </TouchableOpacity>
 
+                <GetLocation />
+
                 <View className='flex flex-row items-center justify-between'>
                     <TouchableOpacity onPress={() => router.push('/sellvehicle')}>
                         <Text className=" font-rubik-bold text-lg">Sell</Text>
@@ -151,51 +150,74 @@ const Index = () => {
                     </TouchableOpacity>
                 </View>
             </View>
+            {loading ? (
+                <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
+            ) : (
+                <FlatList
+                    data={listingData?.data || []}
+                    renderItem={({ item }) => <Card item={item} onPress={() => handleCardPress(item.id)} />}
+                    keyExtractor={(item) => item.id.toString()}
+                    numColumns={2}
+                    contentContainerClassName="pb-32"
+                    columnWrapperClassName='flex gap-2 px-3'
+                    showsVerticalScrollIndicator={false}
+                    ListHeaderComponent={
+                        <View className='px-3'>
+                            <Search />
 
-            <FlatList
-                data={listingData?.data || []}
-                renderItem={({ item }) => <Card item={item} onPress={() => handleCardPress(item.id)} />}
-                keyExtractor={(item) => item.id.toString()}
-                numColumns={2}
-                contentContainerClassName="pb-32"
-                columnWrapperClassName='flex gap-2 px-3'
-                showsVerticalScrollIndicator={false}
-                ListHeaderComponent={
-                    <View className='px-3'>
-                        <Search />
-
-                        <View className='my-5'>
-                            <View className='flex flex-row items-center justify-between'>
-                                <Text className='text-xl font-rubik-bold text-black-300'>Featured Cars</Text>
-                                {/* <TouchableOpacity>
-                                    <Text className='text-base font-rubik-bold' style={{ color: Colors.dark }}>See All</Text>
-                                </TouchableOpacity> */}
+                            <View className='mt-5'>
+                                <BannerSlider />
                             </View>
-                        </View>
+                            <View className='mt-5'>
+                                <View className='flex flex-row items-center justify-between'>
+                                    <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Get Car in {currentCity}</Text>
+                                </View>
+                                {locationData && locationData.length > 0 ? (
+                                    <FlatList
+                                        data={locationData}
+                                        renderItem={({ item }) => (
+                                            <LocationCard item={item} onPress={() => handleCardPress(item.id)} />
+                                        )}
+                                        keyExtractor={(item) => item.id.toString()}
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        contentContainerStyle={{
+                                            paddingHorizontal: 12,
+                                            gap: 16, // horizontal spacing between cards
+                                            paddingBottom: 24,
+                                        }}
+                                    />
+                                ) : (
+                                    <Text className='text-base font-rubik text-black-300'>
+                                        No cars in your location
+                                    </Text>
+                                )}
 
-                        <FlatList
-                            data={listingData?.data || []}
-                            renderItem={({ item }) => <FeaturedCard item={item} onPress={() => handleCardPress(item.id)} />}
-                            keyExtractor={(item) => item.id.toString()}
-                            horizontal
-                            bounces={false}
-                            showsHorizontalScrollIndicator={false}
-                            pagingEnabled
-                            contentContainerClassName='flex gap-2'
-                        />
-                        <BrandList />
-
-                        <View className='mt-5'>
-                            <View className='flex flex-row items-center justify-between'>
-                                <Text className='text-xl font-rubik-bold text-black-300'>Old Car By Cities</Text>
                             </View>
+                            <View className='mt-5'>
+                                <View className='flex flex-row items-center justify-between'>
+                                    <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Get Car By Brand </Text>
+                                </View>
+                                <BrandList />
+                            </View>
+
+                            <View className='mt-5'>
+                                <View className='flex flex-row items-center justify-between'>
+                                    <Text className='text-xl font-rubik-bold text-black-300'>Old Car By Cities</Text>
+                                </View>
+                            </View>
+                            <LocationList />
+
+                            <View className='mt-5'>
+                                <View className='flex flex-row items-center justify-between'>
+                                    <Text className='text-xl font-rubik-bold text-black-300'>Other Cars </Text>
+                                </View>
+                            </View>
+
                         </View>
-                        <LocationList />
-
-
-                    </View>
-                }
-            />
+                    }
+                />
+            )}
 
 
         </SafeAreaView>
@@ -203,11 +225,7 @@ const Index = () => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+
 });
 
 export default Index;

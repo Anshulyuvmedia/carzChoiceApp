@@ -95,7 +95,7 @@ const Explore = () => {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View className='px-5'>
-            <View className='flex flex-row items-center ml-2 justify-between'>
+            <View className='flex flex-row items-center ml-2 mb-3 justify-between'>
               <TouchableOpacity onPress={() => router.navigate('/')} className="flex flex-row bg-primary-200 rounded-full size-11 items-center justify-center">
                 <Image source={icons.backArrow} className='size-5' />
               </TouchableOpacity>

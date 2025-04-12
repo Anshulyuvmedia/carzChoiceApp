@@ -30,7 +30,7 @@ const LocationList = () => {
 
 
     return (
-        <View className="flex flex-row flex-wrap mt-10 mb-2 pb-3 align-middle justify-center">
+        <View className="flex flex-row flex-wrap mt-5 mb-2 pb-3 align-middle justify-center">
             {Object.keys(cities).map((key) => {
                 const city = cities[key];
                 return (

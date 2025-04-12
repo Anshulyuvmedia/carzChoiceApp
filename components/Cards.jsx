@@ -127,4 +127,76 @@ const Card = ({ item, onPress }) => {
 
 export { Card };
 
+const LocationCard = ({ item, onPress }) => {
+  let imagesArray = safeParseJSON(item.images, []);
+  const firstImageUrl = imagesArray.length > 0 ? imagesArray[0]?.imageurl : null;
+  const transmissionType = item.transmissiontype;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      className='w-64 px-2 py-3 mt-4 rounded-lg bg-white shadow-lg shadow-black-100/70 relative'
+    >
+
+      {firstImageUrl ? (
+        <Image
+          source={{ uri: `https://carzchoice.com/${firstImageUrl}` }}
+          className='w-full h-40 rounded-lg'
+        />
+      ) : (
+        <Text className="text-black">Image Not Available</Text>
+      )}
+
+      <View className='flex flex-1 flex-col justify-between mt-2'>
+        <View className='flex-grow'>
+          <Text className='text-base font-rubik-medium text-black-300'>
+            {item.carname} {item.modalname}
+          </Text>
+          <View className='flex flex-row flex-wrap'>
+            <Text className='text-s font-rubik-medium text-black-100 capitalize'>
+              {item.brandname}
+            </Text>
+          </View>
+
+          <Text className='text-s font-rubik text-black-100'>
+            {item.kilometersdriven} Kms
+          </Text>
+
+          <View className='flex flex-row flex-wrap'>
+            <Text className='text-s font-rubik text-black-100'>
+              {item.color} •
+            </Text>
+            <Text className={`text-s font-rubik text-black-100 ms-1 ${item.fueltype === 'CNG' ? 'uppercase' : 'capitalize'}`}>
+              {item.fueltype} •
+            </Text>
+            <Text className='text-s font-rubik text-black-100 capitalize ms-1'>
+              {transmissionType}
+            </Text>
+          </View>
+        </View>
+
+        <View className="flex flex-col justify-start align-middle">
+          <View className='flex flex-row items-center justify-between mt-2'>
+            <Text className='text-base font-rubik-bold text-primary-300'>
+              {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}
+            </Text>
+            <Text className='text-s font-rubik-medium text-black capitalize'>
+              {item.manufactureyear}
+            </Text>
+          </View>
+
+          <View className="flex flex-row pt-2 border-t border-gray-300">
+            <Image source={icons.location} className="w-5 h-5" />
+            <Text className="font-rubik-medium capitalize ml-1">
+              {item.district}, {item.state}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+export { LocationCard };
+
 const styles = StyleSheet.create({});
