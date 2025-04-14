@@ -1,61 +1,98 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image, FlatList, Dimensions } from 'react-native';
+import React, { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import axios from 'axios';
-import cities from '@/constants/cities'
+import cities from '@/constants/cities';
+
+const screenWidth = Dimensions.get('window').width;
+const ITEMS_PER_ROW = 4;
+const ITEM_MARGIN = 8;
+const ITEM_WIDTH = (screenWidth - 40 - ITEM_MARGIN * (ITEMS_PER_ROW - 1)) / ITEMS_PER_ROW;
 
 const LocationList = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
     const [selectedCategory, setSelectedCategory] = useState(params.city || 'All');
-    const [brandData, setBrandData] = useState([]);
-    const [loading, setLoading] = useState(false);
 
     const handleCategoryPress = (category) => {
         const isRemovingFilter = selectedCategory === category;
         const updatedParams = { ...params };
-    
-        if (isRemovingFilter) {
-            setSelectedCategory(category);
-        } else {
+
+        if (!isRemovingFilter) {
             updatedParams.city = category;
             setSelectedCategory(category);
         }
-    
-        // 🔹 Delay navigation slightly to allow proper mounting
+
         setTimeout(() => {
-            router.push({ pathname: "/vehicles/explore", params: updatedParams });
-        }, 200); 
+            router.push({ pathname: "explore", params: updatedParams });
+        }, 200);
     };
 
+    const renderItem = ({ item: key }) => {
+        const city = cities[key];
+        const isSelected = selectedCategory === key;
+
+        return (
+            <TouchableOpacity
+                onPress={() => handleCategoryPress(key)}
+                style={[
+                    styles.cityContainer,
+                    isSelected ? styles.selected : styles.default,
+                    { width: ITEM_WIDTH },
+                ]}
+            >
+                <Image source={city} style={styles.cityImg} />
+                <Text style={[styles.cityText, isSelected && styles.selectedText]}>
+                    {key}
+                </Text>
+            </TouchableOpacity>
+        );
+    };
 
     return (
-        <View className="flex flex-row flex-wrap mt-5 mb-2 pb-3 align-middle justify-center">
-            {Object.keys(cities).map((key) => {
-                const city = cities[key];
-                return (
-                    <TouchableOpacity
-                        key={key}
-                        onPress={() => handleCategoryPress(key)}
-                        className={`flex flex-col items-center mr-2 mb-2 py-2 w-24 rounded-xl ${selectedCategory === key ? 'bg-blue-50' : 'border border-primary-200'}`}
-                    >
-                        <Image source={city} style={styles.cityImg} />
-                        <Text className={`text-sm font-rubik-bold capitalize ${selectedCategory === key ? 'text-black mt-0.5' : 'text-black-300 font-rubik'}`}>
-                            {key}
-                        </Text>
-                    </TouchableOpacity>
-                );
-            })}
-        </View>
+        <FlatList
+            data={Object.keys(cities)}
+            renderItem={renderItem}
+            keyExtractor={(item) => item}
+            numColumns={ITEMS_PER_ROW}
+            contentContainerStyle={styles.flatListContainer}
+            columnWrapperStyle={{ justifyContent: 'center', marginBottom: ITEM_MARGIN }}
+        />
     );
 };
 
 export default LocationList;
 
 const styles = StyleSheet.create({
+    flatListContainer: {
+        paddingHorizontal: 20,
+        paddingBottom: 30,
+    },
+    cityContainer: {
+        alignItems: 'center',
+        paddingVertical: 10,
+        borderRadius: 12,
+        marginEnd: 5,
+    },
+    selected: {
+        backgroundColor: '#EFF6FF', // light blue
+    },
+    default: {
+        borderWidth: 1,
+        borderColor: '#D1D5DB', // Tailwind's primary-200 equivalent
+    },
     cityImg: {
-        width: 60,
-        height: 60,
-        resizeMode: "contain",
+        width: 45,
+        height: 45,
+        resizeMode: 'contain',
+    },
+    cityText: {
+        fontSize: 12,
+        fontFamily: 'Rubik-Bold',
+        color: '#6B7280', // Tailwind's black-300
+        textTransform: 'capitalize',
+    },
+    selectedText: {
+        color: '#000',
+        marginTop: 2,
     },
 });

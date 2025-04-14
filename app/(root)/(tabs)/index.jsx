@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import images from '@/constants/images';
 import Search from '@/components/Search';
@@ -14,32 +14,47 @@ import { LocationContext } from '@/components/LocationContext';
 import BannerSlider from '../../../components/BannerSlider';
 
 const Index = () => {
-    const handleCardPress = (id) => router.push(`/vehicles/${id}`);
-    const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { currentCity } = useContext(LocationContext);
     const [image, setImage] = useState(images.avatar);
     const [listingData, setListingData] = useState();
     const [locationData, setLocationData] = useState();
-    const { currentCity } = useContext(LocationContext);
+    const [loading, setLoading] = useState(false);
+    const [userLoading, setUserLoading] = useState(false);
+    const [listingLoading, setListingLoading] = useState(false);
+    const [filterLoading, setFilterLoading] = useState(false);
+
+    const [visibleListingCount, setVisibleListingCount] = useState(6);
+    const [visibleLocationCount, setVisibleLocationCount] = useState(6);
+
+    // Memoized handleCardPress
+    const handleCardPress = useCallback((id) => {
+        router.push(`/vehicles/${id}`);
+    }, [router]);
 
     const fetchUserData = async () => {
-        setLoading(true);
+        setUserLoading(true);
         try {
             const storedUserData = await AsyncStorage.getItem('userData');
-            const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
-            // console.log('Parsed User Data:', parsedUserData);
+            let parsedUserData;
+            try {
+                parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
+            } catch (e) {
+                await AsyncStorage.removeItem('userData');
+                router.push('/signin');
+                return;
+            }
+
             if (!parsedUserData || typeof parsedUserData !== 'object' || !parsedUserData.id) {
                 await AsyncStorage.removeItem('userData');
                 router.push('/signin');
                 return;
             }
-            // Fetch user data from API
+
             const response = await axios.get(`https://carzchoice.com/api/userprofile/${parsedUserData.id}`);
 
             if (response.data && Array.isArray(response.data.userData) && response.data.userData.length > 0) {
                 const apiUserData = response.data.userData[0];
-
-                // Set Profile Image, ensuring fallback to default avatar
                 setImage(
                     apiUserData.dp
                         ? apiUserData.dp.startsWith('http')
@@ -55,40 +70,39 @@ const Index = () => {
             console.error('Error fetching user data:', error);
             setImage(images.avatar);
         } finally {
-            setLoading(false);
+            setUserLoading(false);
         }
     };
 
     const fetchListingData = async () => {
-        setLoading(true);
+        setListingLoading(true);
         try {
             const response = await axios.get(`https://carzchoice.com/api/oldvehiclelist`);
-            if (response) {
-                const apiData = response;
-                setListingData(apiData);
-                // console.log('ApiData: ',apiData);
+            // console.log("Listing API Response:", response.data);
 
+            if (Array.isArray(response.data)) {
+                setListingData(response.data);
             } else {
                 console.error('Unexpected API response format:', response.data);
+                setListingData([]); // Set empty array on unexpected format
             }
-
         } catch (error) {
-            console.error('Error fetching user data:', error);
+            console.error('Error fetching listings:', error);
+            setListingData([]); // Handle failed API call gracefully
         } finally {
-            setLoading(false);
+            setListingLoading(false);
         }
-    }
+    };
 
     const fetchFilterData = async () => {
-        setLoading(true);
-        setListingData([]);
+        setFilterLoading(true);
+        setListingData([]); // Clear the listing data
 
         let requestBody = {
             location: currentCity || null,
-            attribute: {} // Initialize attribute to avoid breaking below
+            attribute: {},
         };
 
-        // Remove null keys from attribute
         Object.keys(requestBody.attribute).forEach(
             (key) => requestBody.attribute[key] === null && delete requestBody.attribute[key]
         );
@@ -106,9 +120,9 @@ const Index = () => {
                 setLocationData([]);
             }
         } catch (error) {
-            console.error("Error fetching listings:", error.response?.data || error.message);
+            console.error("Error fetching filter data:", error.response?.data || error.message);
         } finally {
-            setLoading(false);
+            setFilterLoading(false);
         }
     };
 
@@ -123,44 +137,42 @@ const Index = () => {
         fetchListingData();
     }, []);
 
-    // console.log('Api listing data: ',listingData);
     return (
         <SafeAreaView className='bg-white h-full'>
             <View className='flex flex-row items-center justify-between my-3 px-3'>
                 <TouchableOpacity onPress={() => router.push('/dashboard')} className='flex flex-row items-center ml-2 justify-center'>
                     <Image source={images.applogo} className='w-24 h-12' />
-                    {/* <View className='flex flex-col items-start justify-center'>
-                        <Text className='text-sm font-rubik text-black-100'>
-                            Welcome
-                        </Text>
-                        <Text className='text-xl font-rubik-medium text-black-300'>
-                            {userData?.fullname?.split(' ')[0] || 'User'}
-                        </Text>
-                    </View> */}
                 </TouchableOpacity>
 
                 <GetLocation />
 
                 <View className='flex flex-row items-center justify-between'>
                     <TouchableOpacity onPress={() => router.push('/sellvehicle')}>
-                        <Text className=" font-rubik-bold text-lg">Sell</Text>
+                        <Text className="font-rubik-bold text-lg">Sell</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/vehicles/explore')}>
+                    <TouchableOpacity onPress={() => router.push('explore')}>
                         <Text className="ms-4 font-rubik-bold text-lg">Buy</Text>
                     </TouchableOpacity>
                 </View>
             </View>
-            {loading ? (
-                <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
+
+            {userLoading || listingLoading || filterLoading ? (
+                <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 300 }} />
             ) : (
                 <FlatList
-                    data={listingData?.data || []}
+                    data={listingData?.slice(0, visibleListingCount) || []}
                     renderItem={({ item }) => <Card item={item} onPress={() => handleCardPress(item.id)} />}
-                    keyExtractor={(item) => item.id.toString()}
+                    keyExtractor={(item, index) => item.id?.toString() || index.toString()}
                     numColumns={2}
                     contentContainerClassName="pb-32"
                     columnWrapperClassName='flex gap-2 px-3'
                     showsVerticalScrollIndicator={false}
+                    onEndReached={() => {
+                        if (listingData?.length > visibleListingCount) {
+                            setVisibleListingCount((prev) => prev + 6);
+                        }
+                    }}
+                    onEndReachedThreshold={0.5}
                     ListHeaderComponent={
                         <View className='px-3'>
                             <Search />
@@ -169,63 +181,56 @@ const Index = () => {
                                 <BannerSlider />
                             </View>
                             <View className='mt-5'>
-                                <View className='flex flex-row items-center justify-between'>
-                                    <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Get Car in {currentCity}</Text>
-                                </View>
+                                <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Get Car in {currentCity}</Text>
                                 {locationData && locationData.length > 0 ? (
                                     <FlatList
-                                        data={locationData}
+                                        data={locationData.slice(0, visibleLocationCount)}
                                         renderItem={({ item }) => (
                                             <LocationCard item={item} onPress={() => handleCardPress(item.id)} />
                                         )}
-                                        keyExtractor={(item) => item.id.toString()}
+                                        keyExtractor={(item, index) => item.id.toString() || index.toString()}
                                         horizontal
                                         showsHorizontalScrollIndicator={false}
                                         contentContainerStyle={{
-                                            paddingHorizontal: 12,
-                                            gap: 16, // horizontal spacing between cards
+                                            paddingHorizontal: 0,
+                                            gap: 16,
                                             paddingBottom: 24,
                                         }}
+                                        onEndReached={() => {
+                                            if (locationData.length > visibleLocationCount) {
+                                                setVisibleLocationCount((prev) => prev + 6);
+                                            }
+                                        }}
+                                        onEndReachedThreshold={0.5}
                                     />
                                 ) : (
                                     <Text className='text-base font-rubik text-black-300'>
                                         No cars in your location
                                     </Text>
                                 )}
-
                             </View>
+
                             <View className='mt-5'>
-                                <View className='flex flex-row items-center justify-between'>
-                                    <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Get Car By Brand </Text>
-                                </View>
+                                <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Get Car By Brand</Text>
                                 <BrandList />
                             </View>
 
                             <View className='mt-5'>
-                                <View className='flex flex-row items-center justify-between'>
-                                    <Text className='text-xl font-rubik-bold text-black-300'>Old Car By Cities</Text>
-                                </View>
+                                <Text className='text-xl font-rubik-bold text-black-300'>Old Car By Cities</Text>
                             </View>
                             <LocationList />
 
                             <View className='mt-5'>
-                                <View className='flex flex-row items-center justify-between'>
-                                    <Text className='text-xl font-rubik-bold text-black-300'>Other Cars </Text>
-                                </View>
+                                <Text className='text-xl font-rubik-bold text-black-300'>Other Cars</Text>
                             </View>
-
                         </View>
                     }
                 />
             )}
-
-
         </SafeAreaView>
     );
 };
 
-const styles = StyleSheet.create({
-
-});
+const styles = StyleSheet.create({});
 
 export default Index;

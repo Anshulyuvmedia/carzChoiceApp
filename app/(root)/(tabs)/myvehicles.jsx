@@ -10,6 +10,7 @@ import icons from '@/constants/icons';
 const MyVehicles = () => {
   const [userPropertyData, setUserPropertyData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [visibleItemsCount, setVisibleItemsCount] = useState(8); // To control number of visible items
   const router = useRouter();
   const handleCardPress = (id) => router.push(`/vehicles/${id}`);
   const handleEditPress = (id) => router.push(`/dashboard/editvehicle/${id}`);
@@ -19,9 +20,8 @@ const MyVehicles = () => {
     try {
       const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
 
-      // Fetch user properties from API
+      // Fetch user cars from API
       const response = await axios.get(`https://carzchoice.com/api/myoldvehiclelist/${parsedUserData.id}`);
-      // console.log('API Response:', response.data.oldvehicles);
 
       if (response.data && response.data.oldvehicles) {
         const formattedData = response.data.oldvehicles.map((item) => {
@@ -65,10 +65,15 @@ const MyVehicles = () => {
   };
 
   useEffect(() => {
-
-
     fetchUserData();
   }, []);
+
+  // Handle loading more items on scroll
+  const loadMoreItems = () => {
+    if (userPropertyData.length > visibleItemsCount) {
+      setVisibleItemsCount(visibleItemsCount + 8); // Increase the visible items by 8
+    }
+  };
 
   return (
     <SafeAreaView className="bg-white h-full px-4">
@@ -86,40 +91,96 @@ const MyVehicles = () => {
         {loading ? (
           <View>
             <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 300 }} />
-            <Text className="text-center text-gray-500 mt-10">Loading properties...</Text>
+            <Text className="text-center text-gray-500 mt-10">Loading car...</Text>
           </View>
         ) : userPropertyData.length === 0 ? (
-          <Text className="text-center text-gray-500 mt-10">No properties found.</Text>
+          <Text className="text-center text-gray-500 mt-10">No cars found.</Text>
         ) : (
           <FlatList
-            data={userPropertyData}
+            data={userPropertyData.slice(0, visibleItemsCount)} // Slice data to show only the visible items
             keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
-              <TouchableOpacity className="flex-row my-2 p-3 rounded-lg border border-gray-100 bg-blue-50 shadow" onPress={() => handleCardPress(item.id)}>
-                {/* Property Image */}
-                <View className="w-24 h-24 overflow-hidden rounded-lg border border-gray-300">
-                  <Image source={item.thumbnail ? { uri: item.thumbnail } : images.newYork} className="w-full h-full object-cover" />
-                </View>
+              <View className="mb-4 px-1 ">
+                <View className="p-3 rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  {/* Main Card */}
+                  <TouchableOpacity
+                    className="flex-row "
+                    onPress={() => handleCardPress(item.id)}
+                  >
+                    {/* Car Image */}
+                    <View className="w-24 h-24 overflow-hidden rounded-lg border border-gray-300 bg-gray-100">
+                      <Image
+                        source={item.thumbnail ? { uri: item.thumbnail } : images.newYork}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    </View>
 
-                {/* Property Details */}
-                <View className="ml-4 flex-1">
-                  <View className="flex-row justify-between mt-2">
-                    <Text className="text-md font-rubik text-gray-900">{item.manufactureyear} {item.carname}</Text>
-                    <Text className={`inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik border  ${item.status === 'Activated' ? ' bg-green-50  text-green-700  border-green-500 ' : 'bg-red-50  text-red-700 border-red-600/20'}`}>{item.status}</Text>
-                  </View>
-                  <Text className="text-sm font-semibold text-gray-700">{item.modalname}</Text>
-                  <Text className="text-sm text-gray-500 mt-1">{item.city} {item.state}</Text>
-                  <View className="flex-row justify-between mt-2">
-                    <Text className="text-sm font-semibold text-gray-700">{item.brandname}</Text>
-                    <Text className="text-sm font-semibold text-blue-700">{item.price}</Text>
-                    <TouchableOpacity onPress={() => handleEditPress(item.id)}>
-                      <Text className="inline-flex items-center rounded-md capitalize px-2 py-1 text-xs font-rubik border border-red-600 bg-gray-50 text-red-600">Edit</Text>
+                    {/* Car Details */}
+                    <View className="flex-1 ml-4 justify-between">
+                      <View className="flex-row justify-between items-start">
+                        <Text className="text-base font-rubik-bold text-gray-900 leading-tight">
+                          {item.manufactureyear} {item.carname}
+                        </Text>
+                        <View
+                          className={`flex-row items-center px-2 py-0.5 rounded-md border
+            ${item.status === 'Activated'
+                              ? 'bg-green-50 border-green-500'
+                              : 'bg-red-50 border-red-400'}`}
+                        >
+                          <View
+                            className={`w-2 h-2 rounded-full mr-1 ${item.status === 'Activated' ? 'bg-green-500' : 'bg-red-500'
+                              }`}
+                          />
+                          <Text
+                            className={`text-xs font-rubik-bold ${item.status === 'Activated' ? 'text-green-700' : 'text-red-600'
+                              }`}
+                          >
+                            {item.status}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text className="text-sm text-gray-700 font-rubik-medium mt-0.5">
+                        {item.modalname}
+                      </Text>
+
+                      <Text className="text-xs text-gray-500 mt-0.5 capitalize">
+                        {item.city}, {item.state}
+                      </Text>
+
+                      <View className="flex-row justify-between items-center mt-1">
+                        <Text className="text-sm font-rubik text-gray-800">{item.brandname}</Text>
+                        <Text className="text-sm font-rubik-bold text-blue-700">{item.price}</Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Actions Row */}
+                  <View className="flex-row justify-between items-center mt-2 space-x-2">
+                    <TouchableOpacity
+                      onPress={() => handleCardPress(item.id)}
+                      className="flex-1 flex-row items-center justify-center border border-gray-400 bg-blue-50 rounded-lg px-3 py-2 me-2"
+                    >
+                      <Image source={icons.eye} className="w-4 h-4 mr-2 " />
+                      <Text className="text-sm font-rubik-bold text-black">View Car</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => handleEditPress(item.id)}
+                      className="flex-1 flex-row items-center justify-center border border-blue-600 bg-blue-50 rounded-lg px-3 py-2"
+                    >
+                      <Image source={icons.gear} className="w-4 h-4 mr-2 tint-blue-600" />
+                      <Text className="text-sm font-rubik-bold text-blue-700">Edit Car</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
-              </TouchableOpacity>
+              </View>
+
             )}
+            onEndReached={loadMoreItems} // Trigger loading more items when scrolled to the end
+            onEndReachedThreshold={0.5} // Trigger when 50% of the list is visible
           />
         )}
       </View>

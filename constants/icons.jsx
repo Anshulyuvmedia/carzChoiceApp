@@ -51,12 +51,24 @@ import transmission2 from "@/assets/icons/manualtransmission.png";
 import fuel2 from "@/assets/icons/gas-station.png";
 import kms from "@/assets/icons/kms.png";
 import aim from "@/assets/icons/crosshair.png";
+import keys from "@/assets/icons/key.png";
+import sell from "@/assets/icons/sell.png";
+import showroom from "@/assets/icons/showroom.png";
+import downarrow from "@/assets/icons/down-arrow.png";
+import gear from "@/assets/icons/gear.png";
+import eye from "@/assets/icons/eye.png";
 
 export default {
   engineDisplacement,
   fuel,
+  gear,
+  downarrow,
   aim,
+  eye,
+  sell,
+  keys,
   fuel2,
+  showroom,
   kms,
   transmission2,
   lastUpdated,

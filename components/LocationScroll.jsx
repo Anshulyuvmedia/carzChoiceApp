@@ -21,7 +21,7 @@ const LocationScroll = () => {
 
         // // 🔹 Slight delay for smooth navigation
         // setTimeout(() => {
-        //     router.push({ pathname: "/vehicles/explore", params: updatedParams });
+        //     router.push({ pathname: "explore", params: updatedParams });
         // }, 200);
     };
 

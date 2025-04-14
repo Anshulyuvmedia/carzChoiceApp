@@ -47,12 +47,22 @@ const TabsLayout = () => {
                 }}
             />
             <Tabs.Screen
+                name="explore"
+                options={{
+                    title: "Buy Car",
+                    headerShown: false,
+                    tabBarIcon: ({ focused }) => (
+                        <TabIcon focused={focused} icon={icons.keys} title="Buy Car" />
+                    ),
+                }}
+            />
+            <Tabs.Screen
                 name="myvehicles"
                 options={{
                     title: "My Vehicles",
                     headerShown: false,
                     tabBarIcon: ({ focused }) => (
-                        <TabIcon focused={focused} icon={icons.search} title="My Vehicles" />
+                        <TabIcon focused={focused} icon={icons.showroom} title="My Vehicles" />
                     ),
                 }}
             />
@@ -63,7 +73,7 @@ const TabsLayout = () => {
                     title: "Sell Car",
                     headerShown: false,
                     tabBarIcon: ({ focused }) => (
-                        <TabIcon focused={focused} icon={icons.addproperty} title="Sell Vehicle" />
+                        <TabIcon focused={focused} icon={icons.sell} title="Sell Car" />
                     ),
                 }}
             />

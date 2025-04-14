@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Dimensions } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
@@ -11,19 +11,19 @@ const BrandList = () => {
     const [brandData, setBrandData] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    const screenWidth = Dimensions.get('window').width;
+    const ITEM_MARGIN = 5; // space between items
+    const ITEMS_PER_ROW = 5;
+
+    // Dynamic item width calculation (including margin)
+    const itemWidth = (screenWidth - ITEM_MARGIN) / ITEMS_PER_ROW;
+
     const handleCategoryPress = (category) => {
-        const isRemovingFilter = selectedCategory === category;
-        const updatedParams = { ...params };
-
-        if (isRemovingFilter) {
-            setSelectedCategory(category);
-        } else {
-            updatedParams.brand = category;
-            setSelectedCategory(category);
-        }
-
-        router.push({ pathname: "/vehicles/explore", params: updatedParams });
+        const updatedParams = { ...params, brand: category };
+        setSelectedCategory(category);
+        router.push({ pathname: "explore", params: updatedParams });
     };
+
 
     const fetchBrandList = async () => {
         setLoading(true);
@@ -46,24 +46,31 @@ const BrandList = () => {
     }, []);
 
     return (
-        <View className="flex flex-row flex-wrap mt-10 mb-2 pb-3 align-middle justify-center">
+
+        <View className="flex flex-row flex-wrap mt-5 mb-2 pb-3 justify-center">
             {brandData.slice(0, 11).map((item) => (
                 <TouchableOpacity
                     key={item.id.toString()}
                     onPress={() => handleCategoryPress(item.label)}
-                    className={`flex flex-col items-center mr-2 mb-2 w-24 rounded-xl  ${selectedCategory === item.label ? 'bg-primary-300' : 'border border-primary-200'}`}
+                    style={{
+                        width: itemWidth,
+                        marginRight: ITEM_MARGIN,
+                        marginBottom: ITEM_MARGIN,
+                    }}
+                    className={`flex flex-col items-center rounded-xl p-2 border border-gray-300 }`}
                 >
                     {item.iconimage ? (
                         <Image
-                            style={styles.brandImg}
+                            style={[styles.brandImg, { width: 50, height: 50 }]}
                             source={{ uri: `https://carzchoice.com/assets/backend-assets/images/${item.iconimage}` }}
                             onError={(e) => console.error(`Error loading image for ${item.label}:`, e.nativeEvent.error)}
                         />
                     ) : (
                         <Text>No Image</Text>
                     )}
-
-                    <Text className={`text-sm font-rubik-bold ${selectedCategory === item.label ? 'text-white  mt-0.5' : 'text-black-300 font-rubik'}`}>
+                    <Text
+                        className={`text-xs text-center font-rubik-bold mt-1 }`}
+                    >
                         {item.label}
                     </Text>
                 </TouchableOpacity>
@@ -71,10 +78,15 @@ const BrandList = () => {
 
             {brandData.length > 12 && (
                 <TouchableOpacity
-                    onPress={() => router.push("../dashboard/AllBrands")}
-                    className="flex flex-col justify-center items-center mr-2 mb-2 w-24 rounded-xl bg-gray-200 border border-primary-200"
+                    onPress={() => router.push('../dashboard/AllBrands')}
+                    style={{
+                        width: itemWidth,
+                        marginRight: ITEM_MARGIN,
+                        marginBottom: ITEM_MARGIN,
+                    }}
+                    className="flex flex-col justify-center items-center rounded-xl bg-gray-200 border border-primary-200 p-2"
                 >
-                    <Text className="text-sm text-black font-rubik-bold">View More</Text>
+                    <Text className="text-sm text-black font-rubik text-center">View More</Text>
                 </TouchableOpacity>
             )}
         </View>
@@ -85,8 +97,8 @@ export default BrandList;
 
 const styles = StyleSheet.create({
     brandImg: {
-        width: 60,
-        height: 60,
+        width: 75,
+        height: 75,
         resizeMode: "contain",
     },
 });

@@ -27,7 +27,7 @@ const Filters = () => {
 
         // Navigate with updated query parameters
         router.push({
-            pathname: "/vehicles/explore",
+            pathname: "explore",
             params: updatedParams,
         });
     };

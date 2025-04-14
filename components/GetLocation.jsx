@@ -107,10 +107,11 @@ const GetLocation = () => {
                         <View className='flex flex-row items-center bg-gray-100 border border-gray-200 rounded-full px-3 py-1'>
                             <Image source={icons.location} className="size-5 me-1" />
                             <Text className="text-sm font-rubik-medium capitalize">{displayCity}</Text>
+                            <Image source={icons.downarrow} className="size-5 ms-1" />
                         </View>
                     ) : (
                         <View className='flex flex-row items-center'>
-                            <Image source={icons.location} className="size-5 me-1" />
+                            <Image source={icons.location} className="size-3 me-1" />
                             <Text className="text-sm font-rubik">Select city</Text>
                         </View>
                     )}
@@ -159,7 +160,7 @@ const GetLocation = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <Text className="text-sm font-rubik-medium text-center mb-4">
+                    <Text className="text-sm font-rubik-medium text-center mb-4 capitalize">
                         {displayCity ? `Looking in ${displayCity}` : 'Press detect to find your current location'}
                     </Text>
 
