@@ -2,16 +2,11 @@ import { ScrollView, StyleSheet, Text, View, SafeAreaView, Image, TouchableOpaci
 import React, { useState, useEffect } from 'react';
 import images from '@/constants/images';
 import icons from '@/constants/icons';
-import * as IntentLauncher from 'expo-intent-launcher';
 import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
 import { router } from 'expo-router';
 import axios from 'axios';
-import * as Linking from 'expo-linking';
-import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast, { BaseToast } from 'react-native-toast-message';
-import * as Sharing from 'expo-sharing';
 
 const EditProfile = () => {
     const [image, setImage] = useState(null);

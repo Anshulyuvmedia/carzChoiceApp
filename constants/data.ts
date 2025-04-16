@@ -74,19 +74,13 @@ export const settings = [
     onPress: '/dashboard/editprofile',
   },
   {
-    title: "Notifications",
-    icon: icons.bell,
-    onPress: '/notifications',
-
-  },
-  {
     title: "My Vehicles",
-    icon: icons.shield,
+    icon: icons.showroom,
     onPress: '/myvehicles',
   },
   {
-    title: "Sell Your Vehicle",
-    icon: icons.addproperty,
+    title: "Sell Your Car",
+    icon: icons.sell,
     onPress: '/sellvehicle',
   },
 

@@ -3,8 +3,8 @@ import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import images from '@/constants/images';
 import Search from '@/components/Search';
-import { Card, FeaturedCard, LocationCard } from '@/components/Cards';
-import { Link, useRouter } from 'expo-router';
+import { Card, LocationCard } from '@/components/Cards';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import BrandList from '../../../components/BrandList';
@@ -19,7 +19,6 @@ const Index = () => {
     const [image, setImage] = useState(images.avatar);
     const [listingData, setListingData] = useState();
     const [locationData, setLocationData] = useState();
-    const [loading, setLoading] = useState(false);
     const [userLoading, setUserLoading] = useState(false);
     const [listingLoading, setListingLoading] = useState(false);
     const [filterLoading, setFilterLoading] = useState(false);
@@ -96,7 +95,7 @@ const Index = () => {
 
     const fetchFilterData = async () => {
         setFilterLoading(true);
-        setListingData([]); // Clear the listing data
+        // setListingData([]); // Clear the listing data
 
         let requestBody = {
             location: currentCity || null,

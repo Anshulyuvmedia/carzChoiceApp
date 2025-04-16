@@ -76,7 +76,7 @@ const MyVehicles = () => {
   };
 
   return (
-    <SafeAreaView className="bg-white h-full px-4">
+    <SafeAreaView className="bg-white flex-1 px-4 pb-20 ">
       <View className="flex-row items-center ml-2 justify-between">
         <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
           <Image source={icons.backArrow} className="w-5 h-5" />
@@ -87,7 +87,7 @@ const MyVehicles = () => {
         </TouchableOpacity>
       </View>
 
-      <View className="mt-3 mb-12">
+      <View className="mt-6 mb-12">
         {loading ? (
           <View>
             <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 300 }} />

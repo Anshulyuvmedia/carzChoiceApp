@@ -69,7 +69,7 @@ const AllBrands = () => {
                 width: ITEM_WIDTH,
                 margin: ITEM_MARGIN / 2,
                 backgroundColor: 'white',
-                borderColor: 'gray',
+                borderColor: 'lightgray',
                 borderWidth: 1,
                 borderRadius: 10,
                 alignItems: 'center',
@@ -145,8 +145,8 @@ export default AllBrands;
 
 const styles = StyleSheet.create({
     brandImg: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         resizeMode: "contain",
         backgroundColor: "white",
     },

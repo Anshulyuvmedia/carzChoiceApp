@@ -12,7 +12,7 @@ const BrandList = () => {
     const [loading, setLoading] = useState(false);
 
     const screenWidth = Dimensions.get('window').width;
-    const ITEM_MARGIN = 5; // space between items
+    const ITEM_MARGIN = 10; // space between items
     const ITEMS_PER_ROW = 5;
 
     // Dynamic item width calculation (including margin)
@@ -61,7 +61,7 @@ const BrandList = () => {
                 >
                     {item.iconimage ? (
                         <Image
-                            style={[styles.brandImg, { width: 50, height: 50 }]}
+                            style={[styles.brandImg, { width: 65, height: 50 }]}
                             source={{ uri: `https://carzchoice.com/assets/backend-assets/images/${item.iconimage}` }}
                             onError={(e) => console.error(`Error loading image for ${item.label}:`, e.nativeEvent.error)}
                         />
@@ -97,8 +97,8 @@ export default BrandList;
 
 const styles = StyleSheet.create({
     brandImg: {
-        width: 75,
-        height: 75,
+        width: 60,
+        height: 60,
         resizeMode: "contain",
     },
 });

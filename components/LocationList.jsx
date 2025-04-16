@@ -81,14 +81,14 @@ const styles = StyleSheet.create({
         borderColor: '#D1D5DB', // Tailwind's primary-200 equivalent
     },
     cityImg: {
-        width: 45,
-        height: 45,
+        width: 55,
+        height: 55,
         resizeMode: 'contain',
     },
     cityText: {
         fontSize: 12,
         fontFamily: 'Rubik-Bold',
-        color: '#6B7280', // Tailwind's black-300
+        color: 'black', // Tailwind's black-300
         textTransform: 'capitalize',
     },
     selectedText: {

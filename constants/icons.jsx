@@ -57,12 +57,16 @@ import showroom from "@/assets/icons/showroom.png";
 import downarrow from "@/assets/icons/down-arrow.png";
 import gear from "@/assets/icons/gear.png";
 import eye from "@/assets/icons/eye.png";
+import signing from "@/assets/icons/signing.png";
+import clipboard from "@/assets/icons/clipboard.png";
 
 export default {
   engineDisplacement,
   fuel,
   gear,
   downarrow,
+  signing,
+  clipboard,
   aim,
   eye,
   sell,

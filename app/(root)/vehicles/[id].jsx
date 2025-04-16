@@ -16,10 +16,12 @@ import FeaturesAccordion from "../../../components/FeaturesAccordion";
 import SpecsAccordion from "../../../components/SpecsAccordion";
 import Toast, { BaseToast } from 'react-native-toast-message';
 import moment from 'moment';
+import RBSheet from "react-native-raw-bottom-sheet";
 
 const { width } = Dimensions.get("window");
 const CarDetails = () => {
     const CarId = useLocalSearchParams().id;
+    const refRBSheet = useRef();
     const windowHeight = Dimensions.get("window").height;
     const [error, setError] = useState(null);
     const [CarData, setCarData] = useState(null);
@@ -362,13 +364,14 @@ const CarDetails = () => {
                         ref={carouselRef}
                         loop
                         width={width}
-                        height={200}
+                        height={230}
                         autoPlay={true}
                         autoPlayInterval={7000}
                         data={CarGallery}
                         scrollAnimationDuration={3000}
                         renderItem={renderCarouselItem}
                     />
+
 
                     <TouchableOpacity style={styles.arrowRight} onPress={() => carouselRef.current?.next()}>
                         <AntDesign name="right" size={24} color="white" />
@@ -469,8 +472,39 @@ const CarDetails = () => {
                     </View>,
 
 
+                    <TouchableOpacity
+                        onPress={() => refRBSheet.current.open()}
+                        style={{
+                            backgroundColor: "white",
+                            borderColor: "#0061FF",
+                            borderWidth: 2,
+                            paddingHorizontal: 20,
+                            paddingVertical: 12,
+                            borderRadius: 100,
+                            marginBottom: 20,
+                        }}
+                    >
+                        <Text style={{ color: "#0061FF", fontSize: 16, textAlign: 'center', fontWeight: 600 }}>🧮 Calculate Your EMI</Text>
+                    </TouchableOpacity>,
 
-                    <MortgageCalculator />
+                    <RBSheet
+                        ref={refRBSheet}
+                        height={550}
+                        openDuration={300}
+                        closeOnDragDown={true}
+                        customStyles={{
+                            container: {
+                                borderTopLeftRadius: 20,
+                                borderTopRightRadius: 20,
+                                paddingHorizontal: 10,
+                            },
+                        }}
+                        closeOnPressMask={false}
+                        keyboardAvoidingViewEnabled={true}
+                    >
+                        <MortgageCalculator closeSheet={() => refRBSheet.current.close()} totalprice={CarData.price} />
+                    </RBSheet>
+
                 ]}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={renderItem}
@@ -500,13 +534,15 @@ export default CarDetails
 
 const styles = StyleSheet.create({
     slide: {
-        borderRadius: 10,
-        overflow: "hidden",
+        width: width,
+        height: 230, // match Carousel height
+        justifyContent: "center",
+        alignItems: "center",
     },
     image: {
         width: width,
-        height: 200,
-        borderRadius: 10,
+        height: 230,
+        resizeMode: "cover", // or "contain" depending on your need
     },
     arrowLeft: {
         position: "absolute",

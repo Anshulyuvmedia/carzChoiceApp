@@ -146,11 +146,11 @@ const Dashboard = () => {
 
 
               <TouchableOpacity onPress={() => router.push('/dashboard/carloan')} className="flex flex-row items-center py-3">
-                <Image source={icons.person} className="size-6" />
+                <Image source={icons.signing} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-black-300 ml-3">Car Loan</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => router.push('/dashboard/carinsurance')} className="flex flex-row items-center py-3">
-                <Image source={icons.person} className="size-6" />
+                <Image source={icons.clipboard} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-black-300 ml-3">Buy Insurance </Text>
               </TouchableOpacity>
               {settings.slice(1).map((item, index) => (
@@ -163,7 +163,7 @@ const Dashboard = () => {
 
             <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
               <TouchableOpacity onPress={() => router.push('/dashboard/editprofile')} className="flex flex-row items-center py-3">
-                <Image source={icons.person} className="size-6" />
+                <Image source={icons.keys} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-black-300 ml-3">Edit Profile</Text>
               </TouchableOpacity>
 
