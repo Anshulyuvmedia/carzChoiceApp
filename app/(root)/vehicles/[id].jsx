@@ -101,11 +101,14 @@ const CarDetails = () => {
 
             const enquiryData = {
                 fullname: parsedUserData.fullname || "Unknown",
+                userid: parsedUserData.id,
+                carid: CarId,
                 mobile: parsedUserData.contactno,
                 email: parsedUserData.email,
                 vehiclename: `${CarData.manufactureyear} ${CarData.brandname} ${CarData.carname} ${CarData.modalname}`,
                 city: parsedUserData.district,
                 statename: CarData.state,
+                leadstatus: 'interested',
                 remarks: `Interested in ${CarData.manufactureyear} ${CarData.brandname} ${CarData.carname} ${CarData.modalname}`,
             };
 
@@ -390,6 +393,27 @@ const CarDetails = () => {
         </View>
     );
 
+    const carMeta = [
+        {
+            id: 'fuel',
+            icon: icons.fuel2,
+            text: CarData.fueltype,
+            capitalize: CarData.fueltype === 'CNG' ? 'uppercase' : 'capitalize'
+        },
+        {
+            id: 'transmission',
+            icon: icons.transmission2,
+            text: CarData.transmissiontype,
+            capitalize: 'capitalize'
+        },
+        {
+            id: 'kms',
+            icon: icons.kms,
+            text: `${CarData.kilometersdriven} kms`,
+            capitalize: ''
+        }
+    ];
+
     return (
         <View className="pb-24">
             <FlatList
@@ -411,26 +435,24 @@ const CarDetails = () => {
                         </View>
                     </View>,
 
-                    <View className='flex flex-row items-center flew-wrap mb-5'>
-                        <View className='flex flex-row  items-center justify-center bg-primary-100 rounded-full size-10'>
-                            <Image source={icons.fuel2} className='size-4' />
-                        </View>
-                        <Text className={`text-black-300 text-sm font-rubik-medium ml-2 ${CarData.fueltype === 'CNG' ? 'uppercase' : 'capitalize'}`}>
-                            {CarData.fueltype}
-                        </Text>
-                        <View className='flex  flex-row items-center justify-center bg-primary-100 rounded-full size-10 ml-7'>
-                            <Image source={icons.transmission2} className='size-4' />
-                        </View>
-                        <Text className='text-black-300 text-sm font-rubik-medium ml-2 capitalize'>
-                            {CarData.transmissiontype}
-                        </Text>
-                        <View className='flex  flex-row items-center justify-center bg-primary-100 rounded-full size-10 ml-7'>
-                            <Image source={icons.kms} className='size-4' />
-                        </View>
-                        <Text className='text-black-300 text-sm font-rubik-medium ml-2'>
-                            {CarData.kilometersdriven} kms
-                        </Text>
-                    </View>,
+                    <FlatList
+                        data={carMeta}
+                        keyExtractor={(item) => item.id}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ paddingRight: 16 }}
+                        renderItem={({ item }) => (
+                            <View className='flex-row items-center mr-7'>
+                                <View className='flex items-center justify-center bg-primary-100 rounded-full size-10'>
+                                    <Image source={item.icon} className='size-4' />
+                                </View>
+                                <Text className={`text-black-300 text-sm font-rubik-medium ml-2 ${item.capitalize}`}>
+                                    {item.text}
+                                </Text>
+                            </View>
+                        )}
+                    />,
+
                     carDetails && (
                         <View className="bg-white drop-shadow-sm px-5 py-3 rounded-lg mb-5">
                             <Text className='text-xl font-rubik-bold text-primary-300'>Car Overview</Text>
@@ -502,7 +524,7 @@ const CarDetails = () => {
                         closeOnPressMask={false}
                         keyboardAvoidingViewEnabled={true}
                     >
-                        <MortgageCalculator closeSheet={() => refRBSheet.current.close()} totalprice={CarData.price} />
+                        <MortgageCalculator closeSheet={() => refRBSheet.current.close()} totalprice={Number(CarData.price)} />
                     </RBSheet>
 
                 ]}
@@ -522,7 +544,7 @@ const CarDetails = () => {
 
 
                     <TouchableOpacity onPress={() => handleEnquiry()} className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
-                        <Text className="text-white text-lg text-center font-rubik-bold">Book Now</Text>
+                        <Text className="text-white text-lg text-center font-rubik-bold">Enquire Now</Text>
                     </TouchableOpacity>
                 </View>
             </View>

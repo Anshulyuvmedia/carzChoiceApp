@@ -68,18 +68,34 @@ export const categories = [
 ];
 
 export const settings = [
+  
   {
-    title: "Profile",
-    icon: icons.person,
-    onPress: '/dashboard/editprofile',
+    title: "My Enquires",
+    subtitle: "All my car enquires",
+    icon: icons.questioning,
+    onPress: '/dashboard/myenquires',
+  },
+  {
+    title: "Car Loan",
+    subtitle: "Get Car Loan At Best Rates",
+    icon: icons.signing,
+    onPress: '/dashboard/carloan',
+  },
+  {
+    title: "Buy Insurance",
+    subtitle: "Buy Insurance For Your Car",
+    icon: icons.clipboard,
+    onPress: '/dashboard/carinsurance',
   },
   {
     title: "My Vehicles",
+    subtitle: "All my vehicles list",
     icon: icons.showroom,
     onPress: '/myvehicles',
   },
   {
     title: "Sell Your Car",
+    subtitle: "Sell Your Car With Ease",
     icon: icons.sell,
     onPress: '/sellvehicle',
   },

@@ -77,40 +77,46 @@ const Card = ({ item, onPress }) => {
 
       <View className='flex flex-1 flex-col justify-between mt-2'>
         <View className='flex-grow'>
-          <Text className='text-base font-rubik-medium text-black-300'>
+          <Text className='text-base font-rubik-medium text-primary-300'>
             {item.carname} {item.modalname}
           </Text>
           <View className='flex flex-row flex-wrap'>
-            <Text className='text-s font-rubik-medium text-black-100 capitalize'>
+            <Text className='text-sm font-rubik-medium text-black-300 capitalize'>
               {item.brandname}
             </Text>
           </View>
 
-          <Text className='text-s font-rubik text-black-100'>
-            {item.kilometersdriven} Kms
+          <Text className='text-sm font-rubik text-black-300'>
+            Driven: {item.kilometersdriven} Kms
           </Text>
 
           <View className='flex flex-row flex-wrap'>
-            <Text className='text-s font-rubik text-black-100'>
+            <Text className='text-sm font-rubik text-black-300'>
               {item.color} •
             </Text>
-            <Text className={`text-s font-rubik text-black-100 ms-1 ${item.fueltype === 'CNG' ? 'uppercase' : 'capitalize'}`}>
-              {item.fueltype} •
+            <Text className='text-sm font-rubik text-black-300 capitalize ms-1'>
+              {transmissionType} •
             </Text>
-            <Text className='text-s font-rubik text-black-100 capitalize ms-1'>
-              {transmissionType}
+            <Text className={`text-sm font-rubik text-black-300 ms-1 ${item.fueltype === 'CNG' ? 'uppercase' : 'capitalize'}`}>
+              {item.fueltype}
             </Text>
           </View>
         </View>
 
         <View className="flex flex-col justify-start align-middle">
-          <View className='flex flex-row items-center justify-between mt-2'>
-            <Text className='text-base font-rubik-bold text-primary-300'>
-              {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}
-            </Text>
-            <Text className='text-s font-rubik-medium text-black capitalize'>
-              {item.manufactureyear}
-            </Text>
+          <View className='flex flex-row items-center justify-between'>
+            <View>
+              <Text className="text-xs">Price</Text>
+              <Text className='text-base font-rubik-bold text-primary-300'>
+                {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(item.price)}
+              </Text>
+            </View>
+            <View>
+              <Text className="text-xs">Year</Text>
+              <Text className='text-s font-rubik-medium text-black capitalize'>
+                {item.manufactureyear}
+              </Text>
+            </View>
           </View>
 
           <View className="flex flex-row pt-2 border-t border-gray-300">
@@ -135,7 +141,7 @@ const LocationCard = ({ item, onPress }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className='w-64 px-2 py-3 mt-4 rounded-lg bg-white shadow-lg shadow-black-100/70 relative'
+      className='w-64 px-2 py-3  rounded-lg bg-white shadow-lg shadow-black-100/70 relative'
     >
 
       {firstImageUrl ? (
@@ -149,40 +155,46 @@ const LocationCard = ({ item, onPress }) => {
 
       <View className='flex flex-1 flex-col justify-between mt-2'>
         <View className='flex-grow'>
-          <Text className='text-base font-rubik-medium text-black-300'>
+          <Text className='text-base font-rubik-medium text-primary-300'>
             {item.carname} {item.modalname}
           </Text>
           <View className='flex flex-row flex-wrap'>
-            <Text className='text-s font-rubik-medium text-black-100 capitalize'>
+            <Text className='text-sm font-rubik-medium text-black-300 capitalize'>
               {item.brandname}
             </Text>
           </View>
 
-          <Text className='text-s font-rubik text-black-100'>
-            {item.kilometersdriven} Kms
+          <Text className='text-sm font-rubik text-black-300'>
+            Driven: {item.kilometersdriven} Kms
           </Text>
 
           <View className='flex flex-row flex-wrap'>
-            <Text className='text-s font-rubik text-black-100'>
+            <Text className='text-sm font-rubik text-black-300'>
               {item.color} •
             </Text>
-            <Text className={`text-s font-rubik text-black-100 ms-1 ${item.fueltype === 'CNG' ? 'uppercase' : 'capitalize'}`}>
-              {item.fueltype} •
+            <Text className='text-sm font-rubik text-black-300 capitalize ms-1'>
+              {transmissionType} •
             </Text>
-            <Text className='text-s font-rubik text-black-100 capitalize ms-1'>
-              {transmissionType}
+            <Text className={`text-sm font-rubik text-black-300 ms-1 ${item.fueltype === 'CNG' ? 'uppercase' : 'capitalize'}`}>
+              {item.fueltype}
             </Text>
           </View>
         </View>
 
         <View className="flex flex-col justify-start align-middle">
-          <View className='flex flex-row items-center justify-between mt-2'>
-            <Text className='text-base font-rubik-bold text-primary-300'>
-              {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}
-            </Text>
-            <Text className='text-s font-rubik-medium text-black capitalize'>
-              {item.manufactureyear}
-            </Text>
+          <View className='flex flex-row items-center justify-between'>
+            <View>
+              <Text className="text-xs">Price</Text>
+              <Text className='text-base font-rubik-bold text-primary-300'>
+                {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(item.price)}
+              </Text>
+            </View>
+            <View>
+              <Text className="text-xs">Year</Text>
+              <Text className='text-s font-rubik-medium text-black capitalize'>
+                {item.manufactureyear}
+              </Text>
+            </View>
           </View>
 
           <View className="flex flex-row pt-2 border-t border-gray-300">

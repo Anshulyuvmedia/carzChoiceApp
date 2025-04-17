@@ -44,7 +44,7 @@ const MyVehicles = () => {
             brandname: item.brandname,
             modalname: item.modalname,
             address: item.address,
-            price: new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price), // ✅ Format price for Indian currency
+            price: new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(item.price),
             status: item.activationstatus,
             thumbnail: firstImage, // ✅ Use the first image
             city: item.district,
@@ -125,7 +125,7 @@ const MyVehicles = () => {
                         </Text>
                         <View
                           className={`flex-row items-center px-2 py-0.5 rounded-md border
-            ${item.status === 'Activated'
+                          ${item.status === 'Activated'
                               ? 'bg-green-50 border-green-500'
                               : 'bg-red-50 border-red-400'}`}
                         >
@@ -152,7 +152,7 @@ const MyVehicles = () => {
 
                       <View className="flex-row justify-between items-center mt-1">
                         <Text className="text-sm font-rubik text-gray-800">{item.brandname}</Text>
-                        <Text className="text-sm font-rubik-bold text-blue-700">{item.price}</Text>
+                        <Text className="text-sm font-rubik text-blue-700">{item.price}</Text>
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -164,7 +164,7 @@ const MyVehicles = () => {
                       className="flex-1 flex-row items-center justify-center border border-gray-400 bg-blue-50 rounded-lg px-3 py-2 me-2"
                     >
                       <Image source={icons.eye} className="w-4 h-4 mr-2 " />
-                      <Text className="text-sm font-rubik-bold text-black">View Car</Text>
+                      <Text className="text-sm font-rubik text-gray-700">View My Car</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -172,7 +172,7 @@ const MyVehicles = () => {
                       className="flex-1 flex-row items-center justify-center border border-blue-600 bg-blue-50 rounded-lg px-3 py-2"
                     >
                       <Image source={icons.gear} className="w-4 h-4 mr-2 tint-blue-600" />
-                      <Text className="text-sm font-rubik-bold text-blue-700">Edit Car</Text>
+                      <Text className="text-sm font-rubik text-blue-700">Edit My Car</Text>
                     </TouchableOpacity>
                   </View>
                 </View>

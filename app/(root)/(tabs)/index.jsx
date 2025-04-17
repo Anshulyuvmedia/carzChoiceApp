@@ -138,7 +138,7 @@ const Index = () => {
 
     return (
         <SafeAreaView className='bg-white h-full'>
-            <View className='flex flex-row items-center justify-between my-3 px-3'>
+            <View className='flex flex-row items-center justify-between px-3'>
                 <TouchableOpacity onPress={() => router.push('/dashboard')} className='flex flex-row items-center ml-2 justify-center'>
                     <Image source={images.applogo} className='w-24 h-12' />
                 </TouchableOpacity>
@@ -215,9 +215,9 @@ const Index = () => {
                             </View>
 
                             <View className='mt-5'>
-                                <Text className='text-xl font-rubik-bold text-black-300'>Old Car By Cities</Text>
+                                <Text className='text-xl font-rubik-bold text-black-300 mb-3'>Old Car By Cities</Text>
+                                <LocationList />
                             </View>
-                            <LocationList />
 
                             <View className='mt-5'>
                                 <Text className='text-xl font-rubik-bold text-black-300'>Other Cars</Text>

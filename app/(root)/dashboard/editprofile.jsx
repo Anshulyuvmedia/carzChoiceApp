@@ -48,7 +48,7 @@ const EditProfile = () => {
                 return;
             }
 
-            console.log("userData:", data);
+            // console.log("userData:", data);
 
             setUserId(data.id);
             setUsername(data.fullname);

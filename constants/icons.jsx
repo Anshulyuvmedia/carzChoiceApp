@@ -59,6 +59,8 @@ import gear from "@/assets/icons/gear.png";
 import eye from "@/assets/icons/eye.png";
 import signing from "@/assets/icons/signing.png";
 import clipboard from "@/assets/icons/clipboard.png";
+import questioning from "@/assets/icons/questioning.png";
+import customersupport from "@/assets/icons/customersupport.png";
 
 export default {
   engineDisplacement,
@@ -67,6 +69,8 @@ export default {
   downarrow,
   signing,
   clipboard,
+  questioning,
+  customersupport,
   aim,
   eye,
   sell,

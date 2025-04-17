@@ -116,67 +116,90 @@ const Dashboard = () => {
           <View>
             <Toast config={toastConfig} position="top" />
             <View className="flex flex-row items-center justify-between my-5">
-              <Text className="text-xl font-rubik-bold upper">Dashboard</Text>
+              <Text className="text-xl font-rubik-bold upper">My Account</Text>
 
               <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
                 <Image source={icons.backArrow} className="w-5 h-5" />
               </TouchableOpacity>
             </View>
-
-            <View className="flex flex-row items-center ml-2 justify-start shadow bg-white rounded-2xl p-5">
+            <View className="flex flex-row items-center justify-start shadow bg-white rounded-2xl px-3">
               <Image
                 source={typeof image === 'string' ? { uri: image } : image}
                 className="size-12 rounded-full"
               />
               <View className="flex flex-col items-start ml-2 justify-center">
-                <Text className="text-2xl font-rubik-bold mt-2 text-primary-300 capitalize">
-                  {userData?.fullname || 'User'}
-                </Text>
                 {userData && (
-                  <View>
-                    <Text className="text-black">Email: {userData.email || 'N/A'}</Text>
-                    <Text className="text-black">Mobile: {userData.contactno || 'N/A'}</Text>
-                    <Text className="text-black capitalize">Role: {userData.usertype || 'N/A'}</Text>
+                  <View className="bg-white p-4 rounded-lg shadow-sm">
+                    <Text className="text-2xl font-rubik-bold text-primary-300 capitalize">
+                      {userData?.fullname || 'User'}
+                    </Text>
+
+                    <Text className="text-black text-base mb-2">
+                      Email: <Text className="font-medium">{userData.email || 'N/A'}</Text>
+                    </Text>
+                    <View className="flex-row items-start justify-between">
+                      <View>
+                        <Text className="text-black text-base mb-1">
+                          Mobile: <Text className="font-medium">{userData.contactno || 'N/A'}</Text>
+                        </Text>
+                        <Text className="text-black text-base capitalize">
+                          Role: <Text className="font-medium">{userData.usertype || 'N/A'}</Text>
+                        </Text>
+                      </View>
+
+                      <TouchableOpacity
+                        onPress={() => router.push('/dashboard/editprofile')}
+                        className="bg-primary-200 px-4 py-2 rounded-lg self-end ms-10"
+                      >
+                        <Text className="text-primary-300 text-base font-rubik-medium">
+                          Edit Profile
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
+
                 )}
               </View>
             </View>
 
-            <View className="flex flex-col mt-10 border-t pt-5 border-primary-200">
 
-
-              <TouchableOpacity onPress={() => router.push('/dashboard/carloan')} className="flex flex-row items-center py-3">
-                <Image source={icons.signing} className="size-6" />
-                <Text className="text-lg font-rubik-medium text-black-300 ml-3">Car Loan</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push('/dashboard/carinsurance')} className="flex flex-row items-center py-3">
-                <Image source={icons.clipboard} className="size-6" />
-                <Text className="text-lg font-rubik-medium text-black-300 ml-3">Buy Insurance </Text>
-              </TouchableOpacity>
-              {settings.slice(1).map((item, index) => (
-                <TouchableOpacity key={index} onPress={() => router.push(item.onPress)} className="flex flex-row items-center py-3">
+            <View className="flex flex-col mt-5 border-primary-200">
+              {settings.map((item, index) => (
+                <TouchableOpacity key={index} onPress={() => router.push(item.onPress)} className="flex flex-row items-center py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
                   <Image source={item.icon} className="size-6" />
-                  <Text className="text-lg font-rubik-medium text-black-300 ml-3">{item.title}</Text>
+                  <View>
+                    <Text className="text-lg font-rubik-medium text-black-300 ml-3">{item.title}</Text>
+                    <Text className="text-sm font-rubik text-gray-700 ml-3">{item.subtitle}</Text>
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
 
             <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
-              <TouchableOpacity onPress={() => router.push('/dashboard/editprofile')} className="flex flex-row items-center py-3">
-                <Image source={icons.keys} className="size-6" />
-                <Text className="text-lg font-rubik-medium text-black-300 ml-3">Edit Profile</Text>
-              </TouchableOpacity>
 
               {userData && userData.usertype == 'User' && (
-                <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center py-3">
+                <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
                   <Image source={icons.person} className="size-6" />
-                  <Text className="text-lg font-rubik-medium text-primary-300 ml-3">Become A Dealer</Text>
+                  <View>
+                    <Text className="text-lg font-rubik-medium text-primary-300 ml-3">Become A Dealer</Text>
+                    <Text className="text-sm font-rubik text-gray-700 ml-3">Sell Car of Multiple Brands</Text>
+                  </View>
+
                 </TouchableOpacity>
               )}
+
+              <TouchableOpacity onPress={() => router.push('/dashboard/support')} className="flex flex-row items-center py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
+                <Image source={icons.customersupport} className="size-8 backgroundColor: blue" />
+                <View>
+                  <Text className="text-lg font-rubik-medium text-black-300 ml-3">Help & Support</Text>
+                  <Text className="text-sm font-rubik text-gray-700 ml-3">Help Center & Legal terms</Text>
+                </View>
+
+              </TouchableOpacity>
             </View>
 
             <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
-              <TouchableOpacity onPress={handleLogout} className="flex flex-row items-center py-3">
+              <TouchableOpacity onPress={handleLogout} className="flex flex-row items-center py-2 border border-red-300 mb-2 rounded-2xl ps-4 bg-white">
                 <Image source={icons.logout} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-danger ml-3">Logout</Text>
               </TouchableOpacity>
