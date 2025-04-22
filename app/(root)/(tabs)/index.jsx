@@ -180,7 +180,7 @@ const Index = () => {
                                 <BannerSlider />
                             </View>
                             <View className='mt-5'>
-                                <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Get Car in {currentCity}</Text>
+                                <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Find Cars in {currentCity}</Text>
                                 {locationData && locationData.length > 0 ? (
                                     <FlatList
                                         data={locationData.slice(0, visibleLocationCount)}
@@ -210,12 +210,12 @@ const Index = () => {
                             </View>
 
                             <View className='mt-5'>
-                                <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Get Car By Brand</Text>
+                                <Text className='text-xl font-rubik-bold text-black-300 capitalize'>Find Cars By Brand</Text>
                                 <BrandList />
                             </View>
 
                             <View className='mt-5'>
-                                <Text className='text-xl font-rubik-bold text-black-300 mb-3'>Old Car By Cities</Text>
+                                <Text className='text-xl font-rubik-bold text-black-300 mb-3'>Used Cars By Cities</Text>
                                 <LocationList />
                             </View>
 

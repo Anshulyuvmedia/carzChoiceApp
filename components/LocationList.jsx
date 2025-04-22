@@ -65,7 +65,7 @@ export default LocationList;
 const styles = StyleSheet.create({
     flatListContainer: {
         paddingHorizontal: 20,
-        paddingBottom: 30,
+        paddingBottom: 10,
     },
     cityContainer: {
         alignItems: 'center',

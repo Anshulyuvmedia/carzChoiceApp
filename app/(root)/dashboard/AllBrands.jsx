@@ -17,7 +17,7 @@ const AllBrands = () => {
     const screenWidth = Dimensions.get('window').width;
     const ITEM_MARGIN = 10;
     const ITEMS_PER_ROW = 4;
-    const ITEM_WIDTH = (screenWidth - 20 * 2 - ITEM_MARGIN * (ITEMS_PER_ROW - 1)) / ITEMS_PER_ROW;
+    const ITEM_WIDTH = (screenWidth - 40 - ITEM_MARGIN * (ITEMS_PER_ROW - 1)) / ITEMS_PER_ROW;
 
     const handleCategoryPress = (category) => {
         const isRemovingFilter = selectedCategory === category;
@@ -68,75 +68,73 @@ const AllBrands = () => {
             style={{
                 width: ITEM_WIDTH,
                 margin: ITEM_MARGIN / 2,
-                backgroundColor: 'white',
-                borderColor: 'lightgray',
+                backgroundColor: '#fff',
+                borderColor: '#eee',
                 borderWidth: 1,
                 borderRadius: 10,
                 alignItems: 'center',
-                paddingVertical: 2,
+                paddingVertical: 10,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.1,
+                shadowRadius: 2,
+                elevation: 2,
             }}
         >
             {item.iconimage ? (
                 <Image
                     style={styles.brandImg}
                     source={{ uri: `https://carzchoice.com/assets/backend-assets/images/${item.iconimage}` }}
-                    onError={(e) => console.error(`Error loading image for ${item.label}:`, e.nativeEvent.error)}
                 />
             ) : (
-                <Text>No Image</Text>
+                <Text style={{ fontSize: 10, color: 'gray' }}>No Image</Text>
             )}
-            <Text
-                style={{
-                    fontSize: 12,
-                    marginTop: 4,
-                    fontWeight: '600'
-                }}
-            >
+            <Text style={{ fontSize: 12, marginTop: 6, fontWeight: '600', textAlign: 'center' }}>
                 {item.label}
             </Text>
         </TouchableOpacity>
     );
 
     return (
-        <View className="flex-1 mt-3 px-5">
+        <View className="flex-1 bg-white px-5 pt-4">
             {/* Header */}
-            <View className="flex flex-row items-center justify-between mb-3">
-                <Text className="text-xl font-rubik-bold">All Brands</Text>
-                <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
-                    <Image source={icons.backArrow} className="w-5 h-5" />
+            <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-xl font-rubik-bold text-black">All Brands</Text>
+                <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+                >
+                    <Image source={icons.backArrow} className="w-4 h-4" />
                 </TouchableOpacity>
             </View>
 
             {/* Search Bar */}
-            <View className="flex flex-row items-center justify-between w-full rounded-lg bg-accent-100 border border-primary-100 py-2">
-                <View className="flex-1 flex flex-row items-center">
-                    <Image source={icons.search} className="size-5 ms-3" />
-                    <TextInput
-                        value={searchQuery}
-                        onChangeText={(text) => setSearchQuery(text)}
-                        placeholder="Search brand..."
-                        className="text-sm font-rubik text-black-300 ml-2 flex-1"
-                    />
-                </View>
+            <View className="flex-row items-center bg-gray-100 border border-gray-300 rounded-lg px-3 py-2">
+                <Image source={icons.search} className="w-5 h-5 mr-2" />
+                <TextInput
+                    value={searchQuery}
+                    onChangeText={(text) => setSearchQuery(text)}
+                    placeholder="Search brand..."
+                    placeholderTextColor="#888"
+                    className="flex-1 text-base text-black"
+                />
                 {searchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => setSearchQuery("")}>
-                        <Text className="text-red-500">Clear</Text>
+                        <Text className="text-red-500 text-sm font-medium">Clear</Text>
                     </TouchableOpacity>
                 )}
             </View>
 
-            <View className="flex-1 mt-5">
-                {/* Brand List */}
-                <FlatList
-                    data={filteredBrands}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.id.toString()}
-                    numColumns={ITEMS_PER_ROW}
-                    columnWrapperStyle={{ justifyContent: 'center', paddingHorizontal: 20 }}
-                    contentContainerStyle={{ paddingBottom: 100, }}
-                    keyboardShouldPersistTaps="handled"
-                />
-            </View>
+            {/* Brand Grid */}
+            <FlatList
+                data={filteredBrands}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={ITEMS_PER_ROW}
+                columnWrapperStyle={{ justifyContent: 'center', marginTop: 12 }}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                keyboardShouldPersistTaps="handled"
+            />
         </View>
     );
 };
@@ -145,9 +143,8 @@ export default AllBrands;
 
 const styles = StyleSheet.create({
     brandImg: {
-        width: 60,
-        height: 60,
+        width: 50,
+        height: 50,
         resizeMode: "contain",
-        backgroundColor: "white",
     },
 });
