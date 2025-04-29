@@ -8,8 +8,10 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Toast, { BaseToast } from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
 
 const Dashboard = () => {
+  const navigation = useNavigation();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -176,7 +178,6 @@ const Dashboard = () => {
             </View>
 
             <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
-
               {userData && userData.usertype == 'User' && (
                 <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
                   <Image source={icons.person} className="size-6" />
@@ -194,7 +195,6 @@ const Dashboard = () => {
                   <Text className="text-lg font-rubik-medium text-black-300 ml-3">Help & Support</Text>
                   <Text className="text-sm font-rubik text-gray-700 ml-3">Help Center & Legal terms</Text>
                 </View>
-
               </TouchableOpacity>
             </View>
 
@@ -203,7 +203,6 @@ const Dashboard = () => {
                 <Image source={icons.logout} className="size-6" />
                 <Text className="text-lg font-rubik-medium text-danger ml-3">Logout</Text>
               </TouchableOpacity>
-
             </View>
           </View>
         )}

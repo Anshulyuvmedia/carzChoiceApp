@@ -12,7 +12,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.oldcarz.choice",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app uses your location to show your current city."
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to show your current city.",
+        "NSCameraUsageDescription": "This app needs access to the camera.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library."
       }
     },
     "android": {
@@ -21,7 +23,10 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.oldcarz.choice",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +44,14 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      "@stream-io/video-react-native-sdk",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
+          "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
+        }
+      ],
       [
         "expo-font",
         {
@@ -53,10 +66,28 @@
         }
       ],
       [
+        "expo-media-library",
+        {
+          "photosPermission": "$(Carz Choice App) would like access to your photo gallery to share image in a message.",
+          "savePhotosPermission": "$(Carz Choice App) would like to save photos to your photo gallery after downloading from a message."
+        }
+      ],
+      [
         "expo-video",
         {
           "supportsBackgroundPlayback": true,
           "supportsPictureInPicture": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24,
+            "extraMavenRepos": [
+              "$rootDir/../../../node_modules/@notifee/react-native/android/libs"
+            ]
+          }
         }
       ]
     ],
@@ -69,7 +100,7 @@
       },
       "ANDROID_CLIENT_ID": "722158200156-n7gte2ko0l7avcis3lq43rbuo9ljdt7n.apps.googleusercontent.com",
       "WEB_CLIENT_ID": "722158200156-u555v22qhd1j0euc44uffpv1isu3iqpm.apps.googleusercontent.com",
-      "IOS_CLIENT_ID": "722158200156-95qqsv8tcm227b5lan64r2c907to89a2.apps.googleusercontent.com",
+      "IOS_CLIENT_ID": "722158200156-95qqsv8tcm 227b5lan64r2c907to89a2.apps.googleusercontent.com",
       "eas": {
         "projectId": "f1f7ea03-c4c5-43c2-929a-dac5cb2c84da"
       }

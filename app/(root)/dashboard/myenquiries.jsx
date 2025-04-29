@@ -1,25 +1,31 @@
 import { StyleSheet, Text, TouchableOpacity, View, Image, FlatList, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import images from '@/constants/images';
 import icons from '@/constants/icons';
+import ChatsScreen from './chats/ChatsScreen';
 
-const MyEnquires = () => {
-    const [userPropertyData, setUserPropertyData] = useState([]);
+const MyEnquiries = () => {
+    const [userLeadData, setUserLeadData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [visibleItemsCount, setVisibleItemsCount] = useState(8); // To control number of visible items
     const router = useRouter();
     const handleCardPress = (id) => router.push(`/vehicles/${id}`);
-    const handleEditPress = (id) => router.push(`/dashboard/editvehicle/${id}`);
+    const openChat = async (enquiryId) => {
+        const channelId = `enquiry-${enquiryId}`; // Ensure it's unique per enquiry
+        router.push({
+            pathname: 'dashboard/chats/[channelId]',
+            params: { channelId },
+        });
+    };
+    
 
-    const fetchUserData = async () => {
+    const fetchLeadsData = async () => {
         setLoading(true);
         try {
             const parsedUserData = JSON.parse(await AsyncStorage.getItem('userData'));
-
             // Fetch user cars from API
             const response = await axios.get(`https://carzchoice.com/api/getmyenquires/${parsedUserData.id}`);
             // console.log('API Response:', response.data.data); // Log the API response
@@ -42,7 +48,7 @@ const MyEnquires = () => {
                     };
                 });
 
-                setUserPropertyData(formattedData);
+                setUserLeadData(formattedData);
             } else {
                 console.error('Unexpected API response format:', response.data);
             }
@@ -54,12 +60,12 @@ const MyEnquires = () => {
     };
 
     useEffect(() => {
-        fetchUserData();
+        fetchLeadsData();
     }, []);
 
     // Handle loading more items on scroll
     const loadMoreItems = () => {
-        if (userPropertyData.length > visibleItemsCount) {
+        if (userLeadData.length > visibleItemsCount) {
             setVisibleItemsCount(visibleItemsCount + 8); // Increase the visible items by 8
         }
     };
@@ -82,11 +88,11 @@ const MyEnquires = () => {
                         <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 300 }} />
                         <Text className="text-center text-gray-500 mt-10">Loading car...</Text>
                     </View>
-                ) : userPropertyData.length === 0 ? (
+                ) : userLeadData.length === 0 ? (
                     <Text className="text-center text-gray-500 mt-10">No cars found.</Text>
                 ) : (
                     <FlatList
-                        data={userPropertyData.slice(0, visibleItemsCount)} // Slice data to show only the visible items
+                        data={userLeadData.slice(0, visibleItemsCount)} // Slice data to show only the visible items
                         keyExtractor={(item) => item.id.toString()}
                         showsVerticalScrollIndicator={false}
                         renderItem={({ item, index }) => (
@@ -127,11 +133,18 @@ const MyEnquires = () => {
                                     {/* Actions Row */}
                                     <View className="flex-row justify-between items-center mt-2 space-x-2">
                                         <TouchableOpacity
+                                            onPress={() => openChat(item.id)}
+                                            className="flex-1 flex-row items-center justify-center  bg-green-500 rounded-full px-3 py-2 me-2"
+                                        >
+                                            <Image source={icons.bubblechat} className="w-4 h-4 mr-2 " />
+                                            <Text className="text-sm font-rubik-bold text-white ">Chat Now</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
                                             onPress={() => handleCardPress(item.id)}
-                                            className="flex-1 flex-row items-center justify-center border border-gray-400 bg-blue-50 rounded-lg px-3 py-2 me-2"
+                                            className="flex-1 flex-row items-center justify-center border border-gray-400 bg-blue-50 rounded-full px-3 py-2 me-2"
                                         >
                                             <Image source={icons.eye} className="w-4 h-4 mr-2" />
-                                            <Text className="text-sm font-rubik text-gray-700">View Enquired Car</Text>
+                                            <Text className="text-sm font-rubik text-gray-700">View  Car</Text>
                                         </TouchableOpacity>
                                     </View>
 
@@ -148,6 +161,6 @@ const MyEnquires = () => {
     );
 };
 
-export default MyEnquires;
+export default MyEnquiries;
 
 const styles = StyleSheet.create({});

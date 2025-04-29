@@ -16,5 +16,5 @@
     "app/googleauth.jsx",
     "app/_layout.jsx",
     "nativewind-env.d.ts"
-  ]
+, "app/(root)/chats/ChatContext.jsx", "app/(root)/chats/ChatStackNavigator.jsx", "app/(root)/chats/ChatsScreen.jsx"  ]
 }

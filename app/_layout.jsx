@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import './globals.css';
 import Toast from 'react-native-toast-message';
-import { View } from 'react-native';
-
+import { View } from "react-native";
+import AppNavigator from "./(root)/chats/ChatStackNavigator";
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
         "Rubik-Bold": require("../assets/fonts/Rubik-Bold.ttf"),

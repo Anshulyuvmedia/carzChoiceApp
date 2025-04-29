@@ -1,6 +1,6 @@
 
 import { StyleSheet, Image, FlatList, ScrollView, Alert, Text, TouchableOpacity, View, Dimensions, Platform, ActivityIndicator, Share } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, useRouter } from "expo-router";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import React, { useEffect, useState, useRef } from 'react';
@@ -62,25 +62,10 @@ const CarDetails = () => {
             />
         ),
     };
-    const openWhatsApp = (phoneNumber) => {
-        let url = "";
+    const router = useRouter();
 
-        if (Platform.OS === "android") {
-            url = `whatsapp://send?phone=${phoneNumber}`;
-        } else {
-            url = `https://wa.me/${phoneNumber}`; // iOS uses wa.me
-        }
+    const openChat = (id) => router.push(`/dashboard/chats/${id}`);
 
-        Linking.canOpenURL(url)
-            .then((supported) => {
-                if (supported) {
-                    Linking.openURL(url);
-                } else {
-                    Alert.alert("WhatsApp is not installed");
-                }
-            })
-            .catch((err) => console.error("An error occurred", err));
-    };
 
     const handleEnquiry = async () => {
         try {
@@ -127,6 +112,9 @@ const CarDetails = () => {
                     text1: 'Success',
                     text2: 'Enquiry submitted successfully!',
                 });
+                setTimeout(() => {
+                    router.push('dashboard/myenquiries');
+                }, 2000);
             } else {
                 Toast.show({
                     type: 'error',
@@ -418,7 +406,7 @@ const CarDetails = () => {
         <View className="pb-24">
             <FlatList
                 data={[
-                    <Toast config={toastConfig} position="top" />,
+                    <Toast config={toastConfig} position="bottom" />,
                     <Text className='text-xl font-rubik-bold'>{CarData.manufactureyear} {CarData.brandname} {CarData.carname} {CarData.modalname}</Text>,
                     <View className='flex flex-row items-center gap-3'>
                         <View className='flex flex-row items-center px-4 py-2 bg-primary-100 rounded-full'>
@@ -452,6 +440,21 @@ const CarDetails = () => {
                             </View>
                         )}
                     />,
+
+                    <View className="flex-row border-top-1" >
+                        <Text className="text-black-300 text-base font-rubik-medium mb-1 me-3">Price</Text>
+                        <Text
+                            numberOfLines={1}
+                            className="text-primary-300 text-base font-rubik-bold"
+                        >
+                            {new Intl.NumberFormat('en-IN', {
+                                style: 'currency',
+                                currency: 'INR',
+                                maximumFractionDigits: 0,
+                            }).format(CarData.price)}
+                        </Text>
+                    </View>,
+
 
                     carDetails && (
                         <View className="bg-white drop-shadow-sm px-5 py-3 rounded-lg mb-5">
@@ -533,22 +536,30 @@ const CarDetails = () => {
                 ListHeaderComponent={renderHeader}
             />
 
-            <View className="absolute bg-white bottom-0 w-full rounded-t-2xl border-t border-r border-l border-primary-200 p-7">
-                <View className="flex flex-row items-center justify-between gap-10">
-                    <View className="flex flex-col items-start">
-                        <Text className="text-black-200 text-xs font-rubik-medium">Price</Text>
-                        <Text numberOfLines={1} className="text-primary-300 text-start text-2xl font-rubik-bold">
-                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(CarData.price)}
-                        </Text>
-                    </View>
+            <View className="absolute bottom-0 w-full bg-white rounded-t-2xl border border-primary-200 p-5 shadow-xl">
 
 
-                    <TouchableOpacity onPress={() => handleEnquiry()} className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
-                        <Text className="text-white text-lg text-center font-rubik-bold">Enquire Now</Text>
+                {/* Action Buttons */}
+                <View className="flex flex-row justify-between gap-4">
+                    {/* <TouchableOpacity
+                        onPress={() => openChat(item.mobile)}
+                        className="flex-1 flex-row items-center justify-center bg-green-600 py-3 rounded-full shadow-sm"
+                    >
+                        <Image source={icons.bubblechat} className="w-5 h-5 mr-2" />
+                        <Text className="text-white text-lg font-rubik-bold">Chat Now</Text>
+                    </TouchableOpacity> */}
+
+                    <TouchableOpacity
+                        onPress={handleEnquiry}
+                        className="flex-1 flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-sm"
+                    >
+                        <Image source={icons.bestprice} className="w-5 h-5 mr-2" />
+                        <Text className="text-white text-lg font-rubik-bold">Make Offer</Text>
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+
+        </View >
     )
 }
 

@@ -79,9 +79,10 @@ const Signin = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
+      console.log("API Response:", response); // Debugging
 
       const data = await response.json();
-      // console.log("API Response:", data); // Debugging
+      console.log("API data:", data); // Debugging
 
       if (response.ok && data.success) {
         if (!data.data) {
