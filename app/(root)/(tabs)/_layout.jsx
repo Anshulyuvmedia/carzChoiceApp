@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, useNavigationContainerRef, usePathname } from "expo-router";
 import { Image, Text, View } from "react-native";
 import icons from "@/constants/icons";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -23,18 +23,24 @@ const TabIcon = ({ focused, icon, title }) => (
 );
 
 const TabsLayout = () => {
+    const pathname = usePathname();
+
+    // Check if we're on a screen where tab bar should be hidden
+    const hideTabBar = pathname.startsWith("/chat/ChatRoom");
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <Tabs
                 screenOptions={{
                     tabBarShowLabel: false,
-                    tabBarStyle: {
-                        backgroundColor: "white",
-                        position: "absolute",
-                        borderTopColor: "#0061FF1A",
-                        borderTopWidth: 1,
-                        minHeight: 70,
-                    },
+                    tabBarStyle: hideTabBar
+                        ? { display: "none" }
+                        : {
+                            backgroundColor: "white",
+                            position: "absolute",
+                            borderTopColor: "#0061FF1A",
+                            borderTopWidth: 1,
+                            minHeight: 70,
+                        },
                 }}
             >
                 <Tabs.Screen
@@ -79,6 +85,17 @@ const TabsLayout = () => {
                         ),
                     }}
                 />
+                {/* Directly link to the chat route */}
+                <Tabs.Screen
+                    name="chat"
+                    options={{
+                        title: "Chat",
+                        headerShown: false,
+                        tabBarIcon: ({ focused }) => (
+                            <TabIcon focused={focused} icon={icons.bubblechat} title="Chats" />
+                        ),
+                    }}
+                />
                 <Tabs.Screen
                     name="dashboard"
                     options={{
@@ -89,17 +106,7 @@ const TabsLayout = () => {
                         ),
                     }}
                 />
-                {/* Directly link to the chat route */}
-                <Tabs.Screen
-                    name="chat"
-                    options={{
-                        title: "Chat",
-                        headerShown: false,
-                        tabBarIcon: ({ focused }) => (
-                            <TabIcon focused={focused} icon={icons.bubblechat} title="Chat" />
-                        ),
-                    }}
-                />
+
             </Tabs>
         </GestureHandlerRootView>
     );

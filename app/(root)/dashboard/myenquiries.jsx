@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import icons from '@/constants/icons';
-import ChatsScreen from './chats/ChatsScreen';
 
 const MyEnquiries = () => {
     const [userLeadData, setUserLeadData] = useState([]);
@@ -16,7 +15,7 @@ const MyEnquiries = () => {
     const openChat = async (enquiryId) => {
         const channelId = `enquiry-${enquiryId}`; // Ensure it's unique per enquiry
         router.push({
-            pathname: 'dashboard/chats/[channelId]',
+            pathname: '../chat/ChatsScreen',
             params: { channelId },
         });
     };

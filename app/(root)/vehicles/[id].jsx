@@ -17,8 +17,10 @@ import SpecsAccordion from "../../../components/SpecsAccordion";
 import Toast, { BaseToast } from 'react-native-toast-message';
 import moment from 'moment';
 import RBSheet from "react-native-raw-bottom-sheet";
-
+import { useChatContext } from '../chat/ChatContext';
+import { navigate } from '../../NavigationService';
 const { width } = Dimensions.get("window");
+
 const CarDetails = () => {
     const CarId = useLocalSearchParams().id;
     const refRBSheet = useRef();
@@ -28,7 +30,9 @@ const CarDetails = () => {
     const [loading, setLoading] = useState(false);
     const [CarThumbnail, setCarThumbnail] = useState(images.avatar);
     const [CarGallery, setCarGallery] = useState([]);
+    const [dealerData, setDealerData] = useState([]);
 
+    const [userData, setUserData] = useState([]);
     const [loggedinUserId, setLoggedinUserId] = useState([]);
     const carouselRef = useRef(null);
     const navigation = useNavigation();
@@ -63,30 +67,28 @@ const CarDetails = () => {
         ),
     };
     const router = useRouter();
-
-    const openChat = (id) => router.push(`/dashboard/chats/${id}`);
+    const { createOrGetChannel } = useChatContext(); // ✅ Use from context
+    const handleEditPress = () => {
+        router.push(`/dashboard/editvehicle/${CarId}`);
+    };
 
 
     const handleEnquiry = async () => {
         try {
-            setLoading(true); // Show loading indicator
+            setLoading(true);
             const storedData = await AsyncStorage.getItem('userData');
-
             if (!storedData) {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: 'User data not found.',
-                });
-                setLoading(false);
+                Toast.show({ type: 'error', text1: 'Error', text2: 'User data not found.' });
                 return;
             }
-
             const parsedUserData = JSON.parse(storedData);
-
+            
+            console.log("Parsed User Data:", parsedUserData);
             const enquiryData = {
                 fullname: parsedUserData.fullname || "Unknown",
                 userid: parsedUserData.id,
+                dealerid: dealerData.userid,
+                dealername: dealerData.businessname,
                 carid: CarId,
                 mobile: parsedUserData.contactno,
                 email: parsedUserData.email,
@@ -97,24 +99,40 @@ const CarDetails = () => {
                 remarks: `Interested in ${CarData.manufactureyear} ${CarData.brandname} ${CarData.carname} ${CarData.modalname}`,
             };
 
-            // console.log("Sending Enquiry Data:", enquiryData);
-
             const response = await axios.post("https://carzchoice.com/api/bookvehiclenow", enquiryData, {
                 headers: { "Content-Type": "application/json" }
             });
 
-            // console.log("Full API Response:", response.data);
-
-            // Fix success check
             if (response.data.success === true) {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Success',
-                    text2: 'Enquiry submitted successfully!',
+                const channel = await createOrGetChannel({
+                    sellerId: dealerData.userid,
+                    buyerId: parsedUserData.id,
+                    carId: CarId,
+                    carName: enquiryData.vehiclename,
                 });
-                setTimeout(() => {
-                    router.push('dashboard/myenquiries');
-                }, 2000);
+
+                if (channel) {
+                    await channel.sendMessage({
+                        text: `Hi, I'm interested in this vehicle: ${enquiryData.vehiclename}. Contact: ${enquiryData.mobile}, Email: ${enquiryData.email}`,
+                    });
+
+                    Toast.show({ type: 'success', text1: 'Success', text2: 'Enquiry submitted & chat started!' });
+
+                    setTimeout(() => {
+                        router.push({
+                            pathname: "/chat/ChatRoomScreen",
+                            params: {
+                                channelId: channel.id,
+                                sellerId: dealerData.userid,
+                                buyerId: parsedUserData.id,
+                                carId: CarId,
+                                carName: enquiryData.vehiclename,
+                            }
+                        });
+                    }, 1500);
+                } else {
+                    Toast.show({ type: 'error', text1: 'Chat Error', text2: 'Failed to create chat channel.' });
+                }
             } else {
                 Toast.show({
                     type: 'error',
@@ -123,12 +141,8 @@ const CarDetails = () => {
                 });
             }
         } catch (error) {
-            console.error("Error submitting enquiry:", error);
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'An error occurred. Please try again.',
-            });
+            console.error("Error submitting enquiry or starting chat:", error);
+            Toast.show({ type: 'error', text1: 'Error', text2: 'An error occurred. Please try again.' });
         } finally {
             setLoading(false);
         }
@@ -160,7 +174,12 @@ const CarDetails = () => {
         setError(null); // Reset error state before fetching
 
         try {
-            // console.log("Fetching car data...",CarId);
+            const storedData = await AsyncStorage.getItem('userData');
+            if (storedData) {
+                const parsedData = JSON.parse(storedData);
+                setLoggedinUserId(parsedData.id);
+            }
+            console.log("Fetching setLoggedinUserId...",setLoggedinUserId);
             const response = await axios.get(`https://carzchoice.com/api/oldcarlistingdetails/${CarId}`);
 
             // console.log("API Response:", response.data);
@@ -235,6 +254,11 @@ const CarDetails = () => {
                 setFeatures(parsedFeatures);
                 setCarGallery(formattedImages);
 
+                // ✅ Call fetchDealerData with proper dealer/user id
+                if (apiData.userid) {
+                    fetchDealerData(apiData.userid);
+                }
+
             } else {
                 throw new Error("Car details not found in response.");
             }
@@ -262,6 +286,26 @@ const CarDetails = () => {
         }
     };
 
+    const fetchDealerData = async (dealerid) => {
+        setLoading(true);
+        try {
+            // console.log("Fetching dealer data...", dealerid);
+            const response = await axios.get(`https://carzchoice.com/api/dealerprofile/${dealerid}`);
+
+            // console.log('Dealer Data:', response.data);
+            const apiDealerData = response.data?.dealerData?.[0];
+
+            if (apiDealerData) {
+                setDealerData(apiDealerData);
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            setImage(images.avatar);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     useEffect(() => {
         let isMounted = true;
@@ -272,8 +316,6 @@ const CarDetails = () => {
         }
         return () => { isMounted = false; };  // Cleanup on unmount
     }, [CarId]);
-
-
 
 
     // ✅ Loading State
@@ -548,18 +590,30 @@ const CarDetails = () => {
                         <Image source={icons.bubblechat} className="w-5 h-5 mr-2" />
                         <Text className="text-white text-lg font-rubik-bold">Chat Now</Text>
                     </TouchableOpacity> */}
+                    {loggedinUserId === CarData?.userid ? (
+                        <TouchableOpacity
+                            onPress={handleEditPress}
+                            className="flex-1 flex-row items-center justify-center bg-green-600 py-3 rounded-full shadow-sm"
+                        >
+                            <Image source={icons.bestprice} className="w-5 h-5 mr-2" />
+                            <Text className="text-white text-lg font-rubik-bold">Edit Vehicle</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            onPress={handleEnquiry}
+                            className="flex-1 flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-sm"
+                        >
+                            <Image source={icons.bestprice} className="w-5 h-5 mr-2" />
+                            <Text className="text-white text-lg font-rubik-bold">Make Offer</Text>
+                        </TouchableOpacity>
+                    )}
 
-                    <TouchableOpacity
-                        onPress={handleEnquiry}
-                        className="flex-1 flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-sm"
-                    >
-                        <Image source={icons.bestprice} className="w-5 h-5 mr-2" />
-                        <Text className="text-white text-lg font-rubik-bold">Make Offer</Text>
-                    </TouchableOpacity>
+
+
                 </View>
             </View>
 
-        </View >
+        </View>
     )
 }
 

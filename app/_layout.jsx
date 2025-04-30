@@ -1,11 +1,14 @@
-import { SplashScreen, Stack, useRouter } from "expo-router";
+import { SplashScreen, Stack, useRouter, useNavigationContainerRef } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import './globals.css';
 import Toast from 'react-native-toast-message';
 import { View } from "react-native";
-import AppNavigator from "./(root)/chats/ChatStackNavigator";
+import ChatContextProvider from './(root)/chat/ChatContext';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { navigationRef } from './NavigationService'; // Import your navigationRef
+
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
         "Rubik-Bold": require("../assets/fonts/Rubik-Bold.ttf"),
@@ -20,17 +23,21 @@ export default function RootLayout() {
     const [isAuthenticated, setIsAuthenticated] = useState(null);
     const router = useRouter();
 
+    // ✅ Bind expo-router's navigation container to your custom ref
+    const containerRef = useNavigationContainerRef();
+    useEffect(() => {
+        navigationRef.current = containerRef.current;
+    }, [containerRef]);
+
     useEffect(() => {
         const checkAuthSession = async () => {
             try {
                 await SplashScreen.preventAutoHideAsync();
 
                 if (fontsLoaded) {
-                    // const token = await AsyncStorage.getItem("userToken");
                     const userData = await AsyncStorage.getItem("userData");
                     const parsedUserData = userData ? JSON.parse(userData) : null;
 
-                    // console.log("parsedUserData:",parsedUserData);
                     if (!parsedUserData || !parsedUserData.id) {
                         await AsyncStorage.removeItem("userData");
                         setIsAuthenticated(false);
@@ -64,9 +71,11 @@ export default function RootLayout() {
     if (!appIsReady) return null;
 
     return (
-        <View style={{ flex: 1 }}>
-            <Stack screenOptions={{ headerShown: false }} />
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <ChatContextProvider>
+                <Stack screenOptions={{ headerShown: false }} />
+            </ChatContextProvider>
             <Toast />
-        </View>
+        </GestureHandlerRootView>
     );
 }

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StreamChat } from 'stream-chat';
 import { OverlayProvider, Chat } from 'stream-chat-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Text } from 'react-native';
 
 // Create the Chat context
 const ChatContext = createContext();
@@ -12,6 +12,7 @@ const ChatContextProvider = ({ children }) => {
     const [chatClient, setChatClient] = useState(null);
     const [currentChannel, setCurrentChannel] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [unreadCount, setUnreadCount] = useState(0); // Store unread message count
 
     const initChat = async () => {
         try {
@@ -20,28 +21,28 @@ const ChatContextProvider = ({ children }) => {
                 console.error("User not authenticated!");
                 return;
             }
-    
+
             const storedUserData = await AsyncStorage.getItem('userData');
             const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
-    
+
             if (!parsedUserData || typeof parsedUserData !== 'object' || !parsedUserData.id) {
                 await AsyncStorage.removeItem('userData');
                 router.push('/signin');
                 return;
             }
-    
+
             const client = StreamChat.getInstance('3nbgqeewske9');
             const user = {
                 id: parsedUserData.id.toString(),
                 name: parsedUserData.fullname
             };
-    
+
             // Ensure that the client is disconnected before connecting
             if (client.user) {
                 await client.disconnectUser();
                 console.log('Disconnected existing user');
             }
-    
+
             const response = await fetch('https://carzchoice.com/api/generate-chat-token', {
                 method: 'POST',
                 headers: {
@@ -54,10 +55,8 @@ const ChatContextProvider = ({ children }) => {
                 }),
             });
             const data = await response.json();
-            console.log('Chat token data:', data);
-    
             const token = data.token;
-    
+
             if (token) {
                 console.log('Connecting user to chat...');
                 await client.connectUser(user, token);
@@ -72,11 +71,10 @@ const ChatContextProvider = ({ children }) => {
             setLoading(false);
         }
     };
-    
 
     useEffect(() => {
         initChat();
-    
+
         return () => {
             if (chatClient) {
                 console.log('Disconnecting user...');
@@ -84,22 +82,41 @@ const ChatContextProvider = ({ children }) => {
             }
         };
     }, []);
-    
 
-    const createOrGetChannel = async ({ sellerId, buyerId, carId, carName }) => {
+    // Listen for new messages in the current channel
+    useEffect(() => {
+        if (!currentChannel) return;
+
+        const handleNewMessage = (event) => {
+            setUnreadCount(prevCount => prevCount + 1);  // Increment unread count
+        };
+
+        currentChannel.on('message.new', handleNewMessage);
+
+        return () => {
+            currentChannel.off('message.new', handleNewMessage);
+        };
+    }, [currentChannel]);
+
+    const createOrGetChannel = async ({ sellerId, buyerId, carId, carName, dealerName }) => {
         if (!chatClient) return null;
 
-        const sorted = [sellerId, buyerId].sort();
+        const seller = String(sellerId).trim();
+        const buyer = String(buyerId).trim();
+
+        const sorted = [seller, buyer].sort();
         const channelId = `chat-${sorted.join("-")}-${carId}`;
 
         try {
             const channel = chatClient.channel("messaging", channelId, {
                 name: carName,
-                members: [sellerId, buyerId],
+                sellername: dealerName,  
+                members: [seller, buyer],
                 carId: carId,
             });
 
             await channel.watch();
+            setCurrentChannel(channel);
             return channel;
         } catch (error) {
             console.error("Error creating or getting channel:", error);
@@ -111,7 +128,8 @@ const ChatContextProvider = ({ children }) => {
     if (loading || !chatClient) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 400 }} />
+                <Text>Connecting user to chat...</Text>
+                <ActivityIndicator size="large" color="#0000ff" />
             </View>
         );
     }
@@ -119,7 +137,7 @@ const ChatContextProvider = ({ children }) => {
     return (
         <OverlayProvider>
             <Chat client={chatClient}>
-                <ChatContext.Provider value={{ currentChannel, setCurrentChannel, chatClient, createOrGetChannel }}>
+                <ChatContext.Provider value={{ currentChannel, setCurrentChannel, chatClient, createOrGetChannel, unreadCount }}>
                     {children}
                 </ChatContext.Provider>
             </Chat>
