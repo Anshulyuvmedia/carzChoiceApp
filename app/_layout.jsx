@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import './globals.css';
 import Toast from 'react-native-toast-message';
-import { View } from "react-native";
+import { ActivityIndicator, View, Text } from "react-native";
 import ChatContextProvider from './(root)/chat/ChatContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { navigationRef } from './NavigationService'; // Import your navigationRef
+import { navigationRef } from './NavigationService';
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
@@ -22,6 +22,7 @@ export default function RootLayout() {
     const [appIsReady, setAppIsReady] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(null);
     const router = useRouter();
+    const [hasNetworkError, setHasNetworkError] = useState(false);
 
     // ✅ Bind expo-router's navigation container to your custom ref
     const containerRef = useNavigationContainerRef();
@@ -47,6 +48,25 @@ export default function RootLayout() {
                 }
             } catch (error) {
                 console.error("Error during authentication check:", error);
+
+                // ✅ Detect network error
+                if (error.message === "Network Error") {
+                    setHasNetworkError(true);
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Network Error',
+                        text2: 'Please check your internet connection.',
+                    });
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Authentication Failed',
+                        text2: 'An unexpected error occurred.',
+                    });
+                }
+
+                // Still move forward to allow UI to load
+                setIsAuthenticated(false);
             } finally {
                 setAppIsReady(true);
                 await SplashScreen.hideAsync();
@@ -55,6 +75,7 @@ export default function RootLayout() {
 
         checkAuthSession();
     }, [fontsLoaded]);
+
 
     useEffect(() => {
         if (appIsReady && isAuthenticated !== null) {
@@ -69,6 +90,16 @@ export default function RootLayout() {
     }, [appIsReady, isAuthenticated]);
 
     if (!appIsReady) return null;
+
+    if (hasNetworkError) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#000" />
+                <Text style={{ marginTop: 10 }}>Checking connection...</Text>
+            </View>
+        );
+    }
+    
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>

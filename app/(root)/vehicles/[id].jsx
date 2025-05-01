@@ -18,7 +18,6 @@ import Toast, { BaseToast } from 'react-native-toast-message';
 import moment from 'moment';
 import RBSheet from "react-native-raw-bottom-sheet";
 import { useChatContext } from '../chat/ChatContext';
-import { navigate } from '../../NavigationService';
 const { width } = Dimensions.get("window");
 
 const CarDetails = () => {
@@ -82,7 +81,7 @@ const CarDetails = () => {
                 return;
             }
             const parsedUserData = JSON.parse(storedData);
-            
+
             console.log("Parsed User Data:", parsedUserData);
             const enquiryData = {
                 fullname: parsedUserData.fullname || "Unknown",
@@ -169,21 +168,27 @@ const CarDetails = () => {
         }
     };
 
+    const handleChatPress= async => {
+        router.push({
+            pathname: "/chat/ChatRoomScreen",
+            params: {
+                channelId: channel.id,
+                sellerId: dealerData.userid,
+                buyerId: loggedinUserId,
+                carId: CarId,
+                carName: enquiryData.vehiclename,
+            }
+        });
+    }
+
     const fetchCarData = async () => {
         setLoading(true);
         setError(null); // Reset error state before fetching
 
         try {
-            const storedData = await AsyncStorage.getItem('userData');
-            if (storedData) {
-                const parsedData = JSON.parse(storedData);
-                setLoggedinUserId(parsedData.id);
-            }
-            console.log("Fetching setLoggedinUserId...",setLoggedinUserId);
             const response = await axios.get(`https://carzchoice.com/api/oldcarlistingdetails/${CarId}`);
 
             // console.log("API Response:", response.data);
-
             if (response.data?.data?.cardetails) {
                 let apiData = response.data.data.cardetails;
                 let parsedSpecifications = [];
@@ -253,7 +258,7 @@ const CarDetails = () => {
                 setSpecifications(parsedSpecifications);
                 setFeatures(parsedFeatures);
                 setCarGallery(formattedImages);
-
+                // console.log("Car CarData:", apiData.userid);
                 // ✅ Call fetchDealerData with proper dealer/user id
                 if (apiData.userid) {
                     fetchDealerData(apiData.userid);
@@ -306,16 +311,36 @@ const CarDetails = () => {
         }
     };
 
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const storedData = await AsyncStorage.getItem('userData');
+                if (storedData) {
+                    const parsedData = JSON.parse(storedData);
+                    setUserData(parsedData);
+                    setLoggedinUserId(parsedData.id);
+                    // console.log("Logged in User ID:", parsedData.id);
+                }
+            } catch (error) {
+                console.error("❌ Error fetching user data:", error);
+            }
+        };
+        fetchUserData();
+    }, []);
+
 
     useEffect(() => {
         let isMounted = true;
-        if (CarId) {
+
+        if (CarId && loggedinUserId !== null) {
             fetchCarData().then(() => {
                 if (isMounted) setLoading(false);
             });
         }
-        return () => { isMounted = false; };  // Cleanup on unmount
-    }, [CarId]);
+
+        return () => { isMounted = false; };
+    }, [CarId, loggedinUserId]); // 👈 Trigger after user ID is set
+
 
 
     // ✅ Loading State
@@ -590,14 +615,23 @@ const CarDetails = () => {
                         <Image source={icons.bubblechat} className="w-5 h-5 mr-2" />
                         <Text className="text-white text-lg font-rubik-bold">Chat Now</Text>
                     </TouchableOpacity> */}
-                    {loggedinUserId === CarData?.userid ? (
-                        <TouchableOpacity
-                            onPress={handleEditPress}
-                            className="flex-1 flex-row items-center justify-center bg-green-600 py-3 rounded-full shadow-sm"
-                        >
-                            <Image source={icons.bestprice} className="w-5 h-5 mr-2" />
-                            <Text className="text-white text-lg font-rubik-bold">Edit Vehicle</Text>
-                        </TouchableOpacity>
+                    {loggedinUserId == CarData?.userid ? (
+                        <>
+                            <TouchableOpacity
+                                onPress={handleEditPress}
+                                className="flex-1 flex-row items-center justify-center bg-green-600 py-3 rounded-full shadow-sm"
+                            >
+                                <Image source={icons.bestprice} className="w-5 h-5 mr-2" />
+                                <Text className="text-white text-lg font-rubik-bold">Edit Vehicle</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={handleChatPress}
+                                className="flex-1 flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-sm"
+                            >
+                                <Image source={icons.bubblechat} className="w-5 h-5 mr-2" />
+                                <Text className="text-white text-lg font-rubik-bold">View Chat</Text>
+                            </TouchableOpacity>
+                        </>
                     ) : (
                         <TouchableOpacity
                             onPress={handleEnquiry}
