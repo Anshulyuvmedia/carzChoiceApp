@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/carz-logo.png",
-    "scheme": "carzChoiceApp",
+    "scheme": "carzchoiceapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -100,7 +100,7 @@
       },
       "ANDROID_CLIENT_ID": "722158200156-n7gte2ko0l7avcis3lq43rbuo9ljdt7n.apps.googleusercontent.com",
       "WEB_CLIENT_ID": "722158200156-u555v22qhd1j0euc44uffpv1isu3iqpm.apps.googleusercontent.com",
-      "IOS_CLIENT_ID": "722158200156-95qqsv8tcm 227b5lan64r2c907to89a2.apps.googleusercontent.com",
+      "IOS_CLIENT_ID": "722158200156-95qqsv8tcm227b5lan64r2c907to89a2.apps.googleusercontent.com",
       "eas": {
         "projectId": "f1f7ea03-c4c5-43c2-929a-dac5cb2c84da"
       }

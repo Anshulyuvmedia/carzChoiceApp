@@ -34,7 +34,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="carzChoiceApp"/>
+        <data android:scheme="carzchoiceapp"/>
         <data android:scheme="com.oldcarz.choice"/>
         <data android:scheme="exp+carzchoiceapp"/>
       </intent-filter>
