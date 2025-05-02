@@ -288,22 +288,22 @@ const EditVehicle = () => {
                 Toast.show({
                     type: "success",
                     text1: "Success",
-                    text2: "Property updated successfully!",
+                    text2: "Car updated successfully!",
                 });
             } else {
                 console.error("❌ API Error:", response.data.message);
                 Toast.show({
                     type: "error",
-                    text1: "Failed to update property.",
+                    text1: "Failed to update car.",
                     text2: response.data.message || "An error occurred.",
                 });
             }
         } catch (error) {
-            console.error("❌ Error updating property:", error);
+            console.error("❌ Error updating car:", error);
             Toast.show({
                 type: "error",
                 text1: "Error",
-                text2: "Failed to update property. Please try again.",
+                text2: "Failed to update car. Please try again.",
             });
         } finally {
             setLoading(false);

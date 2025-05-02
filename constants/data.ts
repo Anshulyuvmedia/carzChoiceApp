@@ -73,7 +73,7 @@ export const settings = [
     title: "My Enquires",
     subtitle: "All my car enquires",
     icon: icons.questioning,
-    onPress: '/dashboard/myenquiries',
+    onPress: '/chat',
   },
   {
     title: "Car Loan",

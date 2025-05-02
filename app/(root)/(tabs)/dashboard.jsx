@@ -89,37 +89,19 @@ const Dashboard = () => {
   }, []);
 
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.clear();
-      Toast.show({
-        type: 'success',
-        text1: 'Logged Out',
-        text2: 'You have been logged out successfully.',
-        position: 'bottom',  // Optional: top, bottom, or center
-        visibilityTime: 4000, // Duration in ms
-        autoHide: true,
-      });
-
-      setTimeout(() => {
-        router.push('/signin'); // Ensure redirection happens after showing the toast
-      }, 1000);
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
-  };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView className="flex-1">
+      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
+        <Toast config={toastConfig} position="top" />
+      </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-32 px-7">
         {loading ? (
           <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
         ) : (
-          <View>
-            <Toast config={toastConfig} position="top" />
+          <View className="position-relative">
             <View className="flex flex-row items-center justify-between my-5">
               <Text className="text-xl font-rubik-bold upper">My Account</Text>
-
               <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
                 <Image source={icons.backArrow} className="w-5 h-5" />
               </TouchableOpacity>
@@ -167,11 +149,16 @@ const Dashboard = () => {
 
             <View className="flex flex-col mt-5 border-primary-200">
               {settings.map((item, index) => (
-                <TouchableOpacity key={index} onPress={() => router.push(item.onPress)} className="flex flex-row items-center py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
-                  <Image source={item.icon} className="size-6" />
-                  <View>
-                    <Text className="text-lg font-rubik-medium text-black-300 ml-3">{item.title}</Text>
-                    <Text className="text-sm font-rubik text-gray-700 ml-3">{item.subtitle}</Text>
+                <TouchableOpacity key={index} onPress={() => router.push(item.onPress)} className="flex flex-row items-center justify-between py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
+                  <View className="flex flex-row items-center">
+                    <Image source={item.icon} className="size-6" />
+                    <View>
+                      <Text className="text-lg font-rubik-medium text-black-300 ml-3">{item.title}</Text>
+                      <Text className="text-sm font-rubik text-gray-700 ml-3">{item.subtitle}</Text>
+                    </View>
+                  </View>
+                  <View className="me-3">
+                    <Image source={icons.rightArrow} className="size-6 ms-auto" />
                   </View>
                 </TouchableOpacity>
               ))}
@@ -179,31 +166,33 @@ const Dashboard = () => {
 
             <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
               {userData && userData.usertype == 'User' && (
-                <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
-                  <Image source={icons.person} className="size-6" />
-                  <View>
-                    <Text className="text-lg font-rubik-medium text-primary-300 ml-3">Become A Dealer</Text>
-                    <Text className="text-sm font-rubik text-gray-700 ml-3">Sell Car of Multiple Brands</Text>
+                <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center justify-between py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
+                  <View className="flex flex-row items-center">
+                    <Image source={icons.person} className="size-6" />
+                    <View>
+                      <Text className="text-lg font-rubik-medium text-primary-300 ml-3">Become A Dealer</Text>
+                      <Text className="text-sm font-rubik text-gray-700 ml-3">Sell Car of Multiple Brands</Text>
+                    </View>
                   </View>
-
+                  <View className="me-3">
+                    <Image source={icons.rightArrow} className="size-6 ms-auto" />
+                  </View>
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity onPress={() => router.push('/dashboard/support')} className="flex flex-row items-center py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
-                <Image source={icons.customersupport} className="size-8 backgroundColor: blue" />
-                <View>
-                  <Text className="text-lg font-rubik-medium text-black-300 ml-3">Help & Support</Text>
-                  <Text className="text-sm font-rubik text-gray-700 ml-3">Help Center & Legal terms</Text>
+              <TouchableOpacity onPress={() => router.push('/dashboard/support')} className="flex flex-row items-center justify-between py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
+                <View className="flex flex-row items-center">
+                  <Image source={icons.customersupport} className="size-8 backgroundColor: blue" />
+                  <View>
+                    <Text className="text-lg font-rubik-medium text-black-300 ml-3">Help & Support</Text>
+                    <Text className="text-sm font-rubik text-gray-700 ml-3">Help Center & Legal terms</Text>
+                  </View>
+                </View>
+                <View className="me-3">
+                  <Image source={icons.rightArrow} className="size-6 ms-auto" />
                 </View>
               </TouchableOpacity>
-            </View>
-
-            <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
-              <TouchableOpacity onPress={handleLogout} className="flex flex-row items-center py-2 border border-red-300 mb-2 rounded-2xl ps-4 bg-white">
-                <Image source={icons.logout} className="size-6" />
-                <Text className="text-lg font-rubik-medium text-danger ml-3">Logout</Text>
-              </TouchableOpacity>
-            </View>
+            </View> 
           </View>
         )}
       </ScrollView>

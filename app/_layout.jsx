@@ -7,7 +7,7 @@ import Toast from 'react-native-toast-message';
 import { ActivityIndicator, View, Text } from "react-native";
 import ChatContextProvider from './(root)/chat/ChatContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { navigationRef } from './NavigationService';
+import { navigationRef } from '../components/NavigationService';
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({

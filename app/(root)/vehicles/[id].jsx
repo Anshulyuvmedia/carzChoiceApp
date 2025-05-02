@@ -27,8 +27,8 @@ const CarDetails = () => {
     const [error, setError] = useState(null);
     const [CarData, setCarData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [CarThumbnail, setCarThumbnail] = useState(images.avatar);
     const [CarGallery, setCarGallery] = useState([]);
+    const [dealerThumbnail, setDealerThumbnail] = useState(images.avatar);
     const [dealerData, setDealerData] = useState([]);
 
     const [userData, setUserData] = useState([]);
@@ -70,7 +70,6 @@ const CarDetails = () => {
     const handleEditPress = () => {
         router.push(`/dashboard/editvehicle/${CarId}`);
     };
-
 
     const handleEnquiry = async () => {
         try {
@@ -168,16 +167,9 @@ const CarDetails = () => {
         }
     };
 
-    const handleChatPress= async => {
+    const handleChatPress = async => {
         router.push({
-            pathname: "/chat/ChatRoomScreen",
-            params: {
-                channelId: channel.id,
-                sellerId: dealerData.userid,
-                buyerId: loggedinUserId,
-                carId: CarId,
-                carName: enquiryData.vehiclename,
-            }
+            pathname: "/chat",
         });
     }
 
@@ -297,15 +289,24 @@ const CarDetails = () => {
             // console.log("Fetching dealer data...", dealerid);
             const response = await axios.get(`https://carzchoice.com/api/dealerprofile/${dealerid}`);
 
-            // console.log('Dealer Data:', response.data);
             const apiDealerData = response.data?.dealerData?.[0];
+            // console.log('Dealer Data:', apiDealerData);
 
             if (apiDealerData) {
                 setDealerData(apiDealerData);
+
+                // Set Profile Image, ensuring fallback to default avatar
+                setDealerThumbnail(
+                    apiDealerData.businesspics
+                        ? apiDealerData.businesspics.startsWith('http')
+                            ? apiDealerData.businesspics
+                            : `https://carzchoice.com/${apiDealerData.businesspics}`
+                        : images.avatar
+                );
             }
         } catch (error) {
             console.error('Error fetching user data:', error);
-            setImage(images.avatar);
+            setDealerThumbnail(images.avatar);
         } finally {
             setLoading(false);
         }
@@ -328,7 +329,6 @@ const CarDetails = () => {
         fetchUserData();
     }, []);
 
-
     useEffect(() => {
         let isMounted = true;
 
@@ -340,8 +340,6 @@ const CarDetails = () => {
 
         return () => { isMounted = false; };
     }, [CarId, loggedinUserId]); // 👈 Trigger after user ID is set
-
-
 
     // ✅ Loading State
     if (loading) {
@@ -579,6 +577,46 @@ const CarDetails = () => {
                         <Text style={{ color: "#0061FF", fontSize: 16, textAlign: 'center', fontWeight: 600 }}>🧮 Calculate Your EMI</Text>
                     </TouchableOpacity>,
 
+                    <View className="mt-6">
+                        <Text className="font-rubik-bold text-lg mb-3 text-gray-800">Posted By:</Text>
+
+                        {dealerData && (
+                            <View className="bg-white rounded-2xl p-4 shadow-md flex-row items-center space-x-4">
+                                {/* Dealer Thumbnail */}
+                                <Image
+                                    source={typeof dealerThumbnail === 'string' ? { uri: dealerThumbnail } : dealerThumbnail}
+                                    className="w-24 h-24 rounded-xl"
+                                    resizeMode="cover"
+                                />
+
+                                {/* Dealer Details */}
+                                <View className="flex-1 ms-2">
+                                    <Text className="text-xl font-rubik-bold text-primary-500 capitalize mb-1">
+                                        {dealerData?.businessname || 'User'}
+                                    </Text>
+
+                                    {/* <Text className="text-gray-700 mb-1">
+                                        <Text className="font-medium">Email:</Text> {dealerData.email || 'N/A'}
+                                    </Text> */}
+
+                                    <View className="flex-row items-center mb-2">
+                                        <Image source={icons.location} className="w-4 h-4 mr-1" />
+                                        <Text className="text-gray-700">
+                                            {dealerData.district || 'N/A'}, {dealerData.state || 'N/A'}
+                                        </Text>
+                                    </View>
+
+                                    <TouchableOpacity
+                                        onPress={() => router.push('/dealers/' + dealerData.userid)}
+                                        className="mt-2 bg-primary-100 px-4 py-2 rounded-full w-max"
+                                    >
+                                        <Text className="text-primary-600 font-rubik-medium text-sm text-center">View Profile</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+                    </View>,
+
                     <RBSheet
                         ref={refRBSheet}
                         height={550}
@@ -604,17 +642,8 @@ const CarDetails = () => {
             />
 
             <View className="absolute bottom-0 w-full bg-white rounded-t-2xl border border-primary-200 p-5 shadow-xl">
-
-
                 {/* Action Buttons */}
                 <View className="flex flex-row justify-between gap-4">
-                    {/* <TouchableOpacity
-                        onPress={() => openChat(item.mobile)}
-                        className="flex-1 flex-row items-center justify-center bg-green-600 py-3 rounded-full shadow-sm"
-                    >
-                        <Image source={icons.bubblechat} className="w-5 h-5 mr-2" />
-                        <Text className="text-white text-lg font-rubik-bold">Chat Now</Text>
-                    </TouchableOpacity> */}
                     {loggedinUserId == CarData?.userid ? (
                         <>
                             <TouchableOpacity
@@ -637,8 +666,8 @@ const CarDetails = () => {
                             onPress={handleEnquiry}
                             className="flex-1 flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-sm"
                         >
-                            <Image source={icons.bestprice} className="w-5 h-5 mr-2" />
-                            <Text className="text-white text-lg font-rubik-bold">Make Offer</Text>
+                            <Image source={icons.bubblechat} className="w-5 h-5 mr-2" />
+                            <Text className="text-white text-lg font-rubik-bold">Chat Now</Text>
                         </TouchableOpacity>
                     )}
 

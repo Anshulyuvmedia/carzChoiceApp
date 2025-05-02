@@ -242,7 +242,7 @@ const RegisterDealer = () => {
 
             if (response.data && Array.isArray(response.data.data)) {
                 const formattedCities = response.data.data.map((city, index) => ({
-                    label: city.District || `City ${index}`, // ✅ Correct property name
+                    label: city.District || `City ${index}`, // ✅ Correct city name
                     value: city.District || index,
                 }));
 

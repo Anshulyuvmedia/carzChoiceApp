@@ -390,7 +390,7 @@ const Search = () => {
                                     }}
                                 >
                                     <Text style={{ color: "#000", textTransform: 'capitalize', fontWeight: selectedColor === item.color ? "bold" : "normal" }}>
-                                        {item.color}  {/* ✅ Corrected property reference */}
+                                        {item.color} 
                                     </Text>
                                 </TouchableOpacity>
                             )}

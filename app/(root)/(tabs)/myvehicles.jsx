@@ -1,14 +1,14 @@
 import { StyleSheet, Text, TouchableOpacity, View, Image, FlatList, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import images from '@/constants/images';
 import icons from '@/constants/icons';
 
 const MyVehicles = () => {
-  const [userPropertyData, setUserPropertyData] = useState([]);
+  const [dealerData, setDealerData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [visibleItemsCount, setVisibleItemsCount] = useState(8); // To control number of visible items
   const router = useRouter();
@@ -53,7 +53,7 @@ const MyVehicles = () => {
           };
         });
 
-        setUserPropertyData(formattedData);
+        setDealerData(formattedData);
       } else {
         console.error('Unexpected API response format:', response.data);
       }
@@ -70,7 +70,7 @@ const MyVehicles = () => {
 
   // Handle loading more items on scroll
   const loadMoreItems = () => {
-    if (userPropertyData.length > visibleItemsCount) {
+    if (dealerData.length > visibleItemsCount) {
       setVisibleItemsCount(visibleItemsCount + 8); // Increase the visible items by 8
     }
   };
@@ -78,13 +78,11 @@ const MyVehicles = () => {
   return (
     <SafeAreaView className="bg-white flex-1 px-4 pb-20 ">
       <View className="flex-row items-center ml-2 justify-between">
+        <Text className="text-lg mr-2 font-rubik-bold text-black">My Cars</Text>
         <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
           <Image source={icons.backArrow} className="w-5 h-5" />
         </TouchableOpacity>
-        <Text className="text-lg mr-2 text-center font-rubik text-gray-700">My Vehicles</Text>
-        <TouchableOpacity onPress={() => router.push('/notifications')}>
-          <Image source={icons.bell} className='size-6' />
-        </TouchableOpacity>
+
       </View>
 
       <View className="mt-6 mb-12">
@@ -93,11 +91,11 @@ const MyVehicles = () => {
             <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 300 }} />
             <Text className="text-center text-gray-500 mt-10">Loading car...</Text>
           </View>
-        ) : userPropertyData.length === 0 ? (
+        ) : dealerData.length === 0 ? (
           <Text className="text-center text-gray-500 mt-10">No cars found.</Text>
         ) : (
           <FlatList
-            data={userPropertyData.slice(0, visibleItemsCount)} // Slice data to show only the visible items
+            data={dealerData.slice(0, visibleItemsCount)} // Slice data to show only the visible items
             keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (

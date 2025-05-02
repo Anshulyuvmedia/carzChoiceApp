@@ -9,7 +9,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LocationContext } from '@/components/LocationContext';
 
-const GetLocation = () => {
+const 
+GetLocation = () => {
     const [errorMsg, setErrorMsg] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
     const [loading, setLoading] = useState(false);
