@@ -1,13 +1,14 @@
-import { SplashScreen, Stack, useRouter, useNavigationContainerRef } from "expo-router";
+import { SplashScreen } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import './globals.css';
 import Toast from 'react-native-toast-message';
 import { ActivityIndicator, View, Text } from "react-native";
-import ChatContextProvider from './(root)/chat/ChatContext';
+import ChatContextProvider from './(root)/chat/ChatContext'; // Adjusted path if you follow layout groups
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { navigationRef } from '../components/NavigationService';
+import { Slot } from "expo-router";
+import { LocationProvider } from '@/components/LocationContext';
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
@@ -21,14 +22,7 @@ export default function RootLayout() {
 
     const [appIsReady, setAppIsReady] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(null);
-    const router = useRouter();
     const [hasNetworkError, setHasNetworkError] = useState(false);
-
-    // ✅ Bind expo-router's navigation container to your custom ref
-    const containerRef = useNavigationContainerRef();
-    useEffect(() => {
-        navigationRef.current = containerRef.current;
-    }, [containerRef]);
 
     useEffect(() => {
         const checkAuthSession = async () => {
@@ -39,17 +33,11 @@ export default function RootLayout() {
                     const userData = await AsyncStorage.getItem("userData");
                     const parsedUserData = userData ? JSON.parse(userData) : null;
 
-                    if (!parsedUserData || !parsedUserData.id) {
-                        await AsyncStorage.removeItem("userData");
-                        setIsAuthenticated(false);
-                    } else {
-                        setIsAuthenticated(true);
-                    }
+                    setIsAuthenticated(!!parsedUserData?.id);
                 }
             } catch (error) {
                 console.error("Error during authentication check:", error);
 
-                // ✅ Detect network error
                 if (error.message === "Network Error") {
                     setHasNetworkError(true);
                     Toast.show({
@@ -65,7 +53,6 @@ export default function RootLayout() {
                     });
                 }
 
-                // Still move forward to allow UI to load
                 setIsAuthenticated(false);
             } finally {
                 setAppIsReady(true);
@@ -76,37 +63,32 @@ export default function RootLayout() {
         checkAuthSession();
     }, [fontsLoaded]);
 
-
-    useEffect(() => {
-        if (appIsReady && isAuthenticated !== null) {
-            requestAnimationFrame(() => {
-                if (isAuthenticated) {
-                    router.replace("/");
-                } else {
-                    router.replace("/signin");
-                }
-            });
-        }
-    }, [appIsReady, isAuthenticated]);
-
-    if (!appIsReady) return null;
-
-    if (hasNetworkError) {
+    if (!appIsReady) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#000" />
-                <Text style={{ marginTop: 10 }}>Checking connection...</Text>
+                <Text style={{ marginTop: 10 }}>Loading...</Text>
             </View>
         );
     }
-    
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <ChatContextProvider>
-                <Stack screenOptions={{ headerShown: false }} />
+            <ChatContextProvider>  {/* Always provide chat context */}
+                <LocationProvider>
+                    {appIsReady ? (
+                        <Slot key={isAuthenticated ? "app" : "auth"} />
+                    ) : (
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            <ActivityIndicator size="large" color="#000" />
+                            <Text style={{ marginTop: 10 }}>Loading...</Text>
+                        </View>
+                    )}
+                </LocationProvider>
             </ChatContextProvider>
             <Toast />
         </GestureHandlerRootView>
     );
+
+
 }

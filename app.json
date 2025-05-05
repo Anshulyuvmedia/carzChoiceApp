@@ -3,6 +3,7 @@
     "name": "Carz Choice",
     "slug": "carzChoiceApp",
     "version": "1.0.0",
+    "sdkVersion": "52.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/carz-logo.png",
     "scheme": "carzchoiceapp",
@@ -89,7 +90,8 @@
             ]
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
