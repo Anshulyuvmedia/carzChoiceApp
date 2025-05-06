@@ -18,31 +18,33 @@ const ChatContextProvider = ({ children }) => {
         try {
             const userToken = await AsyncStorage.getItem('userToken');
             if (!userToken) {
-                console.error("User not authenticated!");
+                console.error("❌ No user token found in AsyncStorage");
+                setLoading(false); // <-- Prevent infinite loading
                 return;
             }
-
+    
             const storedUserData = await AsyncStorage.getItem('userData');
             const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
-
-            if (!parsedUserData || typeof parsedUserData !== 'object' || !parsedUserData.id) {
+    
+            if (!parsedUserData?.id) {
+                console.error("❌ Invalid user data, logging out");
                 await AsyncStorage.removeItem('userData');
-                router.push('/signin');
+                setLoading(false); // <-- Prevent infinite loading
                 return;
             }
-
+    
             const client = StreamChat.getInstance('3nbgqeewske9');
+    
             const user = {
                 id: parsedUserData.id.toString(),
-                name: parsedUserData.fullname
+                name: parsedUserData.fullname,
             };
-
-            // Ensure that the client is disconnected before connecting
+    
             if (client.user) {
                 await client.disconnectUser();
-                console.log('Disconnected existing user');
+                console.log('✅ Disconnected existing user');
             }
-
+    
             const response = await fetch('https://carzchoice.com/api/generate-chat-token', {
                 method: 'POST',
                 headers: {
@@ -50,27 +52,32 @@ const ChatContextProvider = ({ children }) => {
                     'Authorization': `Bearer ${userToken}`,
                 },
                 body: JSON.stringify({
-                    userId: parsedUserData.id.toString(),
-                    userName: parsedUserData.fullname,
+                    userId: user.id,
+                    userName: user.name,
                 }),
             });
+    
             const data = await response.json();
-            const token = data.token;
-
-            if (token) {
-                console.log('Connecting user to chat...');
-                await client.connectUser(user, token);
-                setChatClient(client);
-                console.log('User connected to chat');
-            } else {
-                console.error("Failed to fetch chat token");
+            const token = data?.token;
+    
+            if (!token) {
+                console.error("❌ Token generation failed:", data);
+                setLoading(false); // <-- Prevent infinite loading
+                return;
             }
+    
+            console.log("🔌 Connecting user to chat...");
+            await client.connectUser(user, token);
+            setChatClient(client);
+            console.log("✅ User connected to chat");
+    
         } catch (error) {
-            console.error("StreamChat initialization error:", error);
+            console.error("❌ StreamChat initialization error:", error);
         } finally {
             setLoading(false);
         }
     };
+    
 
     useEffect(() => {
         initChat();
@@ -128,11 +135,17 @@ const ChatContextProvider = ({ children }) => {
     if (loading || !chatClient) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text>Connecting user to chat...</Text>
+                <Text style={{ marginBottom: 10 }}>Connecting user to chat...</Text>
                 <ActivityIndicator size="large" color="#0000ff" />
+                {!loading && (
+                    <TouchableOpacity onPress={initChat}>
+                        <Text style={{ marginTop: 20, color: 'blue' }}>Retry</Text>
+                    </TouchableOpacity>
+                )}
             </View>
         );
     }
+    
 
     return (
         <OverlayProvider>

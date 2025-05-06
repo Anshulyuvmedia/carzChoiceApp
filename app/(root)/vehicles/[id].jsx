@@ -110,7 +110,7 @@ const CarDetails = () => {
                 });
 
                 if (channel) {
-                    console.log(" channel data:", channel);
+                    // console.log(" channel data:", channel);
                     await channel.sendMessage({
                         text: `Hi, I'm interested in this vehicle: ${enquiryData.vehiclename}. Contact: ${enquiryData.mobile}, Email: ${enquiryData.email}`,
                     });

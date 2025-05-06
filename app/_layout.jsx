@@ -32,7 +32,7 @@ export default function RootLayout() {
                 if (fontsLoaded) {
                     const userData = await AsyncStorage.getItem("userData");
                     const parsedUserData = userData ? JSON.parse(userData) : null;
-
+                    console.log("Parsed user data:", parsedUserData);
                     setIsAuthenticated(!!parsedUserData?.id);
                 }
             } catch (error) {
@@ -74,21 +74,26 @@ export default function RootLayout() {
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <ChatContextProvider>  {/* Always provide chat context */}
-                <LocationProvider>
-                    {appIsReady ? (
-                        <Slot key={isAuthenticated ? "app" : "auth"} />
+            <LocationProvider>
+                {appIsReady ? (
+                    isAuthenticated ? (
+                        <ChatContextProvider>
+                            <Slot key="app" />
+                        </ChatContextProvider>
                     ) : (
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                            <ActivityIndicator size="large" color="#000" />
-                            <Text style={{ marginTop: 10 }}>Loading...</Text>
-                        </View>
-                    )}
-                </LocationProvider>
-            </ChatContextProvider>
+                        <Slot key="auth" />
+                    )
+                ) : (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#000" />
+                        <Text style={{ marginTop: 10 }}>Loading...</Text>
+                    </View>
+                )}
+            </LocationProvider>
             <Toast />
         </GestureHandlerRootView>
     );
+
 
 
 }

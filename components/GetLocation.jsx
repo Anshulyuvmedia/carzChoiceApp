@@ -17,7 +17,7 @@ GetLocation = () => {
     const [cityData, setCityData] = useState([]);
     const [displayCity, setDisplayCity] = useState('');
     const refRBSheet = useRef(null);
-    const { updateCity } = useContext(LocationContext);
+    const { updateCity, currentCity } = useContext(LocationContext);
 
     const setNewLocation = async () => {
         if (selectedCity) {
@@ -34,14 +34,21 @@ GetLocation = () => {
 
     const fetchUserLocationFromStorage = useCallback(async () => {
         try {
-            const userCurrentCity = await AsyncStorage.getItem('userCurrentCity');
-            if (userCurrentCity) {
-                setDisplayCity(userCurrentCity);
-            } else {
-                const userData = await AsyncStorage.getItem('userData');
-                const parsed = userData ? JSON.parse(userData) : {};
-                const fallbackCity = parsed.district || parsed.city || "Unknown";
+            const userData = await AsyncStorage.getItem('userData');
+            if (userData) {
+                const parsedData = JSON.parse(userData);
+                console.log("User current city from storage:", parsedData.district);
+                const fallbackCity = parsedData.district || parsedData.city || "Unknown";
                 setDisplayCity(fallbackCity);
+                setSelectedCity(fallbackCity);
+                if (parsedData.district && parsedData.district !== currentCity) {
+                    await updateCity(parsedData.district);
+                }
+                
+
+            } else {
+                console.log("No user data found in storage.");
+                setDisplayCity("Unknown");
             }
         } catch (error) {
             console.error('Error fetching from storage:', error);

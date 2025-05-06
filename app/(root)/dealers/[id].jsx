@@ -268,7 +268,7 @@ const DealerDetails = () => {
                                         className="flex-1 flex-row items-center justify-center border border-gray-400 bg-blue-50 rounded-lg px-3 py-2 me-2"
                                     >
                                         <Image source={icons.eye} className="w-4 h-4 mr-2 " />
-                                        <Text className="text-sm font-rubik text-gray-700">View My Car</Text>
+                                        <Text className="text-sm font-rubik text-gray-700">View Car</Text>
                                     </TouchableOpacity>
 
 

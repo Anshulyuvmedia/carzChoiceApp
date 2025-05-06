@@ -215,7 +215,7 @@ const ChatsScreen = () => {
                                 data={groupedChannels.today}
                                 keyExtractor={(item) => item.id}
                                 renderItem={renderItem}
-                                contentContainerStyle={{ paddingBottom: 10 }}
+                                contentContainerStyle={{ paddingBottom: 5 }}
                                 showsVerticalScrollIndicator={false}
                             />
                         </View>
@@ -227,7 +227,7 @@ const ChatsScreen = () => {
                                 data={groupedChannels.older}
                                 keyExtractor={(item) => item.id}
                                 renderItem={renderItem}
-                                contentContainerStyle={{ paddingBottom: 20 }}
+                                contentContainerStyle={{ paddingBottom: 5 }}
                                 showsVerticalScrollIndicator={false}
                             />
                         </View>
