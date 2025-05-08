@@ -1,6 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View, Image, FlatList, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -70,15 +69,15 @@ const MyEnquiries = () => {
     };
 
     return (
-        <SafeAreaView className="bg-white flex-1 px-4 pb-20 ">
+        <View className="bg-white flex-1 px-4 pb-20 ">
             <View className="flex-row items-center ml-2 justify-between">
-                <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
+                <Text className="text-lg mr-2 text-center font-rubik text-gray-700">My Enquires</Text>
+                <TouchableOpacity onPress={() => router.back()} className="flex-row rounded-full w-11 h-11 items-center justify-center">
                     <Image source={icons.backArrow} className="w-5 h-5" />
                 </TouchableOpacity>
-                <Text className="text-lg mr-2 text-center font-rubik text-gray-700">My Enquires</Text>
-                <TouchableOpacity onPress={() => router.push('/notifications')}>
+                {/* <TouchableOpacity onPress={() => router.push('/notifications')}>
                     <Image source={icons.bell} className='size-6' />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
             </View>
 
             <View className="mt-6 mb-12">
@@ -156,7 +155,7 @@ const MyEnquiries = () => {
                     />
                 )}
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 

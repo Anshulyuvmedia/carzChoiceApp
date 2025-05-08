@@ -9,6 +9,8 @@ import ChatContextProvider from './(root)/chat/ChatContext'; // Adjusted path if
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Slot } from "expo-router";
 import { LocationProvider } from '@/components/LocationContext';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
     const [fontsLoaded] = useFonts({
@@ -32,12 +34,10 @@ export default function RootLayout() {
                 if (fontsLoaded) {
                     const userData = await AsyncStorage.getItem("userData");
                     const parsedUserData = userData ? JSON.parse(userData) : null;
-                    console.log("Parsed user data:", parsedUserData);
                     setIsAuthenticated(!!parsedUserData?.id);
                 }
             } catch (error) {
                 console.error("Error during authentication check:", error);
-
                 if (error.message === "Network Error") {
                     setHasNetworkError(true);
                     Toast.show({
@@ -52,7 +52,6 @@ export default function RootLayout() {
                         text2: 'An unexpected error occurred.',
                     });
                 }
-
                 setIsAuthenticated(false);
             } finally {
                 setAppIsReady(true);
@@ -73,27 +72,30 @@ export default function RootLayout() {
     }
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <LocationProvider>
-                {appIsReady ? (
-                    isAuthenticated ? (
-                        <ChatContextProvider>
-                            <Slot key="app" />
-                        </ChatContextProvider>
-                    ) : (
-                        <Slot key="auth" />
-                    )
-                ) : (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                        <ActivityIndicator size="large" color="#000" />
-                        <Text style={{ marginTop: 10 }}>Loading...</Text>
-                    </View>
-                )}
-            </LocationProvider>
-            <Toast />
-        </GestureHandlerRootView>
+        <SafeAreaProvider style={{ flex: 1 }}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+                <StatusBar style="dark" />
+                <LocationProvider>
+                    <SafeAreaView style={{ flex: 1 }}>
+                        {appIsReady ? (
+                            isAuthenticated ? (
+                                <ChatContextProvider>
+                                    <Slot key="app" />
+                                </ChatContextProvider>
+                            ) : (
+                                <Slot key="auth" />
+                            )
+                        ) : (
+                            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                <ActivityIndicator size="large" color="#000" />
+                                <Text style={{ marginTop: 10 }}>Loading...</Text>
+                            </View>
+                        )}
+                    </SafeAreaView>
+                </LocationProvider>
+                <Toast />
+            </GestureHandlerRootView>
+        </SafeAreaProvider>
     );
-
-
-
 }
+

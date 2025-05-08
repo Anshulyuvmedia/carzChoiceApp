@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState, useContext, useCallback } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import images from '@/constants/images';
 import Search from '@/components/Search';
 import { Card, LocationCard } from '@/components/Cards';
@@ -137,20 +136,20 @@ const Index = () => {
     }, []);
 
     return (
-        <SafeAreaView className='bg-white h-full'>
+        <View className='bg-white h-full'>
             <View className='flex flex-row items-center justify-between px-3'>
                 <TouchableOpacity onPress={() => router.push('/dashboard')} className='flex flex-row items-center ml-2 justify-center'>
                     <Image source={images.applogo} className='w-24 h-12' />
                 </TouchableOpacity>
 
-                <GetLocation />
 
                 <View className='flex flex-row items-center justify-between'>
-                    <TouchableOpacity onPress={() => router.push('/sellvehicle')}>
+                    <GetLocation />
+                    {/* <TouchableOpacity onPress={() => router.push('/sellvehicle')}>
                         <Text className="font-rubik-bold text-lg">Sell</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('explore')}>
-                        <Text className="ms-4 font-rubik-bold text-lg">Buy</Text>
+                    </TouchableOpacity> */}
+                    <TouchableOpacity onPress={() => router.push('/dashboard/explore')}>
+                        <Text className="font-rubik-bold text-lg">Buy</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -226,7 +225,7 @@ const Index = () => {
                     }
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 };
 

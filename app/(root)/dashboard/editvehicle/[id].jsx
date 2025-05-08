@@ -1,12 +1,10 @@
-import { Image, StyleSheet, Text, ScrollView, TouchableOpacity, View, TextInput, FlatList, Platform, ActivityIndicator } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, TextInput, FlatList, Platform, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import icons from '@/constants/icons';
 import { ProgressSteps, ProgressStep } from 'react-native-progress-steps';
 import * as ImagePicker from 'expo-image-picker';
 import RNPickerSelect from 'react-native-picker-select';
-import { Link, router, useLocalSearchParams } from 'expo-router';
-import * as DocumentPicker from 'expo-document-picker';
+import { router, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-get-random-values';
@@ -544,17 +542,17 @@ const EditVehicle = () => {
     }
 
     return (
-        <SafeAreaView style={{ backgroundColor: 'white', height: '100%', paddingHorizontal: 20 }}>
+        <View style={{ backgroundColor: 'white', height: '100%', paddingHorizontal: 20 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', backgroundColor: '#E0E0E0', borderRadius: 50, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-                    <Image source={icons.backArrow} style={{ width: 20, height: 20 }} />
-                </TouchableOpacity>
                 <Text style={{ fontSize: 16, marginRight: 10, textAlign: 'center', fontFamily: 'Rubik-Medium', color: '#4A4A4A' }}>
                     Edit My Vehicle
                 </Text>
-                <TouchableOpacity onPress={() => router.push('/notifications')}>
-                    <Image source={icons.bell} className='size-6' />
+                <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row',  borderRadius: 50, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                    <Image source={icons.backArrow} style={{ width: 20, height: 20 }} />
                 </TouchableOpacity>
+                {/* <TouchableOpacity onPress={() => router.push('/notifications')}>
+                    <Image source={icons.bell} className='size-6' />
+                </TouchableOpacity> */}
             </View>
 
             <View className="flex justify-between items-center pt-3 flex-row">
@@ -917,7 +915,7 @@ const EditVehicle = () => {
                     <ActivityIndicator />
                 </View>
             )}
-        </SafeAreaView>
+        </View>
     )
 }
 

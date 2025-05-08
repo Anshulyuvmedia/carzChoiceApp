@@ -18,6 +18,9 @@ const ChatsScreen = () => {
     const handleCardPress = (carId) => {
         router.push(`/vehicles/${carId}`);
     };
+    const handleImagePress = (dealerId) => {
+        router.push(`/dealers/${dealerId}`);
+    };
 
     const fetchUserChannels = async () => {
         setLoading(true);
@@ -66,46 +69,66 @@ const ChatsScreen = () => {
     const isToday = (date) => {
         const today = new Date();
         const chatDate = new Date(date);
-        return today.toDateString() === chatDate.toDateString();
+        return (
+            today.getFullYear() === chatDate.getFullYear() &&
+            today.getMonth() === chatDate.getMonth() &&
+            today.getDate() === chatDate.getDate()
+        );
     };
+
 
     const filteredChannels = selectedTab === 'Unread'
         ? channels.filter(channel => channel.countUnread() > 0)
         : channels;
 
-        const groupedChannels = {
-            today: [],
-            older: [],
-        };
-        
-        filteredChannels.forEach(channel => {
-            const lastMessage = channel?.state?.messages?.[channel.state.messages.length - 1];
-            const createdAt = lastMessage?.created_at;
-        
-            if (!createdAt || isNaN(new Date(createdAt).getTime())) {
-                groupedChannels.older.push(channel); // Treat invalid/missing dates as "Older"
-            } else if (isToday(createdAt)) {
-                groupedChannels.today.push(channel);
-            } else {
-                groupedChannels.older.push(channel);
-            }
-        });
-        
+    const groupedChannels = {
+        today: [],
+        older: [],
+    };
+
+    filteredChannels.forEach(channel => {
+        const lastMessage = channel?.state?.messages?.[channel.state.messages.length - 1];
+        const createdAt = lastMessage?.created_at;
+
+        if (!createdAt || isNaN(new Date(createdAt).getTime())) {
+            groupedChannels.older.push(channel); // Treat invalid/missing dates as "Older"
+        } else if (isToday(createdAt)) {
+            groupedChannels.today.push(channel);
+        } else {
+            groupedChannels.older.push(channel);
+        }
+    });
+
 
     const renderItem = ({ item: channel }) => {
         const lastMessage = channel.state.messages[channel.state.messages.length - 1];
         const otherMember = Object.values(channel.state.members).find(member => member.user.id !== chatClient.user.id);
         const carName = channel.data.name || "Car Chat";
-
+        const imageUrl = channel?.data?.image;
+        // console.log(" carName:", carName);
         return (
-            <TouchableOpacity onPress={() => handleChatPress(channel)} className="mb-4 p-4 bg-gray-100 rounded-2xl shadow-sm">
+            <TouchableOpacity
+                onPress={() => handleChatPress(channel)}
+                className="mb-4 p-4 bg-gray-100 rounded-2xl shadow-sm">
                 <View className="flex-row items-start space-x-4">
                     <View className="relative">
-                        <View className="w-12 h-12 rounded-full bg-primary-200 items-center justify-center">
-                            <Text className="text-primary-300 font-bold text-lg">
-                                {getInitials(otherMember?.user?.name || 'D')}
-                            </Text>
-                        </View>
+                        <TouchableOpacity
+                            onPress={() => handleImagePress(otherMember?.user?.id)}>
+                            <View className="w-16 h-16 rounded-xl bg-primary-200 items-center justify-center overflow-hidden">
+                                {imageUrl ? (
+                                    <Image
+                                        source={{ uri: imageUrl }}
+                                        className="w-full h-full"
+                                        resizeMode="cover"
+                                    />
+                                ) : (
+                                    <Text className="text-primary-300 font-bold text-lg">
+                                        {getInitials(otherMember?.user?.name || 'D')}
+                                    </Text>
+                                )}
+                            </View>
+                        </TouchableOpacity>
+
                         {channel.countUnread() > 0 && (
                             <View className="absolute -top-1 -right-1 bg-red-500 rounded-full px-1.5 py-0.5 min-w-[20px] items-center justify-center">
                                 <Text className="text-xs text-white font-bold">
@@ -121,7 +144,8 @@ const ChatsScreen = () => {
                                 {otherMember?.user?.name || 'Dealer'}
                             </Text>
                             <Text className="text-xs text-gray-400">
-                                {new Date(channel.data.last_message_at).toLocaleDateString('en-GB')}
+                                {channel.data.last_message_at ? new Date(channel.data.last_message_at).toLocaleDateString('en-GB') : ''}
+
                             </Text>
                         </View>
                         <Text className="text-sm font-medium text-gray-900">{carName}</Text>
@@ -167,9 +191,9 @@ const ChatsScreen = () => {
                 <Text className="text-xl font-rubik-bold text-black">All Chats</Text>
                 <TouchableOpacity
                     onPress={() => router.back()}
-                    className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+                    className="w-11 h-11 rounded-full items-center justify-center"
                 >
-                    <Image source={icons.backArrow} className="w-4 h-4" />
+                    <Image source={icons.backArrow} className="w-5 h-5" />
                 </TouchableOpacity>
             </View>
 
@@ -179,7 +203,8 @@ const ChatsScreen = () => {
 
                     const count = tab === 'Unread'
                         ? channels.filter(c => c.countUnread() > 0).length
-                        : channels.filter(c => c.countUnread() === 0).length;
+                        : channels.length;
+
 
                     const isActive = selectedTab === tab;
 

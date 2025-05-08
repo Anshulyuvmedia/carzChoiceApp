@@ -1,6 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View, Image, FlatList, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -76,10 +75,10 @@ const MyVehicles = () => {
   };
 
   return (
-    <SafeAreaView className="bg-white flex-1 px-4 pb-20 ">
+    <View className="bg-white flex-1 px-4 pb-20 pt-2">
       <View className="flex-row items-center ml-2 justify-between">
         <Text className="text-lg mr-2 font-rubik-bold text-black">My Cars</Text>
-        <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
+        <TouchableOpacity onPress={() => router.back()} className="flex-row shadow rounded-full w-11 h-11 items-center justify-center">
           <Image source={icons.backArrow} className="w-5 h-5" />
         </TouchableOpacity>
 
@@ -182,7 +181,7 @@ const MyVehicles = () => {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

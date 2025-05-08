@@ -1,6 +1,5 @@
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, ScrollView, Image } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import images from '@/constants/images';
 import icons from '@/constants/icons';
 import { Link } from 'expo-router';
@@ -157,7 +156,7 @@ const Signup = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
         <Image source={images.applogo} className="w-full h-36" resizeMode="contain" />
         <View className='pt-5'>
@@ -233,7 +232,7 @@ const Signup = () => {
         </View>
         <Toast config={toastConfig} position="bottom" />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

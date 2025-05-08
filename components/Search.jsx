@@ -104,7 +104,7 @@ const Search = () => {
         }
 
         router.push({
-            pathname: "explore",
+            pathname: "/dashboard/explore",
             params: filters,
         });
     };

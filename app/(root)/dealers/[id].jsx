@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, ActivityIndicator, Image, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, Image, TouchableOpacity, FlatList } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Toast, { BaseToast } from 'react-native-toast-message';
@@ -161,7 +161,7 @@ const DealerDetails = () => {
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50">
             {/* Toast + Back Button */}
             <Toast config={toastConfig} position="top" />
             <View className="flex-row justify-between items-center my-5 px-5">
@@ -270,8 +270,6 @@ const DealerDetails = () => {
                                         <Image source={icons.eye} className="w-4 h-4 mr-2 " />
                                         <Text className="text-sm font-rubik text-gray-700">View Car</Text>
                                     </TouchableOpacity>
-
-
                                 </View>
                             </View>
                         </View>
@@ -282,7 +280,7 @@ const DealerDetails = () => {
                     contentContainerStyle={{ paddingBottom: 50 }}
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 };
 

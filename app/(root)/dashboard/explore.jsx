@@ -1,6 +1,5 @@
 import { View, Text, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { useState, useEffect, useContext } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import axios from 'axios';
 import icons from '@/constants/icons';
@@ -26,7 +25,7 @@ const Explore = () => {
     brand: null,
   });
   const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
+  // const tabBarHeight = useBottomTabBarHeight();
 
   const handleCardPress = (id) => router.push(`/vehicles/${id}`);
 
@@ -58,7 +57,7 @@ const Explore = () => {
       (key) => requestBody.attribute[key] === null && delete requestBody.attribute[key]
     );
     if (!requestBody.location) delete requestBody.location;
-
+    // console.log("Request Body:", requestBody);
     try {
       const response = await axios.post("https://carzchoice.com/api/filterOldCarByAttribute", requestBody, {
         headers: { "Content-Type": "application/json" },
@@ -93,18 +92,18 @@ const Explore = () => {
   const visibleCars = listingData.slice(0, visibleCount);
 
   return (
-    <SafeAreaView className="bg-white  flex-1">
+    <View className="bg-white  flex-1">
       <View className="px-5">
         <View className="flex flex-row items-center ml-2 mb-3 justify-between">
-          <TouchableOpacity onPress={() => router.navigate('/')} className="flex flex-row bg-primary-200 rounded-full size-11 items-center justify-center">
+          <Text className="text-base mr-2 text-center font-rubik-medium text-black-300">
+            Explore Your Dream Car
+          </Text>
+          <TouchableOpacity onPress={() => router.navigate('/')} className="flex flex-row rounded-full size-11 items-center justify-center">
             <Image source={icons.backArrow} className="size-5" />
           </TouchableOpacity>
-          <Text className="text-base mr-2 text-center font-rubik-medium text-black-300">
-            Search for Your Dream Car
-          </Text>
-          <TouchableOpacity onPress={() => router.push('/notifications')}>
+          {/* <TouchableOpacity onPress={() => router.push('/notifications')}>
             <Image source={icons.bell} className="size-6" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         <View className="min-h-[60px]">
@@ -140,7 +139,7 @@ const Explore = () => {
             </View>
           }
           contentContainerStyle={{
-            paddingBottom: insets.bottom + tabBarHeight + 80,
+            paddingBottom: insets.bottom + 80,
             paddingTop: 10,
           }}
           columnWrapperStyle={{ flex: 1, gap: 5, paddingHorizontal: 5 }}
@@ -149,7 +148,7 @@ const Explore = () => {
           onEndReachedThreshold={0.5}   // ✅ triggers earlier
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

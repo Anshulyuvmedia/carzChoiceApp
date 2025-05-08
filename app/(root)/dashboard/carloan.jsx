@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, ActivityIndicator, Platform, TouchableOpacity, Image, TextInput } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast, { BaseToast } from 'react-native-toast-message';
 import icons from '@/constants/icons';
 import images from '@/constants/images';
@@ -249,7 +248,7 @@ const CarLoan = () => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
             {loading ? (
                 <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
             ) : (
@@ -366,7 +365,7 @@ const CarLoan = () => {
                     </Text>
                 </View>
             )}
-        </SafeAreaView>
+        </View>
     )
 }
 

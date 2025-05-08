@@ -1,8 +1,7 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import images from '@/constants/images';
 import icons from '@/constants/icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { settings } from '@/constants/data';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -88,25 +87,63 @@ const Dashboard = () => {
     fetchUserData();
   }, []);
 
+  const renderItem = ({ item, index }) => (
+    <TouchableOpacity
+      key={index}
+      onPress={() => router.push(item.onPress)}
+      className="flex flex-row items-center justify-between py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white mx-5"
+    >
+      <View className="flex flex-row items-center">
+        <Image source={item.icon} className="size-6" />
+        <View>
+          <Text className="text-lg font-rubik-medium text-black-300 ml-3">{item.title}</Text>
+          <Text className="text-sm font-rubik text-gray-700 ml-3">{item.subtitle}</Text>
+        </View>
+      </View>
+      <View className="me-3">
+        <Image source={icons.rightArrow} className="size-6 ms-auto" />
+      </View>
+    </TouchableOpacity>
+  );
 
+  const listData = [
+    ...settings,
+    {
+      title: 'Become A Dealer',
+      subtitle: 'Sell Car of Multiple Brands',
+      icon: icons.person,
+      onPress: '/dashboard/registerdealer',
+      condition: userData && userData.usertype === 'User',
+    },
+    {
+      title: 'Help & Support',
+      subtitle: 'Help Center & Legal terms',
+      icon: icons.customersupport,
+      onPress: '/dashboard/support',
+    },
+  ];
 
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1">
       <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
         <Toast config={toastConfig} position="top" />
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-32 px-7">
-        {loading ? (
-          <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
-        ) : (
-          <View className="position-relative">
-            <View className="flex flex-row items-center justify-between my-5">
+      <FlatList
+        data={listData.filter(item => item.condition !== false)}  // Filter out items based on the condition
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderItem}
+        ListHeaderComponent={
+          <>
+            {/* Header */}
+            <View className="flex flex-row items-center justify-between m-5">
               <Text className="text-xl font-rubik-bold upper">My Account</Text>
-              <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
+              <TouchableOpacity onPress={() => router.back()} className="flex-ro rounded-full w-11 h-11 items-center justify-center">
                 <Image source={icons.backArrow} className="w-5 h-5" />
               </TouchableOpacity>
             </View>
-            <View className="flex flex-row items-center justify-start shadow bg-white rounded-2xl px-3">
+
+            {/* Profile Info */}
+            <View className="flex flex-row items-center justify-start shadow bg-white rounded-2xl px-3 mx-5 mb-3">
               <Image
                 source={typeof image === 'string' ? { uri: image } : image}
                 className="size-12 rounded-full"
@@ -141,62 +178,15 @@ const Dashboard = () => {
                       </TouchableOpacity>
                     </View>
                   </View>
-
                 )}
               </View>
             </View>
-
-
-            <View className="flex flex-col mt-5 border-primary-200">
-              {settings.map((item, index) => (
-                <TouchableOpacity key={index} onPress={() => router.push(item.onPress)} className="flex flex-row items-center justify-between py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
-                  <View className="flex flex-row items-center">
-                    <Image source={item.icon} className="size-6" />
-                    <View>
-                      <Text className="text-lg font-rubik-medium text-black-300 ml-3">{item.title}</Text>
-                      <Text className="text-sm font-rubik text-gray-700 ml-3">{item.subtitle}</Text>
-                    </View>
-                  </View>
-                  <View className="me-3">
-                    <Image source={icons.rightArrow} className="size-6 ms-auto" />
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
-              {userData && userData.usertype == 'User' && (
-                <TouchableOpacity onPress={() => router.push('/dashboard/registerdealer')} className="flex flex-row items-center justify-between py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
-                  <View className="flex flex-row items-center">
-                    <Image source={icons.person} className="size-6" />
-                    <View>
-                      <Text className="text-lg font-rubik-medium text-primary-300 ml-3">Become A Dealer</Text>
-                      <Text className="text-sm font-rubik text-gray-700 ml-3">Sell Car of Multiple Brands</Text>
-                    </View>
-                  </View>
-                  <View className="me-3">
-                    <Image source={icons.rightArrow} className="size-6 ms-auto" />
-                  </View>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity onPress={() => router.push('/dashboard/support')} className="flex flex-row items-center justify-between py-2 border border-gray-300 mb-2 rounded-2xl ps-4 bg-white">
-                <View className="flex flex-row items-center">
-                  <Image source={icons.customersupport} className="size-8 backgroundColor: blue" />
-                  <View>
-                    <Text className="text-lg font-rubik-medium text-black-300 ml-3">Help & Support</Text>
-                    <Text className="text-sm font-rubik text-gray-700 ml-3">Help Center & Legal terms</Text>
-                  </View>
-                </View>
-                <View className="me-3">
-                  <Image source={icons.rightArrow} className="size-6 ms-auto" />
-                </View>
-              </TouchableOpacity>
-            </View> 
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          </>
+        }
+        contentContainerStyle={{ paddingBottom: 80 }}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
   );
 };
 

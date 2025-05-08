@@ -6,24 +6,25 @@ import cities from '@/constants/cities';
 const LocationScroll = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
-    const [selectedCategory, setSelectedCategory] = useState(params.city || '');
+    const [selectedCategory, setSelectedCategory] = useState((params.city || '').toUpperCase());
+
 
     const handleCategoryPress = (category) => {
         const updatedParams = { ...params };
-
-        if (selectedCategory === category) {
-            setSelectedCategory('');  // Deselect if the same city is clicked again
-            delete updatedParams.city;  // Remove city from params
+        const upperCategory = category.toUpperCase();
+        if (selectedCategory === upperCategory) {
+            setSelectedCategory('');
+            delete updatedParams.city;
         } else {
-            setSelectedCategory(category);
-            updatedParams.city = category;
+            setSelectedCategory(upperCategory);
+            updatedParams.city = upperCategory;
+            // console.log("Current Selected City:", updatedParams);
         }
 
-        // // 🔹 Slight delay for smooth navigation
-        // setTimeout(() => {
-        //     router.push({ pathname: "explore", params: updatedParams });
-        // }, 200);
+        // Uncomment this when ready to navigate
+        router.push({ pathname: "/dashboard/explore", params: updatedParams });
     };
+
 
     return (
         <FlatList
@@ -35,7 +36,7 @@ const LocationScroll = () => {
             contentContainerStyle={styles.flatListContainer}
             renderItem={({ item }) => {
                 const city = cities[item];
-                const isSelected = selectedCategory === item;
+                const isSelected = selectedCategory === item.toUpperCase();
                 return (
                     <TouchableOpacity
                         onPress={() => handleCategoryPress(item)}

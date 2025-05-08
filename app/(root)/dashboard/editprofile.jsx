@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, SafeAreaView, Image, TouchableOpacity, TextInput, ActivityIndicator, Alert, Platform } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ActivityIndicator, Alert, Platform } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import images from '@/constants/images';
 import icons from '@/constants/icons';
@@ -187,7 +187,7 @@ const EditProfile = () => {
 
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerText} className="capitalize">Edit {usertype} Profile</Text>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -255,7 +255,7 @@ const EditProfile = () => {
             <TouchableOpacity onPress={handleSubmit} style={styles.submitButton} disabled={loading}>
                 <Text style={styles.submitButtonText}>{loading ? 'UPDATING...' : 'UPDATE PROFILE'}</Text>
             </TouchableOpacity>
-        </SafeAreaView>
+        </View>
     );
 };
 

@@ -31,7 +31,7 @@ const AllBrands = () => {
             setSelectedCategory(category);
         }
 
-        router.push({ pathname: "explore", params: updatedParams });
+        router.push({ pathname: "/dashboard/explore", params: updatedParams });
     };
 
     const fetchBrandList = async () => {

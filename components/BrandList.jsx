@@ -21,7 +21,7 @@ const BrandList = () => {
     const handleCategoryPress = (category) => {
         const updatedParams = { ...params, brand: category };
         setSelectedCategory(category);
-        router.push({ pathname: "explore", params: updatedParams });
+        router.push({ pathname: "/dashboard/explore", params: updatedParams });
     };
 
 

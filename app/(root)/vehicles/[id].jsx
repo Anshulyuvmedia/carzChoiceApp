@@ -1,6 +1,6 @@
 
-import { StyleSheet, Image, FlatList, ScrollView, Alert, Text, TouchableOpacity, View, Dimensions, Platform, ActivityIndicator, Share } from "react-native";
-import { router, useLocalSearchParams, useRouter } from "expo-router";
+import { StyleSheet, Image, FlatList, Text, TouchableOpacity, View, Dimensions, Platform, ActivityIndicator, Share } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import React, { useEffect, useState, useRef } from 'react';
@@ -9,7 +9,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-get-random-values';
 import { useNavigation } from "@react-navigation/native";
 import MortgageCalculator from "@/components/MortgageCalculator";
-import * as Linking from 'expo-linking';
 import Carousel from "react-native-reanimated-carousel";
 import { AntDesign } from "@expo/vector-icons";
 import FeaturesAccordion from "../../../components/FeaturesAccordion";
@@ -80,8 +79,8 @@ const CarDetails = () => {
                 return;
             }
             const parsedUserData = JSON.parse(storedData);
+            const carImage = CarGallery?.length > 0 ? CarGallery[0] : null;
 
-            // console.log("Parsed User Data:", parsedUserData);
             const enquiryData = {
                 fullname: parsedUserData.fullname || "Unknown",
                 userid: parsedUserData.id,
@@ -107,31 +106,39 @@ const CarDetails = () => {
                     buyerId: parsedUserData.id,
                     carId: CarId,
                     carName: enquiryData.vehiclename,
+                    dealerName: dealerData.businessname,
+                    carImage: carImage
                 });
 
-                if (channel) {
-                    // console.log(" channel data:", channel);
+                if (!channel) throw new Error("Failed to create or fetch chat channel");
+
+                const isNew = !channel.state.messages || channel.state.messages.length === 0;
+                console.log('isNew',isNew);
+                if (isNew) {
                     await channel.sendMessage({
                         text: `Hi, I'm interested in this vehicle: ${enquiryData.vehiclename}. Contact: ${enquiryData.mobile}, Email: ${enquiryData.email}`,
                     });
-
-                    Toast.show({ type: 'success', text1: 'Success', text2: 'Enquiry submitted & chat started!' });
-
-                    setTimeout(() => {
-                        router.push({
-                            pathname: "/chat/ChatRoomScreen",
-                            params: {
-                                channelId: channel.id,
-                                sellerId: dealerData.userid,
-                                buyerId: parsedUserData.id,
-                                carId: CarId,
-                                carName: enquiryData.vehiclename,
-                            }
-                        });
-                    }, 1500);
-                } else {
-                    Toast.show({ type: 'error', text1: 'Chat Error', text2: 'Failed to create chat channel.' });
                 }
+
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: isNew ? 'Enquiry submitted & chat started!' : 'Enquiry submitted!',
+                });
+
+                setTimeout(() => {
+                    router.push({
+                        pathname: "/chat/ChatRoomScreen",
+                        params: {
+                            channelId: channel.id,
+                            sellerId: dealerData.userid,
+                            buyerId: parsedUserData.id,
+                            carId: CarId,
+                            carName: enquiryData.vehiclename,
+                            carImage: carImage,
+                        }
+                    });
+                }, 1500);
             } else {
                 Toast.show({
                     type: 'error',

@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, ActivityIndicator, Platform, TouchableOpacity, Image, TextInput } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast, { BaseToast } from 'react-native-toast-message';
 import icons from '@/constants/icons';
 import RNPickerSelect from 'react-native-picker-select';
@@ -264,7 +263,7 @@ const carInsurance = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1">
+        <View className="flex-1">
             {loading ? (
                 <ActivityIndicator size="large" color="#0061ff" style={{ marginTop: 400 }} />
             ) : (
@@ -276,7 +275,7 @@ const carInsurance = () => {
                         <View className="flex flex-row items-center justify-between my-5">
                             <Text className="text-xl font-rubik-bold upper">Car Insurance</Text>
 
-                            <TouchableOpacity onPress={() => router.back()} className="flex-row bg-gray-300 rounded-full w-11 h-11 items-center justify-center">
+                            <TouchableOpacity onPress={() => router.back()} className="flex-row rounded-full w-11 h-11 items-center justify-center">
                                 <Image source={icons.backArrow} className="w-5 h-5" />
                             </TouchableOpacity>
                         </View>
@@ -376,7 +375,7 @@ const carInsurance = () => {
                     </TouchableOpacity>
                 </View>
             )}
-        </SafeAreaView>
+        </View>
     )
 }
 

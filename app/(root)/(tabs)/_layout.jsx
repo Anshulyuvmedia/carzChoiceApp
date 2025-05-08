@@ -54,7 +54,7 @@ const TabsLayout = () => {
                     }}
                 />
 
-                <Tabs.Screen
+                {/* <Tabs.Screen
                     name="explore"
                     options={{
                         title: "Buy Car",
@@ -63,7 +63,7 @@ const TabsLayout = () => {
                             <TabIcon focused={focused} icon={icons.keys} title="Buy Car" />
                         ),
                     }}
-                />
+                /> */}
                 <Tabs.Screen
                     name="myvehicles"
                     options={{

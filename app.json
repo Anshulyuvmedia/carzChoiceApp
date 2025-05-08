@@ -67,13 +67,6 @@
         }
       ],
       [
-        "expo-media-library",
-        {
-          "photosPermission": "$(Carz Choice App) would like access to your photo gallery to share image in a message.",
-          "savePhotosPermission": "$(Carz Choice App) would like to save photos to your photo gallery after downloading from a message."
-        }
-      ],
-      [
         "expo-video",
         {
           "supportsBackgroundPlayback": true,

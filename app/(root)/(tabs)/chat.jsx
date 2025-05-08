@@ -4,7 +4,7 @@ import ChatStack from '../chat/_layout'; // Import the chat stack from the chat 
 
 const ChatTab = () => {
     return (
-        <View style={{ flex: 1 }}>
+        <View className="flex-1">
             {/* Chat Stack will be rendered here */}
             <ChatStack />
         </View>
